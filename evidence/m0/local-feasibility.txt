@@ -1,0 +1,30 @@
+M0 local feasibility checks
+Run date: 2026-10-22
+Python: 3.12.10
+
+Pinned sample package:
+  duckdb: 1.4.1
+  dbt-core: 1.12.6
+  dbt-duckdb: 1.9.6
+  azure-functions: 1.24.0
+  azure-identity: 1.25.1
+  azure-storage-blob: 12.27.1
+  Python package bytes: 450,036,250
+  DuckDB extension bytes: 148,785,710
+  Total uncompressed bytes: 598,821,960
+  ZIP bytes: 181,746,036
+
+DuckDB extensions (auto-install and auto-load disabled):
+  azure: loaded from local file (28,902,934 bytes)
+  httpfs: loaded from local file (46,418,454 bytes)
+  spatial: loaded from local file (73,463,830 bytes)
+  spatial smoke: ST_Point -> POINT (174.77 -41.29)
+  Azure secret syntax: PROVIDER CREDENTIAL_CHAIN, CHAIN managed_identity accepted
+
+GDAL/OpenFileGDB through DuckDB Spatial:
+  driver reports can_create=true
+  point dataset write: success
+  round trip: id=1 and WKB geometry returned
+
+The real managed-identity ADLS operation is deferred to M1 because no storage
+resource existed and no resource creation was authorised for this check.

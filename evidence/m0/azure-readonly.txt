@@ -1,0 +1,30 @@
+M0 Azure read-only checks
+Run date: 2026-10-22
+
+Subscription:
+  state: Enabled
+  billing currency: NZD
+  ARM resources: 0
+  current M0 cost: NZD 0.00 (no billable resources or usage)
+
+Flex Consumption in australiaeast:
+  SKU: FC1
+  available: yes
+  Python: 3.10, 3.11, 3.12, 3.13, 3.14
+  memory MB: 512, 2048 (default), 4096
+  maximum-instance lower bound: 1
+
+Azure OpenAI in australiaeast:
+  S0 account quota: 1
+  gpt-5-mini GlobalStandard quota: 500 thousand TPM
+  gpt-4.1-mini GlobalStandard quota: 200 thousand TPM
+  o4-mini GlobalStandard quota: 100 thousand TPM
+  resource creation and inference were not attempted
+
+Cost APIs:
+  Cost Management query and Consumption usage endpoints returned that the Free
+  Account offer is not a supported WebDirect/AIRS offer. No paid usage was
+  created to test budget-versus-credit behaviour.
+
+Provider registration deviation:
+  Microsoft.AVS is registered. No AVS resource exists. It was not unregistered.

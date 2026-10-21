@@ -1,0 +1,24 @@
+# Terraform working data and local state
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfvars
+*.tfvars.json
+crash.log
+crash.*.log
+
+# Python and local tooling
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Phase-zero research downloads and local experiments
+tmp/

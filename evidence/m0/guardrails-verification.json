@@ -1,0 +1,31 @@
+{
+  "checked_at": "2026-10-22",
+  "scope": "subscription",
+  "currency": "NZD",
+  "contact_email": "[REDACTED]",
+  "budgets": [
+    {
+      "name": "spend-alert-1",
+      "amount": 2.0,
+      "time_grain": "Monthly",
+      "notifications": ["Actual:GreaterThanOrEqualTo:100"]
+    },
+    {
+      "name": "spend-alert-3",
+      "amount": 5.0,
+      "time_grain": "Monthly",
+      "notifications": [
+        "Actual:GreaterThanOrEqualTo:100",
+        "Forecasted:GreaterThanOrEqualTo:100"
+      ]
+    },
+    {
+      "name": "spend-alert-5",
+      "amount": 8.0,
+      "time_grain": "Monthly",
+      "notifications": ["Actual:GreaterThanOrEqualTo:100"]
+    }
+  ],
+  "resource_count": 0,
+  "cost_anomaly_alert": "unsupported on current free subscription; recheck after PAYG upgrade per D19"
+}

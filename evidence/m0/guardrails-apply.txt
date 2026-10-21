@@ -1,0 +1,19 @@
+M0 guardrails apply record (sanitized)
+Run date: 2026-10-22
+Approval: D13 one-time pre-approval, conditional on exactly three budget creates
+
+Precondition result:
+  Plan: 3 to add, 0 to change, 0 to destroy.
+  Resource types: azurerm_consumption_budget_subscription only.
+
+Apply result:
+  Apply complete! Resources: 3 added, 0 changed, 0 destroyed.
+
+Post-apply verification on 2026-10-22:
+  terraform fmt -check: passed
+  terraform validate: Success! The configuration is valid.
+  terraform plan -detailed-exitcode: exit 0
+  No changes. Your infrastructure matches the configuration.
+
+No later apply has been run. Any future apply requires the normal approval
+flow in section 0 of the development plan.

@@ -1,0 +1,26 @@
+M0 guardrails creation plan (sanitized)
+Run date: 2026-10-22
+Terraform: 1.16.6
+Provider: hashicorp/azurerm 4.81.0
+
+Resources:
+  + azurerm_consumption_budget_subscription.spend_alert_1
+      name: spend-alert-1
+      amount: NZD 2
+      time_grain: Monthly
+      notification: Actual >= 100%
+  + azurerm_consumption_budget_subscription.spend_alert_3
+      name: spend-alert-3
+      amount: NZD 5
+      time_grain: Monthly
+      notifications: Actual >= 100%; Forecasted >= 100%
+  + azurerm_consumption_budget_subscription.spend_alert_5
+      name: spend-alert-5
+      amount: NZD 8
+      time_grain: Monthly
+      notification: Actual >= 100%
+
+Plan: 3 to add, 0 to change, 0 to destroy.
+
+No other resource action appeared in the saved plan. Notification blocks were
+redacted by Terraform because contact_email is sensitive.
