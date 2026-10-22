@@ -1,0 +1,14 @@
+name: nz_hazard_exposure_monitor
+version: 1.0.0
+config-version: 2
+profile: nz_hazard_exposure_monitor
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+clean-targets: ["target", "dbt_packages"]
+
+models:
+  nz_hazard_exposure_monitor:
+    +materialized: table

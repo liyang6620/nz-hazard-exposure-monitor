@@ -1,0 +1,6 @@
+-r app/requirements.txt
+chardet==5.2.0
+pytest==8.4.2
+pytest-cov==7.0.0
+ruff==0.14.2
+sqlfluff==3.5.0

@@ -13,6 +13,22 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .venv/
+.coverage
+coverage.xml
+htmlcov/
+.ruff_cache/
+.dbt/
+.user.yml
+target/
+logs/
+*.duckdb
+*.zip
+
+# Function deployment artefacts
+app/.python_packages/
+app/vendor/duckdb_extensions/*
+!app/vendor/duckdb_extensions/.gitkeep
+dist/
 
 # OS and editor files
 .DS_Store
