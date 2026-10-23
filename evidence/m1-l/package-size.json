@@ -1,0 +1,10 @@
+{
+  "platform": "linux_amd64",
+  "duckdb_version": "1.4.1",
+  "uncompressed_bytes": 490892701,
+  "zip_bytes": 162961540,
+  "zip_limit_bytes": 1000000000,
+  "zip_headroom_bytes": 837038460,
+  "below_zip_limit": true,
+  "offline_h3_result": 615782128600219647
+}

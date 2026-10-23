@@ -1,0 +1,22 @@
+{
+  "duckdb_version": "1.4.1",
+  "platform": "linux_amd64",
+  "extensions": {
+    "azure": {
+      "repository": "core",
+      "sha256": "081d12f4787dce6ed54d732c061fb7715a8f1c9465d901d67ef5d3e7dedcf584"
+    },
+    "h3": {
+      "repository": "community",
+      "sha256": "47ca4b4911031fc86f98d45023f9943711084b589732a84dabcf0e83a77ad571"
+    },
+    "httpfs": {
+      "repository": "core",
+      "sha256": "0a0f3762ff38ad5bc93c6ead23ed92877ca14afaab9b9c315a49886162725bad"
+    },
+    "spatial": {
+      "repository": "core",
+      "sha256": "3641cab6cfaedb282da8931d2051276d406da5d86a29ce236dc0335248134e4f"
+    }
+  }
+}

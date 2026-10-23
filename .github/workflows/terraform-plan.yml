@@ -1,0 +1,99 @@
+name: Terraform plan
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+
+jobs:
+  production-plan:
+    if: ${{ false }} # D31: disabled until the Microsoft account is restored.
+    runs-on: ubuntu-latest
+    environment: terraform-plan
+    env:
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      ARM_USE_OIDC: "true"
+      AZURE_CORE_OUTPUT: "none"
+      TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      TF_VAR_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+      TF_VAR_owner_object_id: ${{ secrets.AZURE_OWNER_OBJECT_ID }}
+      TF_VAR_notification_email: ${{ secrets.NOTIFICATION_EMAIL }}
+      TF_VAR_github_principal_id: ${{ secrets.AZURE_GITHUB_PRINCIPAL_ID }}
+      TF_VAR_budget_webhook_client_id: ${{ secrets.BUDGET_WEBHOOK_CLIENT_ID }}
+      TF_VAR_budget_webhook_object_id: ${{ secrets.BUDGET_WEBHOOK_OBJECT_ID }}
+      TF_VAR_budget_webhook_identifier_uri: ${{ secrets.BUDGET_WEBHOOK_IDENTIFIER_URI }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        if: env.ARM_CLIENT_ID != ''
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.16.6"
+      - name: Initialize production state
+        if: env.ARM_CLIENT_ID != ''
+        working-directory: infra/terraform
+        run: >-
+          terraform init -input=false
+          -backend-config="resource_group_name=${{ secrets.TFSTATE_RESOURCE_GROUP }}"
+          -backend-config="storage_account_name=${{ secrets.TFSTATE_STORAGE_ACCOUNT }}"
+          -backend-config="container_name=tfstate"
+          -backend-config="use_oidc=true"
+      - name: Create full private plan locally on the runner
+        if: env.ARM_CLIENT_ID != ''
+        working-directory: infra/terraform
+        run: |
+          set +e
+          terraform plan -input=false -no-color -out=production.tfplan > plan-command.txt 2>&1
+          status=$?
+          set -e
+          if [ "$status" -ne 0 ]; then
+            python ../../scripts/sanitize_terraform_plan.py < plan-command.txt > sanitized-plan.txt
+            cat sanitized-plan.txt
+            exit "$status"
+          fi
+          terraform show -no-color production.tfplan > full-plan.txt
+          python ../../scripts/sanitize_terraform_plan.py < full-plan.txt > sanitized-plan.txt
+      - name: Publish only the sanitized plan
+        if: env.ARM_CLIENT_ID != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          {
+            echo '## Sanitized Terraform plan'
+            echo '<details><summary>Show plan</summary>'
+            echo
+            echo '```text'
+            head -c 60000 infra/terraform/sanitized-plan.txt
+            echo
+            echo '```'
+            echo '</details>'
+            echo
+            echo 'GUIDs and email addresses are redacted. The full plan is supplied privately for approval.'
+          } > plan-comment.md
+          gh pr comment "$PR_URL" --body-file plan-comment.md
+      - name: Remove the unsanitized plan before artifact handling
+        if: always() && env.ARM_CLIENT_ID != ''
+        run: rm -f infra/terraform/full-plan.txt infra/terraform/plan-command.txt infra/terraform/production.tfplan
+      - uses: actions/upload-artifact@v4
+        if: env.ARM_CLIENT_ID != ''
+        with:
+          name: sanitized-terraform-plan-${{ github.sha }}
+          path: infra/terraform/sanitized-plan.txt
+          if-no-files-found: error
+          retention-days: 7
+      - name: Explain bootstrap-only validation
+        if: env.ARM_CLIENT_ID == ''
+        run: >-
+          echo "OIDC is intentionally unavailable before the approved identity bootstrap;
+          CI terraform validate is the gate for this first M1 pull request, and saved plans
+          are supplied privately for approval."

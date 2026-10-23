@@ -10,7 +10,8 @@ a resource/account that M0 was not authorised to create).
   account; no school identity is used. This differs from section 3.1's 163
   address and requires PM ratification.
 - **Verified:** Azure Free Account registration date is 2026-10-22,
-  subscription `5f4500df-375b-4a36-a973-c807e23e04b2`, billing currency NZD.
+  and billing currency is NZD. Subscription and tenant identifiers are kept out
+  of the public repository under D27.
 - **Verified:** the subscription is enabled and currently contains no ARM
   resources. ArcGIS registration remains correctly deferred to MG.
 - **Verified:** subscription budgets `spend-alert-1`, `spend-alert-3`, and

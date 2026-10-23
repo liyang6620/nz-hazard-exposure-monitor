@@ -29,21 +29,21 @@ M2 establishes a defensible fallback.
 
 ## Population allocation
 
-The approved plan allocates each meshblock population total among buildings in
-that meshblock in proportion to footprint area, then aggregates to H3. A
-population area with no buildings assigns its total to the polygon's point on
-surface. The allocation invariant is:
+The approved source is the 2023 Census usually resident population at SA1 level
+(`VAR_1_3`). Each SA1 total is allocated among **currently present** buildings
+(`valid_to_year IS NULL`) in proportion to footprint area, then aggregated to
+H3. An SA1 with no current buildings assigns its total to the polygon's point on
+surface. The allocation invariant is evaluated independently for every SA1:
 
 ```text
 abs(sum(allocated_population) - source_population) < 1e-6
 ```
 
-M0 found no public 2023 Census meshblock population layer. Stats NZ layer
-120766 supplies SA1 totals (`VAR_1_3`). Applying the same invariant at SA1 is a
-technically valid fallback but reduces spatial precision. Implementation is
-paused pending a PM choice between SA1 allocation and another authoritative
-population source. Population remains fixed at Census 2023; then-versus-now
-comparisons apply only to buildings.
+SA1 is coarser than meshblock, so within-SA1 distribution is an approximation.
+Stats NZ applies fixed random rounding and suppression to small-area Census
+counts; the pipeline preserves the published values and flags suppression
+codes rather than attempting to reverse them. Population remains fixed at
+Census 2023; then-versus-now comparisons apply only to buildings.
 
 ## MMI source priority
 
@@ -78,10 +78,11 @@ A5 =  0.409
 d  = 11.78 km
 ```
 
-`Mw` is moment magnitude, `hc` is centroid depth in kilometres and `deltaC` is
-1 for crustal events and 0 otherwise. The meaning of distance `r` and the event
-classification must match the paper; it must not be silently replaced with a
-convenient epicentral distance.
+`Mw` is moment magnitude. Under D22, `hc` is approximated by GeoNet source depth
+and `r` by the great-circle distance from the epicentre to the H3 cell centre.
+This is a point-source approximation rather than the rupture-distance treatment
+used for larger earthquakes. Events of M6.5 or above without an official layer
+are marked `point_source_approx`.
 
 The paper also gives a deep-region model (Table 7):
 
@@ -89,17 +90,25 @@ The paper also gives a deep-region model (Table 7):
 I = 3.76 + 1.48*Mw - 3.50*log10(r) + 0.0031*hc
 ```
 
-It contains regional, focal-mechanism and anisotropic alternatives. The planned
-catalogue does not contain enough rupture geometry or mechanism information to
-apply every alternative faithfully. The PM must choose the supported
-classification and distance approximation before implementation.
+The implementation selects the deep-source model first at the paper's deep
+boundary, or 70 km only if the paper does not state one. Shallower epicentres
+inside an authoritative, licence-compatible TVZ boundary use the paper's TVZ
+model; if no suitable boundary is found, the TVZ branch is disabled and
+documented. Remaining events use the Main Seismic Region shallow crustal model.
+The interface model is excluded because the project has neither slab geometry
+nor reliable focal-mechanism classification. Magnitudes outside a model's
+published validity range are not extrapolated; depth inputs outside a permitted
+range are clamped and flagged. Paper rules, table numbers and page citations
+take precedence if they conflict with these implementation rules.
 
 For arithmetic regression only, the Table 6 equation produces
 `7.476132218744497` for `Mw=7.8`, `r=100 km`, `hc=15 km`, and `deltaC=1`.
 This value was calculated by the project and is **not** an example published in
-the paper. M0 found no published worked numeric example that can serve as the
-plan's requested independent unit-test oracle. The PM must approve a replacement
-oracle, such as a locked calculation independently reproduced in two tools.
+the paper. D23 approves an independent, step-by-step calculation of at least 12
+locked vectors covering every implemented model and boundary case, plus
+monotonicity properties. These vectors will be produced with the M3 formula
+implementation. `stationlist.json` supplies external MAE validation; MAE above
+1.0 MMI is escalated to the project manager.
 
 Only populated H3 cells inside the distance at which the selected model falls
 below MMI 3 are evaluated. The cutoff is solved from the chosen equation and

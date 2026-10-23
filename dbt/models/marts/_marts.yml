@@ -1,0 +1,14 @@
+version: 2
+
+models:
+  - name: mart_pipeline_runs
+    description: Empty M1 contract for pipeline run telemetry.
+    columns:
+      - name: run_id
+        description: Unique run identifier.
+      - name: operation_name
+        description: Pipeline operation name.
+      - name: status
+        description: Final operation status.
+      - name: completed_at
+        description: UTC completion timestamp.

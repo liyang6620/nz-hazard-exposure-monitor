@@ -1,0 +1,16 @@
+.git
+.github
+.venv
+.env
+.local
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+**/target
+**/logs
+**/.terraform
+**/.terraform/**
+**/vendor/duckdb_extensions/*.duckdb_extension
+dist
+tmp
+

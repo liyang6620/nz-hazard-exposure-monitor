@@ -1,0 +1,108 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  python-and-dbt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install --requirement requirements-dev.txt
+      - run: ruff check src hosts tests scripts
+      - run: ruff format --check src hosts tests scripts
+      - run: pytest
+      - run: >-
+          python scripts/e2e_replay.py
+          --gold-root tests/fixtures/e2e/gold
+          --manifest tests/fixtures/e2e/manifest.json
+      - run: sqlfluff lint dbt/models --dialect duckdb
+      - run: dbt build --project-dir dbt --profiles-dir dbt/profiles --target duckdb_local
+
+  local-deployment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and start the local deployment
+        env:
+          GEONET_POLL_ENABLED: "false"
+        run: docker compose up --build --detach --wait
+      - name: Verify API, startup housekeeping, website and Mailpit
+        run: |
+          curl --fail --silent http://127.0.0.1:8000/health | tee local-health.json
+          curl --fail --silent http://127.0.0.1:8000/runs | tee local-runs.json
+          python -c "import json; d=json.load(open('local-runs.json')); assert any(r['PartitionKey'] == 'housekeeping' and r['status'] == 'success' for r in d)"
+          curl --fail --silent http://127.0.0.1:8080/ | grep 'NZ Hazard Exposure Monitor'
+          curl --fail --silent http://127.0.0.1:8025/api/v1/info
+      - if: always()
+        run: docker compose down --volumes
+
+  terraform:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        root:
+          - infra/bootstrap
+          - infra/providers
+          - infra/identity
+          - infra/guardrails
+          - infra/terraform
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.16.6"
+      - run: terraform fmt -check -recursive
+      - working-directory: ${{ matrix.root }}
+        run: terraform init -backend=false -input=false
+      - working-directory: ${{ matrix.root }}
+        run: terraform validate
+
+  linux-package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install duckdb==1.4.1
+      - run: bash scripts/build_function_package.sh | tee package-size.json
+      - name: Enforce the one GB ZIP limit
+        run: python -c "import json; d=json.load(open('package-size.json')); assert d['below_zip_limit'], d"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: function-package-${{ github.sha }}
+          path: |
+            dist/function.zip
+            package-size.json
+          if-no-files-found: error
+          retention-days: 7
+
+  public-identifier-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Reject committed Azure identifiers or personal email addresses
+        shell: bash
+        run: |
+          if git grep -nE '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}'; then
+            echo 'A GUID-like identifier is committed.' >&2
+            exit 1
+          fi
+          if git grep -nE '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}' | grep -vE '@example\.(com|invalid|azurecomm\.net)'; then
+            echo 'A non-example email address is committed.' >&2
+            exit 1
+          fi

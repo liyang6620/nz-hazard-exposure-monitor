@@ -1,0 +1,15 @@
+{
+  "fixture_kind": "synthetic-m1-contract-only",
+  "float_precision": 6,
+  "events": {
+    "christchurch_2011": "fixture-christchurch-2011",
+    "kaikoura_2016": "fixture-kaikoura-2016"
+  },
+  "tables": {
+    "mart_event_summary": {
+      "path": "mart_event_summary.csv",
+      "primary_key": ["event_id", "region_code"]
+    }
+  }
+}
+

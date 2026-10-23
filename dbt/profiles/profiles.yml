@@ -1,0 +1,7 @@
+nz_hazard_exposure_monitor:
+  target: duckdb_local
+  outputs:
+    duckdb_local:
+      type: duckdb
+      path: "{{ env_var('DBT_DUCKDB_PATH', 'dbt/target/nzhem.duckdb') }}"
+      threads: 1
