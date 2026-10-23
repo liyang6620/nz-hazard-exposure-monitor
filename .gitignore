@@ -25,10 +25,19 @@ logs/
 *.zip
 
 # Function deployment artefacts
-app/.python_packages/
-app/vendor/duckdb_extensions/*
-!app/vendor/duckdb_extensions/.gitkeep
+hosts/azure_functions/.python_packages/
+hosts/azure_functions/vendor/duckdb_extensions/*
+!hosts/azure_functions/vendor/duckdb_extensions/.gitkeep
+hosts/azure_functions/local.settings.json
 dist/
+
+# Local deployment state and secrets
+.env
+.env.*
+!.env.example
+.local/
+*.sqlite
+*.sqlite3
 
 # OS and editor files
 .DS_Store

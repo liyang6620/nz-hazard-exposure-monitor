@@ -1,4 +1,5 @@
--r app/requirements.txt
+-r hosts/azure_functions/requirements.txt
+-r requirements-local.txt
 chardet==5.2.0
 pytest==8.4.2
 pytest-cov==7.0.0

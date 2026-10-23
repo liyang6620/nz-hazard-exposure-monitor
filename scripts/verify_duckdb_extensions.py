@@ -6,7 +6,7 @@ from pathlib import Path
 import duckdb
 
 ROOT = Path(__file__).resolve().parents[1]
-EXTENSIONS = ROOT / "app" / "vendor" / "duckdb_extensions"
+EXTENSIONS = ROOT / "hosts" / "azure_functions" / "vendor" / "duckdb_extensions"
 
 
 def main() -> None:

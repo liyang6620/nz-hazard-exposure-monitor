@@ -1,0 +1,1 @@
+"""Cloud-independent business logic."""

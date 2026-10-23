@@ -1,11 +1,7 @@
 name: Terraform plan
 
 on:
-  pull_request:
-    paths:
-      - "infra/**"
-      - "scripts/sanitize_terraform_plan.py"
-      - ".github/workflows/terraform-plan.yml"
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -14,6 +10,7 @@ permissions:
 
 jobs:
   production-plan:
+    if: ${{ false }} # D31: disabled until the Microsoft account is restored.
     runs-on: ubuntu-latest
     environment: terraform-plan
     env:

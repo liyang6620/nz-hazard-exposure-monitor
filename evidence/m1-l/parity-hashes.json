@@ -1,0 +1,18 @@
+{
+  "events": {
+    "christchurch_2011": {
+      "event_id": "fixture-christchurch-2011",
+      "tables": {
+        "mart_event_summary": "0eb24c33fa407e018b8b0d379430db47db704e1c86e60d9bfcb13f7d1302c65b"
+      }
+    },
+    "kaikoura_2016": {
+      "event_id": "fixture-kaikoura-2016",
+      "tables": {
+        "mart_event_summary": "762914ee567f10f112d55f0f996a41117279060890bb5a15889e3e76fa44e4ee"
+      }
+    }
+  },
+  "fixture_kind": "synthetic-m1-contract-only",
+  "float_precision": 6
+}

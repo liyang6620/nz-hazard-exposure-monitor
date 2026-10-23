@@ -9,7 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 LOCK_PATH = ROOT / "scripts" / "duckdb-extension-lock.json"
-OUTPUT = ROOT / "app" / "vendor" / "duckdb_extensions"
+OUTPUT = ROOT / "hosts" / "azure_functions" / "vendor" / "duckdb_extensions"
 
 
 def main() -> None:
@@ -26,8 +26,12 @@ def main() -> None:
         )
         url = f"https://{host}/v{version}/{platform}/{name}.duckdb_extension.gz"
         destination = OUTPUT / f"{name}.duckdb_extension"
+        request = urllib.request.Request(  # noqa: S310
+            url,
+            headers={"User-Agent": "nz-hazard-exposure-monitor/0.1"},
+        )
         with (
-            urllib.request.urlopen(url, timeout=30) as response,  # noqa: S310
+            urllib.request.urlopen(request, timeout=30) as response,  # noqa: S310
             gzip.GzipFile(fileobj=response) as compressed,
             destination.open("wb") as output,
         ):

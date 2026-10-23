@@ -1,0 +1,14 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "python",
+    "HOUSEKEEPING_SCHEDULE": "0 0 * * * *",
+    "NZHEM_ENV": "local",
+    "NZHEM_DATA_ROOT": "../../.local/data",
+    "NZHEM_SQLITE_PATH": "../../.local/state/nzhem.sqlite3",
+    "GEONET_POLL_ENABLED": "false",
+    "RUN_STARTUP_HOUSEKEEPING": "false"
+  }
+}
+

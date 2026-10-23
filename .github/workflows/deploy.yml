@@ -1,16 +1,6 @@
 name: Deploy Function App
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "app/**"
-      - "dbt/**"
-      - "scripts/build_function_package.sh"
-      - "scripts/fetch_duckdb_extensions.py"
-      - "scripts/verify_duckdb_extensions.py"
-      - "scripts/duckdb-extension-lock.json"
-      - ".github/workflows/deploy.yml"
   workflow_dispatch:
 
 permissions:
@@ -23,6 +13,7 @@ concurrency:
 
 jobs:
   deploy:
+    if: ${{ false }} # D31: disabled until the Microsoft account is restored.
     runs-on: ubuntu-latest
     environment: production
     env:
