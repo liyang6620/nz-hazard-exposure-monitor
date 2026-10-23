@@ -3,6 +3,11 @@
 The Docker Compose deployment is a supported deployment target, not a mock of
 Azure. It uses the same core functions as the Azure Functions host.
 
+All published Compose ports bind to `127.0.0.1` by default. This includes the
+Mailpit UI, which can contain approval links. Exposing the deployment from a VM
+requires an authenticated reverse proxy and project-manager approval at the
+security hard stop; do not change the bind address directly.
+
 ## Services
 
 | Service | Implementation | Persistent state |

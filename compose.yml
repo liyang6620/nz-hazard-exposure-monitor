@@ -19,7 +19,7 @@ services:
       GEONET_POLL_ENABLED: "${GEONET_POLL_ENABLED:-true}"
       RUN_STARTUP_HOUSEKEEPING: "true"
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     volumes:
       - nzhem-data:/data
       - nzhem-state:/state
@@ -42,13 +42,13 @@ services:
   mailpit:
     image: axllent/mailpit:v1.21.8
     ports:
-      - "8025:8025"
+      - "127.0.0.1:8025:8025"
     restart: unless-stopped
 
   web:
     image: caddy:2.8.4-alpine
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     volumes:
       - nzhem-data:/srv:ro
       - ./hosts/local/Caddyfile:/etc/caddy/Caddyfile:ro
@@ -59,9 +59,9 @@ services:
     profiles: [azure-dev]
     command: azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0
     ports:
-      - "${AZURITE_BLOB_PORT:-10000}:10000"
-      - "${AZURITE_QUEUE_PORT:-10001}:10001"
-      - "${AZURITE_TABLE_PORT:-10002}:10002"
+      - "127.0.0.1:${AZURITE_BLOB_PORT:-10000}:10000"
+      - "127.0.0.1:${AZURITE_QUEUE_PORT:-10001}:10001"
+      - "127.0.0.1:${AZURITE_TABLE_PORT:-10002}:10002"
     volumes:
       - azurite-data:/data
 
