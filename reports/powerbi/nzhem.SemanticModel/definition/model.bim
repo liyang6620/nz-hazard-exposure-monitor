@@ -1,0 +1,74 @@
+{
+  "name": "NZHEM",
+  "compatibilityLevel": 1604,
+  "model": {
+    "culture": "en-NZ",
+    "defaultPowerBIDataSourceVersion": "powerBI_V3",
+    "expressions": [
+      {
+        "name": "RepoRoot",
+        "kind": "m",
+        "expression": "let\n    Value = \"..\\\\..\"\nin\n    Value"
+      }
+    ],
+    "tables": [
+      {
+        "name": "Event Summary",
+        "columns": [
+          {"name": "event_id", "dataType": "string", "sourceColumn": "event_id"},
+          {"name": "event_name", "dataType": "string", "sourceColumn": "event_name"},
+          {"name": "origin_time", "dataType": "dateTime", "sourceColumn": "origin_time"},
+          {"name": "magnitude", "dataType": "double", "sourceColumn": "magnitude"},
+          {"name": "max_mmi", "dataType": "double", "sourceColumn": "max_mmi"},
+          {"name": "valid_buildings", "dataType": "int64", "sourceColumn": "valid_buildings"},
+          {"name": "as_if_today_buildings", "dataType": "int64", "sourceColumn": "as_if_today_buildings"},
+          {"name": "event_time_status", "dataType": "string", "sourceColumn": "event_time_status"},
+          {"name": "buildings_mmi_ge_6", "dataType": "int64", "sourceColumn": "buildings_mmi_ge_6"},
+          {"name": "population_mmi_ge_6", "dataType": "int64", "sourceColumn": "population_mmi_ge_6"},
+          {"name": "validation_mae", "dataType": "double", "sourceColumn": "validation_mae"}
+        ],
+        "partitions": [
+          {
+            "name": "Event Summary",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": "let\n    Source = Parquet.Document(File.Contents(RepoRoot & \"\\\\.local\\\\data\\\\curated\\\\events\\\\m3\\\\mart_event_summary.parquet\"))\nin\n    Source"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Exposure Cells",
+        "columns": [
+          {"name": "event_id", "dataType": "string", "sourceColumn": "event_id"},
+          {"name": "h3_res6", "dataType": "string", "sourceColumn": "h3_res6"},
+          {"name": "mmi", "dataType": "double", "sourceColumn": "mmi"},
+          {"name": "as_if_today_building_count", "dataType": "int64", "sourceColumn": "as_if_today_building_count"},
+          {"name": "as_if_today_footprint_area_m2", "dataType": "double", "sourceColumn": "as_if_today_footprint_area_m2"},
+          {"name": "population_2023", "dataType": "int64", "sourceColumn": "population_2023"}
+        ],
+        "partitions": [
+          {
+            "name": "Exposure Cells",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": "let\n    Source = Parquet.Document(File.Contents(RepoRoot & \"\\\\.local\\\\data\\\\curated\\\\events\\\\m3\\\\mart_event_exposure_h3r6.parquet\"))\nin\n    Source"
+            }
+          }
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "name": "Event Summary to Exposure Cells",
+        "fromTable": "Event Summary",
+        "fromColumn": "event_id",
+        "toTable": "Exposure Cells",
+        "toColumn": "event_id",
+        "crossFilteringBehavior": "oneDirection"
+      }
+    ]
+  }
+}

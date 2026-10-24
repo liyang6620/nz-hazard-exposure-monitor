@@ -1,0 +1,13 @@
+{
+  "Version": "1.0",
+  "artifacts": [
+    {
+      "report": {
+        "path": "nzhem.Report"
+      }
+    }
+  ],
+  "settings": {
+    "enableAutoRecovery": true
+  }
+}
