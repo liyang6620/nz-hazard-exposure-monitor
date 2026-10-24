@@ -8,7 +8,7 @@ FIXTURE_ROOT = Path("tests/fixtures/e2e")
 def test_replay_framework_hashes_both_required_events() -> None:
     result = replay_and_hash(FIXTURE_ROOT / "gold", FIXTURE_ROOT / "manifest.json")
 
-    assert result["fixture_kind"] == "synthetic-m1-contract-only"
+    assert result["fixture_kind"] == "geonet-real-m3-summary-snapshot"
     assert set(result["events"]) == {"christchurch_2011", "kaikoura_2016"}
     for event in result["events"].values():
         assert len(event["tables"]["mart_event_summary"]) == 64

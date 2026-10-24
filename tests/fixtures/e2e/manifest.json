@@ -1,14 +1,14 @@
 {
-  "fixture_kind": "synthetic-m1-contract-only",
+  "fixture_kind": "geonet-real-m3-summary-snapshot",
   "float_precision": 6,
   "events": {
-    "christchurch_2011": "fixture-christchurch-2011",
-    "kaikoura_2016": "fixture-kaikoura-2016"
+    "christchurch_2011": "3468575",
+    "kaikoura_2016": "2016p858000"
   },
   "tables": {
     "mart_event_summary": {
       "path": "mart_event_summary.csv",
-      "primary_key": ["event_id", "region_code"]
+      "primary_key": ["event_id"]
     }
   }
 }

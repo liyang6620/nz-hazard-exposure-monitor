@@ -1,6 +1,4 @@
-event_id,region_code,mmi,buildings_now,population_2023
-fixture-kaikoura-2016,CAN,7.0000001,120,310.0
-fixture-christchurch-2011,CAN,8,240,620
-fixture-kaikoura-2016,WGN,5,12,31
-fixture-christchurch-2011,WGN,3,1,2
+event_id,origin_time,magnitude,max_mmi,valid_buildings,buildings_mmi_ge_6,population_mmi_ge_6,mmi_source,source_version
+3468575,2011-02-21T23:51:42.32Z,6.2,9.4,0,0,461764.8775805582,official,2023-09-07T22:29:02-reviewed
+2016p858000,2016-11-13T11:02:56.346Z,7.8,8.4,0,0,83276.46073541798,official,2025-09-22T21:53:33-reviewed
 

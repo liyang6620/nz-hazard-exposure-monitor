@@ -7,10 +7,9 @@ with Docker Compose and requires no Azure or Microsoft account.
 
 ## Status
 
-M1-L is complete and M2 reference-data processing is in progress. The shared
-core, local Docker host and Azure Functions host are kept separate. No Azure
-infrastructure is created until M1-A plans are approved. M0 evidence remains
-under [`docs/`](docs/) and [`evidence/m0/`](evidence/m0/).
+M1-L, M2 and M3 are complete locally. The shared core, local Docker host and
+Azure Functions host are kept separate. No Azure infrastructure is created
+until M1-A plans are approved. Milestone evidence is under [`evidence/`](evidence/).
 
 ## Important limitations
 
@@ -135,10 +134,10 @@ sqlfluff lint dbt/models --dialect duckdb
 dbt build --project-dir dbt --profiles-dir dbt/profiles --target duckdb_local
 ```
 
-The M1-L parity fixture is deliberately synthetic; M3 replaces it with locked
-Kaikoura and Christchurch input snapshots and real gold outputs. Terraform roots
-remain validation-only. `terraform-plan.yml` and `deploy.yml` are hard-disabled
-until the Microsoft account is restored and M1-A is approved.
+The parity fixture contains locked real GeoNet Kaikoura and Christchurch M3
+summary outputs. Terraform roots remain validation-only. `terraform-plan.yml`
+and `deploy.yml` are hard-disabled until the Microsoft account is restored and
+M1-A is approved.
 
 Runtime secrets come from local environment variables or Azure Key Vault. No
 long-lived credentials belong in this repository or GitHub CI.

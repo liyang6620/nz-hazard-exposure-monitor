@@ -1,0 +1,5 @@
+event_id,station_id,observed_mmi,estimated_mmi,epicentral_distance_km,model,model_reference,depth_clamped,distance_clamped,point_source_approx,exclusion_reason
+3468575,station-a,6.0,5.5,20,main_seismic_region_model_2,"Table 6 p. 198",false,false,false,
+3468575,station-b,5.0,4.7,40,main_seismic_region_model_2,"Table 6 p. 198",false,false,false,
+2016p858000,station-c,7.0,6.0,30,main_seismic_region_model_2,"Table 6 p. 198",false,false,true,
+2016p858000,station-d,5.0,4.4,100,main_seismic_region_model_2,"Table 6 p. 198",false,false,true,
