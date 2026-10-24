@@ -1,7 +1,8 @@
 # Power BI Desktop owner checklist
 
-The agent could not complete a Desktop interaction because Computer Use was
-stopped by the physical Escape key. The repository PBIP assets are complete;
+The agent could not complete a Desktop interaction: the first attempt was
+stopped by the physical Escape key and a second attempt remained on a blank
+loading window. The repository PBIP assets are complete;
 the owner should perform the remaining visual QA locally.
 
 1. Open `reports/powerbi/nzhem.pbip` in Power BI Desktop.
