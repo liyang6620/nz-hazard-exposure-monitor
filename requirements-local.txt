@@ -1,6 +1,6 @@
 APScheduler==3.11.0
 duckdb==1.4.1
-fastapi==0.119.0
+fastapi==0.156.4
 requests==2.32.5
 uvicorn==0.38.0
 
