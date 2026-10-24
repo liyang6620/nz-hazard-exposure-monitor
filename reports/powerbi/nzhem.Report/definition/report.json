@@ -1,0 +1,11 @@
+{
+  "id": "nzhem-report",
+  "reportId": "nzhem-report",
+  "sections": [
+    {"name": "overview", "displayName": "Overview", "visualContainers": []},
+    {"name": "event-explorer", "displayName": "Event explorer", "visualContainers": []},
+    {"name": "population", "displayName": "Population exposure", "visualContainers": []},
+    {"name": "building-footprint", "displayName": "Buildings and footprint", "visualContainers": []},
+    {"name": "methodology", "displayName": "Method and quality", "visualContainers": []}
+  ]
+}
