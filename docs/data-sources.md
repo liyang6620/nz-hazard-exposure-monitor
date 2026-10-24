@@ -114,19 +114,23 @@ The primary key is `building_outline_id`. Important attributes are
 `building_outline_lifecycle`, `begin_lifespan`, `end_lifespan`, and
 `last_modified`. `shape` is a polygon in EPSG:2193.
 
-Time semantics are not interchangeable. The initial implementation should use
+Time semantics are not interchangeable. The M2 implementation uses
 `begin_lifespan` and `end_lifespan` for lifecycle filtering, preserve the
-capture dates as provenance, and measure null/contradictory dates in M2 before
+capture dates as provenance, and measures null/contradictory dates before
 claiming historical completeness. The source notes that lifecycle-table
 maintenance stopped after January 2025, so "currently present" is approximate.
 
 The national layer excludes some remote areas, including parts of the Southern
 Alps, Fiordland, Stewart Island and the Chatham Islands. That limitation must be
 carried into exposure reporting. WFS, WFS changesets, the spatial query API and
-data-table API require a LINZ API key. Full export size was not measured because
-no owner-created API key is available in M0. M2 should use GeoParquet or
-GeoPackage regional exports, log bytes and feature counts, and never commit the
-downloads.
+data-table API require a LINZ API key. The normal M2 building path uses a manual
+whole-layer GeoPackage export in EPSG:4326; automatic export creation and Range
+downloads are deferred to the Azure phase. The importer reads through the
+GeoPackage RTree in bounded tiles and assigns each point-on-surface to the exact
+2023 meshblock polygon. A tile loads every intersecting meshblock even when it
+crosses Regional Council boundaries. WFS 2.0 paging in stable
+`building_outline_id` order remains a resumable fallback. Raw exports/pages are
+never committed; curated outputs use Zstandard-compressed Parquet.
 
 ## Stats NZ population and boundaries
 
@@ -141,9 +145,9 @@ population count. Counts use fixed random rounding to base 3 and suppression;
 not necessarily add to published totals.
 
 This layer is SA1, not meshblock. No suitable public 2023 Census meshblock
-total-population layer was found. The plan's building-footprint allocation
-algorithm can be applied at SA1, but that changes its spatial precision and
-must not be done without PM approval.
+total-population layer was found. D21 approved SA1 allocation by current
+building footprint area. Negative suppression codes are retained and flagged,
+not allocated or included in population totals.
 
 ### Boundaries
 

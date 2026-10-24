@@ -12,3 +12,29 @@ clean-targets: ["target", "dbt_packages"]
 models:
   nz_hazard_exposure_monitor:
     +materialized: table
+
+seeds:
+  nz_hazard_exposure_monitor:
+    +quote_columns: false
+    reference_buildings:
+      +column_types:
+        meshblock_code: varchar
+        sa1_code: varchar
+        sa2_code: varchar
+        region_code: varchar
+        territorial_authority_code: varchar
+        h3_res8: ubigint
+        h3_res6: ubigint
+    reference_population:
+      +column_types:
+        sa1_code: varchar
+        land_water: varchar
+        fallback_h3_res8: ubigint
+        fallback_h3_res6: ubigint
+    reference_boundaries:
+      +column_types:
+        meshblock_code: varchar
+        sa1_code: varchar
+        sa2_code: varchar
+        region_code: varchar
+        territorial_authority_code: varchar

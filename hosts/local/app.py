@@ -76,6 +76,29 @@ def housekeeping() -> dict[str, object]:
         raise HTTPException(status_code=503, detail=type(exc).__name__) from exc
 
 
+@app.post("/refresh-reference")
+def refresh_reference() -> dict[str, object]:
+    try:
+        result = container.refresh_reference()
+        payload = {
+            "source_buildings": result.source_buildings,
+            "curated_buildings": result.curated_buildings,
+            "source_population": result.source_population,
+            "allocated_population": result.allocated_population,
+            "rejected_buildings": result.rejected_buildings,
+            "suppressed_sa1": result.suppressed_sa1,
+            "elapsed_seconds": result.elapsed_seconds,
+            "peak_rss_mb": result.peak_rss_mb,
+            "minimum_free_disk_gb": result.minimum_free_disk_gb,
+            "output_hashes": dict(result.output_hashes),
+        }
+        logging.info(json.dumps({"operation": "refresh_reference", **payload}))
+        return payload
+    except Exception as exc:
+        logging.exception("reference refresh failed")
+        raise HTTPException(status_code=503, detail=type(exc).__name__) from exc
+
+
 @app.get("/runs")
 def runs() -> list[dict[str, object]]:
     return list(container.tables.list_entities("runs"))

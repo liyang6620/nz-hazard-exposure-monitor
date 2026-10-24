@@ -5,3 +5,6 @@ nz_hazard_exposure_monitor:
       type: duckdb
       path: "{{ env_var('DBT_DUCKDB_PATH', 'dbt/target/nzhem.duckdb') }}"
       threads: 1
+      settings:
+        memory_limit: 512MB
+        preserve_insertion_order: false

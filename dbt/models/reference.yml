@@ -1,0 +1,43 @@
+version: 2
+
+models:
+  - name: stg_linz__buildings
+    description: LINZ building outlines with point-on-surface H3 and 2023 geography attribution.
+    columns:
+      - name: building_outline_id
+        data_tests: [not_null, spillable_unique]
+  - name: stg_stats__population
+    description: 2023 Census SA1 usual resident population from VAR_1_3.
+    columns:
+      - name: sa1_code
+        data_tests: [not_null, unique]
+  - name: stg_stats__boundaries
+    description: 2023 meshblock boundaries carrying SA1, SA2, TA and region hierarchy.
+    columns:
+      - name: meshblock_code
+        data_tests: [not_null, unique]
+  - name: int_buildings_h3
+    description: Buildings at H3 resolution 8 with lifecycle years and resolution 6 display cells.
+    columns:
+      - name: building_outline_id
+        data_tests: [not_null, spillable_unique]
+      - name: h3_res8
+        data_tests: [not_null]
+      - name: h3_res6
+        data_tests: [not_null]
+  - name: int_population_h3
+    description: Published SA1 population allocated by current building footprint area.
+    columns:
+      - name: sa1_code
+        data_tests: [not_null]
+      - name: h3_res8
+        description: Null only for official SA1 population rows that have no source geometry.
+  - name: dim_region
+    description: Region, territorial authority and SA2 hierarchy.
+  - name: dim_h3_cell
+    description: Unique H3 resolution 8 computation cells and resolution 6 display parents.
+    columns:
+      - name: h3_res8
+        data_tests: [not_null, unique]
+      - name: h3_res6
+        data_tests: [not_null]

@@ -1,0 +1,143 @@
+{
+  "export_manifest": {
+    "acquisition_method": "owner_supplied_manual_export",
+    "archive_bytes": 926017374,
+    "archive_sha256": "dee5b263952e0ade751fb4524c5a8cc4f03d7e184f3161cb0f42148bc4b94b97",
+    "candidate_limit": 5000,
+    "crs": "EPSG:4326",
+    "declared_uncompressed_bytes": 3292825922,
+    "expected_feature_count": 6634223,
+    "expected_layer_version": 438679,
+    "export_reference": "4691746",
+    "exported_feature_count": 6634223,
+    "exported_layer_version": null,
+    "feature_count_difference": 0,
+    "geometry_column": "geom",
+    "layer_id": 101292,
+    "metadata_has_layer_id": true,
+    "metadata_publication_date": "2026-05-18",
+    "original_filename": "lds-nz-building-outlines-all-sources-GPKG.zip",
+    "schema_version": 2,
+    "source_path": "nz-building-outlines-all-sources.gpkg",
+    "table_name": "nz_building_outlines_all_sources",
+    "version_comparison": "numeric version not embedded; export publication date matches the 438679 metadata date"
+  },
+  "population": {
+    "allocated_population": 4994033.999999973,
+    "building_count": 6612732,
+    "invariant_failures": 0,
+    "output_hashes": {
+      "dim_h3_cell": "b5faec8735a891023506c9ae3d8dcd3e3eff72497cb5d55a19d6e89e963b2ec0",
+      "dim_region": "dbb4a451bdca365a6294c56191a2cbfbc874bea6d8a3384387a8702eeea6e5f8",
+      "int_population_h3": "b70cda2c7b5f58e65f6a7ec1ba10dd78c01dbddec7b57567eea53237466f4cd5"
+    },
+    "population_sa1_count": 33164,
+    "source_population": 4994034.0,
+    "suppressed_sa1": 0,
+    "unlocated_nonzero_sa1": 2,
+    "unlocated_population": 24.0,
+    "unlocated_sa1": 16
+  },
+  "reconciliation": {
+    "candidate_limit": 5000,
+    "checkpoint_wall_seconds": 4243.300128221512,
+    "duckdb_threads": 1,
+    "elapsed_seconds": 17.718999999997322,
+    "excluded_source_rows": [
+      {
+        "building_outline_id": 1880151,
+        "reason": "invalid_geometry"
+      },
+      {
+        "building_outline_id": 5733078,
+        "reason": "invalid_geometry"
+      },
+      {
+        "building_outline_id": 6402952,
+        "reason": "invalid_geometry"
+      },
+      {
+        "building_outline_id": 6403012,
+        "reason": "invalid_geometry"
+      },
+      {
+        "building_outline_id": 6451145,
+        "reason": "invalid_geometry"
+      },
+      {
+        "building_outline_id": 7112394,
+        "reason": "invalid_geometry"
+      },
+      {
+        "building_outline_id": 7127014,
+        "reason": "invalid_geometry"
+      },
+      {
+        "building_outline_id": 7877722,
+        "reason": "invalid_geometry"
+      }
+    ],
+    "expected_feature_count": 6634223,
+    "feature_count_difference": 0,
+    "minimum_free_disk_gb": 54.588653564453125,
+    "peak_worker_rss_mb": 164.75,
+    "reconciled_feature_count": 6634223,
+    "reconciliation_buckets": {
+      "accepted": 6612732,
+      "duplicate_building_outline_id": 0,
+      "invalid_or_unindexed_geometry": 8,
+      "no_containing_meshblock": 0,
+      "non_land_meshblock": 21483,
+      "region_99": 0
+    },
+    "source_feature_count": 6634223,
+    "tile_count": 3794
+  },
+  "retained_wfs_comparison": {
+    "01": {
+      "area_differences_over_1e-6_m2": 226548,
+      "coordinate_differences": 231127,
+      "export_count": 231127,
+      "export_only": 0,
+      "h3_res6_differences": 16162,
+      "h3_res8_differences": 2,
+      "max_absolute_area_difference_m2": 0.001313270960963564,
+      "mean_absolute_area_difference_m2": 3.768681599948072e-05,
+      "meshblock_attribution_differences": 1,
+      "source_attribute_differences": 0,
+      "status": "compared",
+      "wfs_count": 231127,
+      "wfs_only": 0
+    },
+    "02": {
+      "area_differences_over_1e-6_m2": 798137,
+      "coordinate_differences": 815372,
+      "export_count": 815372,
+      "export_only": 0,
+      "h3_res6_differences": 54345,
+      "h3_res8_differences": 3,
+      "max_absolute_area_difference_m2": 0.003762634369195439,
+      "mean_absolute_area_difference_m2": 3.733209986915304e-05,
+      "meshblock_attribution_differences": 0,
+      "source_attribute_differences": 0,
+      "status": "compared",
+      "wfs_count": 815372,
+      "wfs_only": 0
+    },
+    "03": {
+      "area_differences_over_1e-6_m2": 1188504,
+      "coordinate_differences": 1215746,
+      "export_count": 1215746,
+      "export_only": 0,
+      "h3_res6_differences": 80274,
+      "h3_res8_differences": 6,
+      "max_absolute_area_difference_m2": 0.002042600179265719,
+      "mean_absolute_area_difference_m2": 3.609657413765992e-05,
+      "meshblock_attribution_differences": 0,
+      "source_attribute_differences": 0,
+      "status": "compared",
+      "wfs_count": 1215746,
+      "wfs_only": 0
+    }
+  }
+}

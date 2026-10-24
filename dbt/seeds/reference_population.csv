@@ -1,0 +1,4 @@
+sa1_code,land_water,land_water_name,population,population_status,fallback_h3_res8,fallback_h3_res6
+7000001,12,Mainland,120,published,615782128600219647,606774929441947647
+7000002,12,Mainland,30,published,616334864712466431,607327665560485887
+7000003,23,Oceanic,-999,confidential,616334864712466431,607327665560485887

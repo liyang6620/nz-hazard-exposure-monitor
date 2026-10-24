@@ -1,0 +1,4 @@
+building_outline_id,building_id,lifecycle,begin_lifespan,end_lifespan,footprint_area_m2,longitude,latitude,meshblock_code,sa1_code,sa2_code,sa2_name,region_code,region_name,territorial_authority_code,territorial_authority_name,h3_res8,h3_res6
+1,101,Current,2010-01-01,,100.0,174.7762,-41.2865,0000100,7000001,100100,Example Central,09,Wellington Region,047,Wellington City,615782128600219647,606774929441947647
+2,102,Current,2015-06-01,,300.0,174.7800,-41.2900,0000200,7000001,100100,Example Central,09,Wellington Region,047,Wellington City,615782128598122495,606774929441947647
+3,103,Removed,2005-01-01,2012-01-01,80.0,174.7762,-41.2865,0000100,7000001,100100,Example Central,09,Wellington Region,047,Wellington City,615782128600219647,606774929441947647

@@ -38,6 +38,34 @@ to `true`. Once Azure is live, Azure owns publishing and the local deployment
 must remain disabled. This prevents conflicting edits and duplicated free-tier
 usage.
 
+## Reference-data refresh
+
+The normal building path is an owner-created whole-layer GeoPackage export.
+Keep its original filename, do not unzip it manually, and place it at:
+
+`/data/raw/reference/linz_buildings_export/incoming/lds-nz-building-outlines-all-sources-GPKG.zip`
+
+Then run:
+
+```bash
+docker compose exec app python scripts/import_linz_export.py
+```
+
+The importer rejects unsafe ZIP paths and an archive whose declared extraction
+would breach the disk budget. It verifies the GeoPackage schema, CRS, RTree,
+source count and unique building IDs. RTree-driven tiles contain no more than
+5,000 candidate polygons. Point ownership uses half-open tile boundaries, while
+the spatial join loads all meshblocks intersecting the tile without a region
+filter. Completed tile output and its source/checkpoint hashes are verified on
+restart before work is skipped.
+
+Defaults are intentionally conservative: one process and thread, a 512 MB
+DuckDB limit, a 768 MB process RSS ceiling, a 20 GB free-disk floor and a 5 GB
+work/spill reserve. DuckDB may spill below its memory limit. A resource-limit
+stop preserves completed tiles and the supervisor resumes them in a clean
+worker. WFS paging remains available as a fallback through
+`scripts/refresh_reference.py`; it is not the normal full-building path.
+
 ## Boundaries
 
 - The local deployment does not use Terraform, managed identity, Key Vault,

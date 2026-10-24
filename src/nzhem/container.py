@@ -12,6 +12,8 @@ from nzhem.ports import (
     Mailer,
     ObjectStore,
     QueueStore,
+    ReferenceDataRefresher,
+    ReferenceRefreshResult,
     SecretStore,
     StaticSitePublisher,
     TableStore,
@@ -30,6 +32,7 @@ class ServiceContainer:
     llm: LlmClient
     static_site: StaticSitePublisher
     event_source: EventSource
+    reference_data: ReferenceDataRefresher | None = None
 
     def housekeeping(self) -> HousekeepingService:
         return HousekeepingService(
@@ -38,6 +41,13 @@ class ServiceContainer:
             queues=self.queues,
             event_source=self.event_source,
         )
+
+    def refresh_reference(self) -> ReferenceRefreshResult:
+        if self.reference_data is None:
+            raise RuntimeError("Reference refresh is not configured for this deployment")
+        from nzhem.core.reference import RefreshReferenceService
+
+        return RefreshReferenceService(self.reference_data).run()
 
 
 def build_container(settings: Settings | None = None) -> ServiceContainer:
@@ -52,6 +62,7 @@ def _build_local_container(settings: Settings) -> ServiceContainer:
         EnvironmentSecretStore,
         GeoNetFdsnEventSource,
         LocalObjectStore,
+        LocalReferenceDataRefresher,
         LocalStaticSitePublisher,
         NullEventSource,
         OpenAILlmClient,
@@ -99,6 +110,7 @@ def _build_local_container(settings: Settings) -> ServiceContainer:
         ),
         static_site=LocalStaticSitePublisher(objects),
         event_source=event_source,
+        reference_data=LocalReferenceDataRefresher(settings, secrets),
     )
 
 

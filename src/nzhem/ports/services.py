@@ -64,3 +64,21 @@ class StaticSitePublisher(Protocol):
 
 class EventSource(Protocol):
     def fetch_updated_after(self, updated_after: datetime) -> Sequence[Mapping[str, Any]]: ...
+
+
+@dataclass(frozen=True)
+class ReferenceRefreshResult:
+    source_buildings: int
+    curated_buildings: int
+    source_population: int
+    allocated_population: float
+    rejected_buildings: int
+    suppressed_sa1: int
+    elapsed_seconds: float
+    peak_rss_mb: float
+    minimum_free_disk_gb: float
+    output_hashes: Mapping[str, str]
+
+
+class ReferenceDataRefresher(Protocol):
+    def refresh(self) -> ReferenceRefreshResult: ...
