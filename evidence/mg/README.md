@@ -60,8 +60,14 @@ and GeoJSON's longitude/latitude coordinate order.
 
 ## Deferred ArcGIS account work
 
-The following are explicitly deferred until the repository owner has an Esri
-account and the applicable approval is given:
+`arcgis-key-check.json` records the read-only key checks. The Portal self
+endpoint accepted the key (HTTP 200), while the private owner-content read
+returned HTTP 403 (`GWM_0003`). Basemap and static-map endpoints could not be
+resolved from this environment, so their permissions remain undetermined.
+
+Hosted-layer create/update was deliberately not attempted: proving that scope
+requires mutating ArcGIS content and is not a read-only operation. The
+following remain deferred until an owner-approved, free-quota test window:
 
 - unattended hosted-layer update validation;
 - API key or minimum-scope OAuth configuration;

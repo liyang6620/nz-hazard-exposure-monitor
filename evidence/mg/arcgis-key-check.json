@@ -1,0 +1,38 @@
+{
+  "checked_at": "2026-10-25",
+  "method": "read_only_GET",
+  "secret_logged": false,
+  "results": [
+    {
+      "endpoint": "www.arcgis.com/sharing/rest/portals/self",
+      "http_status": 200,
+      "error_code": null,
+      "conclusion": "key accepted by portal self endpoint"
+    },
+    {
+      "endpoint": "www.arcgis.com/sharing/rest/content/users/{owner}",
+      "http_status": 200,
+      "error_code": 403,
+      "message_code": "GWM_0003",
+      "conclusion": "private owner content cannot be read with this request"
+    },
+    {
+      "endpoint": "basemap.arcgis.com vector tile style",
+      "http_status": null,
+      "error_code": "DNS/request_error",
+      "conclusion": "endpoint could not be reached from this environment; permission not determined"
+    },
+    {
+      "endpoint": "static-map-arcgis-api.arcgis.com static map",
+      "http_status": null,
+      "error_code": "DNS/request_error",
+      "conclusion": "endpoint could not be reached from this environment; permission not determined"
+    }
+  ],
+  "hosted_layer_create_update": {
+    "tested": false,
+    "reason": "testing would create or mutate ArcGIS content, which is outside this read-only check"
+  },
+  "billing_or_quota_change": false,
+  "geocoding_or_routing_called": false
+}
