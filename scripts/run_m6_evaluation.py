@@ -101,6 +101,35 @@ def send_mailpit(
         client.send_message(message)
 
 
+def deliver_saved_mailpit(
+    output_path: Path,
+    *,
+    mailpit_host: str,
+    mailpit_port: int,
+    mail_from: str,
+    mail_to: str,
+) -> dict[str, Any]:
+    result: dict[str, Any] = json.loads(output_path.read_text(encoding="utf-8"))
+    drafts = [
+        record["response_text"]
+        for record in result.get("records", [])
+        if record.get("status") == "success" and record.get("response_text")
+    ]
+    if not drafts:
+        raise RuntimeError("no saved successful M6 draft is available")
+    send_mailpit(
+        mailpit_host,
+        mailpit_port,
+        mail_from,
+        mail_to,
+        "NZHEM M6 local approval draft",
+        "\n\n".join(drafts),
+    )
+    result["mailpit_status"] = "sent_to_local_mailpit"
+    output_path.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
+    return result
+
+
 def run_evaluation(
     *,
     api_key: str,
@@ -245,6 +274,11 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Run the budgeted local M6 OpenAI evaluation")
     parser.add_argument("--output", type=Path, default=ROOT / "evidence/m6/openai-evaluation.json")
     parser.add_argument("--max-output-tokens", type=int, default=450)
+    parser.add_argument(
+        "--mailpit-only",
+        action="store_true",
+        help="deliver saved successful drafts without making another OpenAI call",
+    )
     parser.add_argument("--mailpit-host", default=os.getenv("SMTP_HOST", "127.0.0.1"))
     parser.add_argument("--mailpit-port", type=int, default=int(os.getenv("SMTP_PORT", "1025")))
     arguments = parser.parse_args()
@@ -252,9 +286,32 @@ def main() -> None:
     api_key = values.get("OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY", "")
     if not api_key:
         raise SystemExit("OPENAI_API_KEY is required in ignored .env or the environment")
+    output_path = arguments.output.resolve()
+    if arguments.mailpit_only:
+        try:
+            result = deliver_saved_mailpit(
+                output_path,
+                mailpit_host=arguments.mailpit_host,
+                mailpit_port=arguments.mailpit_port,
+                mail_from=values.get("MAIL_FROM", "nzhem@example.invalid"),
+                mail_to=values.get("NOTIFICATION_EMAIL", "owner@example.invalid"),
+            )
+        except Exception as exc:  # pragma: no cover - service availability varies
+            result = json.loads(output_path.read_text(encoding="utf-8"))
+            result["mailpit_status"] = f"failed:{type(exc).__name__}"
+            output_path.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
+        print(
+            json.dumps(
+                {
+                    "actual_cost_usd": result["actual_cost_usd"],
+                    "mailpit_status": result["mailpit_status"],
+                }
+            )
+        )
+        return
     result = run_evaluation(
         api_key=api_key,
-        output_path=arguments.output.resolve(),
+        output_path=output_path,
         mailpit_host=arguments.mailpit_host,
         mailpit_port=arguments.mailpit_port,
         mail_from=values.get("MAIL_FROM", "nzhem@example.invalid"),
