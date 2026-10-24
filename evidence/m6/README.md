@@ -8,3 +8,7 @@ The evaluation uses the OpenAI Responses API with minimal reasoning and a
 450-token output ceiling. The API key is read only from the ignored root
 `.env`; it is never written to evidence, logs, prompts, or screenshots. The
 approval draft is sent to the local Mailpit SMTP listener only.
+
+If Docker Desktop was unavailable during evaluation, start the local Compose
+Mailpit service and run `python scripts/run_m6_evaluation.py --mailpit-only`.
+That retry sends saved drafts and makes no additional OpenAI call.
