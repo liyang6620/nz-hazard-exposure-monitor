@@ -166,7 +166,7 @@ def test_one_tile_loads_meshblocks_from_every_intersecting_region(tmp_path: Path
 
 def _synthetic_sources(tmp_path: Path) -> tuple[Path, Path]:
     connection = duckdb.connect()
-    connection.execute("load spatial")
+    _load_spatial(connection)
     gpkg = tmp_path / "buildings.gpkg"
     connection.execute(
         f"""
@@ -225,7 +225,7 @@ def _synthetic_sources(tmp_path: Path) -> tuple[Path, Path]:
 
 def _gpkg_info(path: Path) -> GpkgInfo:
     connection = duckdb.connect()
-    connection.execute("load spatial")
+    _load_spatial(connection)
     extent = connection.execute(
         f"""
         select min(st_xmin(geom)), min(st_ymin(geom)),
@@ -249,3 +249,11 @@ def _gpkg_info(path: Path) -> GpkgInfo:
         True,
         "2026-05-18",
     )
+
+
+def _load_spatial(connection: duckdb.DuckDBPyConnection) -> None:
+    try:
+        connection.execute("load spatial")
+    except duckdb.Error:
+        connection.execute("install spatial")
+        connection.execute("load spatial")
