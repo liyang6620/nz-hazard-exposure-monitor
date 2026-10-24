@@ -58,6 +58,8 @@ def build_map_data(event_root: Path, reference_root: Path, output_root: Path) ->
                 mmi_source,
                 source_version,
                 event_building_count,
+                event_time_building_count,
+                as_if_today_building_count,
                 current_building_count,
                 population_2023,
                 h3_cell_to_boundary_wkt(h3_res6) as geometry_wkt

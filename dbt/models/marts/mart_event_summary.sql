@@ -9,14 +9,21 @@ select
     evt.mmi_source,
     evt.shaking_version,
     evt.valid_buildings,
+    evt.as_if_today_buildings,
+    evt.event_time_status,
     evt.validation_station_count,
     evt.validation_mae,
     max(exposure.mmi) as max_mmi,
     coalesce(
-        sum(exposure.event_building_count) filter (where exposure.mmi >= 6), 0
+        sum(exposure.as_if_today_building_count)
+        filter (where exposure.mmi >= 6),
+        0
     ) as buildings_mmi_ge_6,
     coalesce(
-        sum(exposure.event_footprint_area_m2)
+        sum(exposure.event_building_count) filter (where exposure.mmi >= 6), 0
+    ) as event_time_buildings_mmi_ge_6,
+    coalesce(
+        sum(exposure.as_if_today_footprint_area_m2)
         filter (where exposure.mmi >= 6),
         0
     ) as footprint_m2_mmi_ge_6,
@@ -37,5 +44,7 @@ group by
     evt.mmi_source,
     evt.shaking_version,
     evt.valid_buildings,
+    evt.as_if_today_buildings,
+    evt.event_time_status,
     evt.validation_station_count,
     evt.validation_mae

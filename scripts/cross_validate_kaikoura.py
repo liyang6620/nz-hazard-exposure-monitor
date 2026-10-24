@@ -40,12 +40,12 @@ def cross_validate(
     connection = duckdb.connect()
     connection.execute("set memory_limit='512MB'")
     connection.execute("set threads=1")
-    event_time_valid_buildings = int(
-        connection.execute(
-            "select valid_buildings from read_parquet(?) where event_id = ?",
-            [(event_root / "dim_event.parquet").as_posix(), KAIKOURA_ID],
-        ).fetchone()[0]
-    )
+    event_time_valid_buildings = connection.execute(
+        "select valid_buildings from read_parquet(?) where event_id = ?",
+        [(event_root / "dim_event.parquet").as_posix(), KAIKOURA_ID],
+    ).fetchone()[0]
+    if event_time_valid_buildings is not None:
+        event_time_valid_buildings = int(event_time_valid_buildings)
     shaking = dict(
         connection.execute(
             """

@@ -14,7 +14,11 @@ back through OpenFileGDB:
 |---|---:|---|---|
 | `nzhem_events` | 10 | Point | EPSG:2193 |
 | `event_exposure_r6` | 4,011 | MultiPolygon | EPSG:2193 |
-| `nzhem_metadata` | 11 | None | Non-spatial |
+| `nzhem_metadata` | 16 | None | Non-spatial |
+
+The event layer carries both `valid_bldg` (event-time, nullable),
+`as_if_today_buildings` and `event_time_status`. The exposure layer carries
+event-time, as-if-today and current counts separately.
 
 The committed JSON contains the read-back schema. The generated geodatabase is
 an ignored local artifact because it can be reproduced from M3 Parquet outputs.
@@ -36,15 +40,16 @@ Differences are concentrated near official MMI contour boundaries, where a
 building point and its H3-8 centre can lie on different sides. The CSV records
 counts by region and MMI band.
 
-Kaikoura's event-time valid building count remains zero because source lifecycle
-coverage starts in 2018. Current buildings are used only to validate the spatial
-assignment method and are not substituted into the historical exposure result.
+Kaikoura's event-time valid building count is `NULL` with status
+`not_supported` because source lifecycle coverage starts in 2018. Current
+buildings are used only to validate the spatial assignment method and are not
+substituted into the historical exposure result.
 
 ## Token-free local map
 
 `scripts/build_local_map.py` generated 4,011 MMI 5+ H3-6 features for ten events
 and a project-derived New Zealand outline. The complete static payload is
-1,920,997 bytes. `/map/` uses the ArcGIS Maps SDK with local GeoJSON, no basemap,
+2,195,110 bytes. `/map/` uses the ArcGIS Maps SDK with local GeoJSON, no basemap,
 no API key and no authenticated Esri service.
 
 ## Coordinate contract

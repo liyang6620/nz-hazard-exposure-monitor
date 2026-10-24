@@ -19,13 +19,16 @@ reported intensity uncertainty. No coefficient was tuned against these events.
 Kermadec's highest MMI on a populated New Zealand H3 cell is 2.2 and its MMI 6
 building and population exposure is zero, satisfying the near-zero check.
 
-## Building-time coverage
+## Building-time coverage and as-if-today replay
 
 The LINZ export contains lifecycle history only from 2018-10-16. Consequently,
-the eight fixed 2010-2016 events have zero source-supported buildings at their
-event timestamps. Kermadec 2021 has 3,243,168 valid deduplicated buildings; the
+the eight fixed 2010-2016 events have no supported event-time count; their
+event-time fields are `NULL` with status `not_supported`, never zero. The main
+M3 result is now an **as-if-today** replay: all ten official shaking surfaces
+use the current 3,219,311 deduplicated buildings and fixed 2023 SA1 population.
+Kermadec 2021 has 3,243,168 event-time valid deduplicated buildings, and the
 2026 recent event has 3,219,311. Current or replacement outlines are never
-substituted into earlier events.
+substituted into the event-time field for unsupported historical events.
 
 ## MG Kaikoura spatial cross-validation
 
@@ -42,7 +45,8 @@ an MMI contour where the building point and its H3 cell centre fall on opposite
 sides. The CSV evidence reports the resulting movement by region and MMI band.
 
 This is a spatial-method validation only. Kaikoura occurred before the LINZ
-lifecycle coverage begins, so its event-time valid building count remains zero.
-The current building points used here are not substituted into the M3 exposure
-result and are not presented as a 2016 building inventory.
+lifecycle coverage begins, so its event-time valid building count is `NULL` with
+status `not_supported`; it is never represented as zero. The current building
+points used here are not substituted into the M3 exposure result and are not
+presented as a 2016 building inventory.
 

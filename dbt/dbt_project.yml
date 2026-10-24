@@ -45,9 +45,19 @@ seeds:
         event_id: varchar
         h3_res8: ubigint
         h3_res6: ubigint
+        event_building_count: bigint
+        event_footprint_area_m2: double
+        as_if_today_building_count: bigint
+        as_if_today_footprint_area_m2: double
+        current_building_count: bigint
+        current_footprint_area_m2: double
+        population_2023: double
     event_catalog:
       +column_types:
         event_id: varchar
+        valid_buildings: bigint
+        as_if_today_buildings: bigint
+        event_time_status: varchar
     mmi_validation:
       +column_types:
         event_id: varchar

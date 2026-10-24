@@ -28,6 +28,7 @@ FIXED_EVENTS = [
     ("kermadec_2021", "2021p169764"),
 ]
 RECENT_EVENT = ("taumarunui_deep_2026", "2026p776286")
+LIFECYCLE_SUPPORT_START = "2018-10-16T00:00:00Z"
 
 
 @dataclass(frozen=True)
@@ -41,7 +42,9 @@ class EventResult:
     longitude: float
     shaking_version: str
     shaking_type: str
-    valid_buildings: int
+    valid_buildings: int | None
+    as_if_today_buildings: int
+    event_time_status: str
     surface_max_mmi: float | None
     populated_max_mmi: float | None
     buildings_mmi_ge_6: int
@@ -89,8 +92,7 @@ class HistoricalExposureBuilder:
 
     def run(self) -> dict[str, Any]:
         events = [*FIXED_EVENTS, RECENT_EVENT]
-        if not all(self._event_outputs_exist(event_id) for _, event_id in events):
-            self._prepare_reference_aggregates()
+        self._prepare_reference_aggregates()
         results = [self._process_event(name, event_id) for name, event_id in events]
         self._combine_outputs()
         self._build_marts(results)
@@ -109,12 +111,15 @@ class HistoricalExposureBuilder:
             "old_wfs_fallback_used": False,
             "water_meshblock_buildings_excluded": 21483,
             "events": [result.__dict__ for result in results],
+            "as_if_today_buildings": self._as_if_today_buildings,
+            "as_if_today_population": "population_2023",
+            "event_time_lifecycle_support_start": LIFECYCLE_SUPPORT_START,
             "validation_station_count": overall_station_count,
             "validation_mae": validation_rows[1],
         }
 
     def _event_outputs_exist(self, event_id: str) -> bool:
-        return all(
+        paths_exist = all(
             self._event_path(dataset, event_id).exists()
             for dataset in (
                 "int_event_shaking_h3",
@@ -122,6 +127,33 @@ class HistoricalExposureBuilder:
                 "mart_mmi_validation",
             )
         )
+        if not paths_exist:
+            return False
+        try:
+            columns = {
+                description[0]
+                for description in self._connection.execute(
+                    "select * from read_parquet(?) limit 0",
+                    [self._event_path("fct_event_exposure_cell", event_id).as_posix()],
+                ).description
+            }
+            dim_columns = {
+                description[0]
+                for description in self._connection.execute(
+                    "select * from read_parquet(?) limit 0",
+                    [(self.output_root / "dim_event.parquet").as_posix()],
+                ).description
+            }
+        except Exception:
+            return False
+        return {
+            "event_building_count",
+            "as_if_today_building_count",
+        }.issubset(columns) and {
+            "valid_buildings",
+            "as_if_today_buildings",
+            "event_time_status",
+        }.issubset(dim_columns)
 
     def _prepare_reference_aggregates(self) -> None:
         buildings_glob = (
@@ -148,6 +180,11 @@ class HistoricalExposureBuilder:
             """,
             [buildings_glob],
         )
+        self._as_if_today_buildings = int(
+            self._connection.execute(
+                "select coalesce(sum(current_building_count), 0) from current_counts"
+            ).fetchone()[0]
+        )
         self._connection.execute(
             """
             create or replace temporary table population_counts as
@@ -168,15 +205,20 @@ class HistoricalExposureBuilder:
         depth = float(param["depth"])
         latitude = float(param["latitude"])
         longitude = float(param["longitude"])
-        shaking_path = self._event_path("int_event_shaking_h3", event_id)
         exposure_path = self._event_path("fct_event_exposure_cell", event_id)
         validation_path = self._event_path("mart_mmi_validation", event_id)
-        if shaking_path.exists() and exposure_path.exists() and validation_path.exists():
-            valid_buildings = self._count_valid_buildings(origin_time)
+        if self._event_outputs_exist(event_id):
+            valid_buildings = (
+                self._count_valid_buildings(origin_time)
+                if self._event_time_supported(origin_time)
+                else None
+            )
             station_count, mae = self._validation_summary(validation_path)
         else:
             self._build_shaking(event)
-            valid_buildings = self._build_exposure(event_id, origin_time)
+            valid_buildings = self._build_exposure(
+                event_id, origin_time, self._event_time_supported(origin_time)
+            )
             station_count, mae = self._build_validation(
                 event, magnitude, depth, latitude, longitude
             )
@@ -187,7 +229,7 @@ class HistoricalExposureBuilder:
             """
             select
                 max(mmi),
-                coalesce(sum(event_building_count) filter (where mmi >= 6), 0),
+                coalesce(sum(as_if_today_building_count) filter (where mmi >= 6), 0),
                 coalesce(sum(population_2023) filter (where mmi >= 6), 0)
             from read_parquet(?)
             """,
@@ -204,6 +246,10 @@ class HistoricalExposureBuilder:
             shaking_version=str(event.manifest["versionpath"]),
             shaking_type=str(event.manifest["type"]),
             valid_buildings=valid_buildings,
+            as_if_today_buildings=self._as_if_today_buildings,
+            event_time_status=(
+                "supported" if self._event_time_supported(origin_time) else "not_supported"
+            ),
             surface_max_mmi=surface_max,
             populated_max_mmi=populated_max,
             buildings_mmi_ge_6=int(buildings),
@@ -228,6 +274,14 @@ class HistoricalExposureBuilder:
                 )
                 """,
                 [buildings_glob, origin_time, origin_time],
+            ).fetchone()[0]
+        )
+
+    def _event_time_supported(self, origin_time: str) -> bool:
+        return bool(
+            self._connection.execute(
+                "select cast(? as timestamptz) >= cast(? as timestamptz)",
+                [origin_time, LIFECYCLE_SUPPORT_START],
             ).fetchone()[0]
         )
 
@@ -275,33 +329,43 @@ class HistoricalExposureBuilder:
         )
         self._copy_table("event_shaking", output)
 
-    def _build_exposure(self, event_id: str, origin_time: str) -> int:
+    def _build_exposure(
+        self, event_id: str, origin_time: str, event_time_supported: bool
+    ) -> int | None:
         buildings_glob = (
             self.reference_root / "int_buildings_h3" / "region=*" / "*.parquet"
         ).as_posix()
         shaking_path = self._event_path("int_event_shaking_h3", event_id)
         exposure_path = self._event_path("fct_event_exposure_cell", event_id)
-        self._connection.execute(
-            """
-            create or replace temporary table valid_event_buildings as
-            with filtered as (
-                select *, row_number() over (
-                    partition by building_id
-                    order by begin_lifespan desc, building_outline_id desc
-                ) as version_rank
-                from read_parquet(?)
-                where begin_lifespan <= cast(? as timestamptz)
-                  and (end_lifespan is null or end_lifespan > cast(? as timestamptz))
+        if event_time_supported:
+            self._connection.execute(
+                """
+                create or replace temporary table valid_event_buildings as
+                with filtered as (
+                    select *, row_number() over (
+                        partition by building_id
+                        order by begin_lifespan desc, building_outline_id desc
+                    ) as version_rank
+                    from read_parquet(?)
+                    where begin_lifespan <= cast(? as timestamptz)
+                      and (end_lifespan is null or end_lifespan > cast(? as timestamptz))
+                )
+                select * exclude (version_rank)
+                from filtered
+                where version_rank = 1
+                """,
+                [buildings_glob, origin_time, origin_time],
             )
-            select * exclude (version_rank)
-            from filtered
-            where version_rank = 1
-            """,
-            [buildings_glob, origin_time, origin_time],
-        )
-        valid_count = self._connection.execute(
-            "select count(*) from valid_event_buildings"
-        ).fetchone()[0]
+            valid_count = int(
+                self._connection.execute("select count(*) from valid_event_buildings").fetchone()[0]
+            )
+        else:
+            self._connection.execute(
+                "create or replace temporary table valid_event_buildings as "
+                "select * from read_parquet(?) where false",
+                [buildings_glob],
+            )
+            valid_count = None
         self._connection.execute(
             """
             create or replace temporary table event_exposure as
@@ -320,10 +384,16 @@ class HistoricalExposureBuilder:
                 shaking.mmi,
                 shaking.mmi_source,
                 shaking.source_version,
-                coalesce(event_buildings.event_building_count, 0)::bigint
-                    as event_building_count,
-                coalesce(event_buildings.event_footprint_area_m2, 0)::double
-                    as event_footprint_area_m2,
+                case when ?::boolean then
+                    coalesce(event_buildings.event_building_count, 0)::bigint
+                    else null::bigint end as event_building_count,
+                case when ?::boolean then
+                    coalesce(event_buildings.event_footprint_area_m2, 0)::double
+                    else null::double end as event_footprint_area_m2,
+                coalesce(current_counts.current_building_count, 0)::bigint
+                    as as_if_today_building_count,
+                coalesce(current_counts.current_footprint_area_m2, 0)::double
+                    as as_if_today_footprint_area_m2,
                 coalesce(current_counts.current_building_count, 0)::bigint
                     as current_building_count,
                 coalesce(current_counts.current_footprint_area_m2, 0)::double
@@ -335,10 +405,10 @@ class HistoricalExposureBuilder:
             left join population_counts using (h3_res8)
             order by shaking.h3_res8
             """,
-            [shaking_path.as_posix()],
+            [event_time_supported, event_time_supported, shaking_path.as_posix()],
         )
         self._copy_table("event_exposure", exposure_path)
-        return int(valid_count)
+        return valid_count
 
     def _build_validation(
         self,
@@ -439,6 +509,8 @@ class HistoricalExposureBuilder:
                 shaking_version varchar,
                 shaking_type varchar,
                 valid_buildings bigint,
+                as_if_today_buildings bigint,
+                event_time_status varchar,
                 surface_max_mmi double,
                 populated_max_mmi double,
                 validation_station_count bigint,
@@ -447,7 +519,10 @@ class HistoricalExposureBuilder:
             """
         )
         self._connection.executemany(
-            "insert into dim_event values (?, ?, ?, ?, ?, ?, ?, 'official', ?, ?, ?, ?, ?, ?, ?)",
+            (
+                "insert into dim_event values "
+                "(?, ?, ?, ?, ?, ?, ?, 'official', ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            ),
             [
                 [
                     result.name,
@@ -460,6 +535,8 @@ class HistoricalExposureBuilder:
                     result.shaking_version,
                     result.shaking_type,
                     result.valid_buildings,
+                    result.as_if_today_buildings,
+                    result.event_time_status,
                     result.surface_max_mmi,
                     result.populated_max_mmi,
                     result.validation_station_count,
@@ -484,12 +561,19 @@ class HistoricalExposureBuilder:
                 event.mmi_source,
                 event.shaking_version,
                 event.valid_buildings,
+                event.as_if_today_buildings,
+                event.event_time_status,
                 max(exposure.mmi)::double as max_mmi,
                 coalesce(
-                    sum(exposure.event_building_count) filter (where exposure.mmi >= 6), 0
+                    sum(exposure.as_if_today_building_count)
+                    filter (where exposure.mmi >= 6), 0
                 )::bigint as buildings_mmi_ge_6,
                 coalesce(
-                    sum(exposure.event_footprint_area_m2) filter (where exposure.mmi >= 6), 0
+                    sum(exposure.event_building_count) filter (where exposure.mmi >= 6), 0
+                )::bigint as event_time_buildings_mmi_ge_6,
+                coalesce(
+                    sum(exposure.as_if_today_footprint_area_m2)
+                    filter (where exposure.mmi >= 6), 0
                 )::double as footprint_m2_mmi_ge_6,
                 coalesce(sum(exposure.population_2023) filter (where exposure.mmi >= 6), 0)::double
                     as population_mmi_ge_6,
@@ -514,6 +598,10 @@ class HistoricalExposureBuilder:
                 any_value(source_version)::varchar as source_version,
                 sum(event_building_count)::bigint as event_building_count,
                 sum(event_footprint_area_m2)::double as event_footprint_area_m2,
+                sum(event_building_count)::bigint as event_time_building_count,
+                sum(event_footprint_area_m2)::double as event_time_footprint_area_m2,
+                sum(as_if_today_building_count)::bigint as as_if_today_building_count,
+                sum(as_if_today_footprint_area_m2)::double as as_if_today_footprint_area_m2,
                 sum(current_building_count)::bigint as current_building_count,
                 sum(current_footprint_area_m2)::double as current_footprint_area_m2,
                 sum(population_2023)::double as population_2023
@@ -569,7 +657,8 @@ def write_evidence(payload: dict[str, Any], evidence_root: Path) -> None:
     )
     event_rows = "\n".join(_event_markdown_row(event) for event in payload["events"])
     fixed_counts = "\n".join(
-        f"- `{event['event_id']}` at `{event['origin_time']}`: `{event['valid_buildings']:,}`"
+        f"- `{event['event_id']}` at `{event['origin_time']}`: "
+        f"`{_format_count(event['valid_buildings'])}` (`{event['event_time_status']}`)"
         for event in payload["events"][:9]
     )
     markdown = f"""# M3 historical event replay
@@ -582,20 +671,25 @@ def write_evidence(payload: dict[str, Any], evidence_root: Path) -> None:
 - Building validity is the exact half-open interval `begin_lifespan <= event_time < end_lifespan`.
 - Simultaneously valid source versions are deterministically reduced to one row per `building_id`.
 
-## Ten-event replay
+## Ten-event replay (as-if-today)
 
-| Event | ID | UTC | Valid buildings | Max MMI | Bldgs >= 6 | Pop >= 6 | Source | MAE |
-|---|---|---|---:|---:|---:|---:|---|---:|
+The shaking surface is replayed for each event, but exposure uses the current
+deduplicated building inventory (`{payload["as_if_today_buildings"]:,}`) and fixed
+2023 SA1 population. This is explicitly an **as-if-today** scenario, not a claim
+that today's outlines existed at the historical event time.
+
+| Event | ID | UTC | Today | Event | Status | Max MMI | Bldgs6+ | Pop6+ | Source | MAE |
+|---|---|---|---:|---:|---|---:|---:|---:|---|---:|
 {event_rows}
 
-## Nine fixed-event lifecycle counts
+## Event-time lifecycle counts
 
 {fixed_counts}
 
-The source lifecycle begins on 2018-10-16. The eight fixed events before that
-date therefore have zero source-supported historical buildings; the pipeline
-does not substitute current buildings. Population remains the approved fixed
-2023 allocation. This is a source-coverage limitation, not a processing error.
+The source lifecycle begins on 2018-10-16. Events before that date are marked
+`not_supported` and their event-time count is blank (`NULL`), never zero. The
+2021 and 2026 events are marked `supported` and retain their exact lifecycle
+filtering. Population remains the approved fixed 2023 allocation.
 
 ## Validation
 
@@ -617,9 +711,14 @@ def _event_markdown_row(event: dict[str, Any]) -> str:
     mae = f"{event['validation_mae']:.3f}" if event["validation_mae"] is not None else "n/a"
     return (
         f"| {event['name']} | `{event['event_id']}` | {event['origin_time']} | "
-        f"{event['valid_buildings']:,} | {maximum} | {event['buildings_mmi_ge_6']:,} | "
+        f"{event['as_if_today_buildings']:,} | {_format_count(event['valid_buildings'])} | "
+        f"{event['event_time_status']} | {maximum} | {event['buildings_mmi_ge_6']:,} | "
         f"{event['population_mmi_ge_6']:,.0f} | official | {mae} |"
     )
+
+
+def _format_count(value: int | None) -> str:
+    return "NULL" if value is None else f"{value:,}"
 
 
 def main() -> None:

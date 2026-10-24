@@ -12,6 +12,8 @@
         "mmi_source",
         "source_version",
         "event_bldg",
+        "event_time_bldg",
+        "asif_bldg",
         "current_bldg",
         "pop_2023"
       ],
@@ -27,6 +29,9 @@
         "magnitude",
         "depth_km",
         "valid_bldg",
+        "as_if_today_buildings",
+        "event_time_status",
+        "count_basis",
         "max_mmi",
         "validation_mae"
       ],
@@ -34,7 +39,7 @@
     },
     "nzhem_metadata": {
       "crs": null,
-      "feature_count": 11,
+      "feature_count": 16,
       "fields": [
         "layer_name",
         "field_name",
