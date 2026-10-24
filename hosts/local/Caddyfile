@@ -1,5 +1,4 @@
 :8080 {
-    root * /srv/web
-    file_server
+	root * /srv/web
+	file_server
 }
-

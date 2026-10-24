@@ -42,6 +42,8 @@ jobs:
           curl --fail --silent http://127.0.0.1:8000/runs | tee local-runs.json
           python -c "import json; d=json.load(open('local-runs.json')); assert any(r['PartitionKey'] == 'housekeeping' and r['status'] == 'success' for r in d)"
           curl --fail --silent http://127.0.0.1:8080/ | grep 'NZ Hazard Exposure Monitor'
+          curl --fail --silent http://127.0.0.1:8080/map/ | grep 'NZHEM event map'
+          curl --fail --silent http://127.0.0.1:8080/map/data/events.json | grep '2016p858000'
           curl --fail --silent http://127.0.0.1:8025/api/v1/info
       - if: always()
         run: docker compose down --volumes

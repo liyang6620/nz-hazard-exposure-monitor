@@ -7,9 +7,11 @@ with Docker Compose and requires no Azure or Microsoft account.
 
 ## Status
 
-M1-L, M2 and M3 are complete locally. The shared core, local Docker host and
-Azure Functions host are kept separate. No Azure infrastructure is created
-until M1-A plans are approved. Milestone evidence is under [`evidence/`](evidence/).
+M1-L, M2 and M3 are complete locally. The no-account portion of MG is also
+complete; hosted ArcGIS publishing remains deferred. The shared core, local
+Docker host and Azure Functions host are kept separate. No Azure infrastructure
+is created until M1-A plans are approved. Milestone evidence is under
+[`evidence/`](evidence/).
 
 ## Important limitations
 
@@ -55,6 +57,7 @@ The services are then available at:
 
 - API and health: <http://localhost:8000/health>
 - Static site: <http://localhost:8080/>
+- Token-free historical event map: <http://localhost:8080/map/>
 - Mailpit inbox: <http://localhost:8025/>
 
 The application runs `housekeeping` once at startup and then every 60 minutes.

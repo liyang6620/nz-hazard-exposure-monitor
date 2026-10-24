@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>NZHEM event map</title>
+    <link rel="stylesheet" href="https://js.arcgis.com/4.32/esri/themes/light/main.css">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://js.arcgis.com/4.32/"></script>
+  </head>
+  <body>
+    <header>
+      <a href="/">NZ Hazard Exposure Monitor</a>
+      <label for="event-select">Event</label>
+      <select id="event-select" aria-label="Earthquake event"></select>
+      <span id="event-summary"></span>
+    </header>
+    <main id="view"></main>
+    <aside>
+      <strong>Limits:</strong> Exposure is buildings, footprint and 2023 population,
+      not insured loss. Building lifecycle dates are approximate. MMI is not an
+      engineering or emergency-management conclusion. This token-free preview uses
+      static GeoJSON and a project-generated New Zealand outline, with no Esri service.
+    </aside>
+    <script src="map.js"></script>
+  </body>
+</html>

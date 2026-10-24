@@ -27,3 +27,22 @@ event timestamps. Kermadec 2021 has 3,243,168 valid deduplicated buildings; the
 2026 recent event has 3,219,311. Current or replacement outlines are never
 substituted into earlier events.
 
+## MG Kaikoura spatial cross-validation
+
+The MG validation compares two ways of assigning the official Kaikoura MMI
+surface to the same 3,219,311 current, deduplicated building points:
+
+1. an exact GeoPandas/Shapely point-in-polygon join against the published MMI
+   contour polygons; and
+2. the production H3-8 centre assignment from `int_event_shaking_h3`.
+
+MMI bands agree for 3,201,877 buildings, or **99.458%**. The mean absolute
+numeric MMI difference is **0.00365**. Most differences are buildings close to
+an MMI contour where the building point and its H3 cell centre fall on opposite
+sides. The CSV evidence reports the resulting movement by region and MMI band.
+
+This is a spatial-method validation only. Kaikoura occurred before the LINZ
+lifecycle coverage begins, so its event-time valid building count remains zero.
+The current building points used here are not substituted into the M3 exposure
+result and are not presented as a 2016 building inventory.
+

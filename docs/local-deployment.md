@@ -23,6 +23,10 @@ Queue messages have a visibility timeout and a receipt. A failed message can be
 retried three times; after the third lease expires, the next receive operation
 moves it to `<queue>-poison`. These semantics match the Azure host contract.
 
+The local static site includes `/map/`, a token-free ArcGIS Maps SDK preview.
+It reads only repository-generated static GeoJSON, uses a generated New Zealand
+outline instead of an Esri basemap, and makes no authenticated ArcGIS request.
+
 ## Startup catch-up
 
 At startup the local host runs the shared `housekeeping` function. It finds the
