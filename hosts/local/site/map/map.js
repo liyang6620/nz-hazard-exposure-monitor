@@ -58,7 +58,8 @@ require([
         title: "MMI {mmi}",
         content: [
           { type: "fields", fieldInfos: [
-            { fieldName: "event_building_count", label: "Buildings at event" },
+            { fieldName: "event_time_building_count", label: "Buildings at event time" },
+            { fieldName: "as_if_today_building_count", label: "Buildings if event happened today" },
             { fieldName: "current_building_count", label: "Current buildings" },
             { fieldName: "population_2023", label: "Population 2023", format: { digitSeparator: true, places: 0 } },
             { fieldName: "mmi_source", label: "MMI source" },

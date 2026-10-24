@@ -25,11 +25,16 @@ b0c43ce34f4bbbb9b23acc673d81b64ad1d667b927822d9baa65975611c54b99
 - Overlapping old/new versions are reduced to one row per `building_id`.
 - All ten events use official GeoNet Shaking Layers surfaces.
 - Population is the approved fixed 2023 SA1 allocation.
+- The primary exposure scenario is explicitly **as-if-today**: current
+  deduplicated buildings (3,219,311) plus 2023 population are applied to each
+  event's shaking surface.
 - Kermadec maximum populated-cell MMI is 2.2; MMI 6 exposure is zero.
 
-The export lifecycle starts on 2018-10-16, so all eight fixed events from
-2010-2016 have zero source-supported historical buildings. Kermadec 2021 has
-3,243,168 valid buildings. Full event results are in `evidence/m3/README.md`.
+The export lifecycle starts on 2018-10-16. The eight fixed events from
+2010-2016 therefore have blank (`NULL`) event-time counts and
+`not_supported` status; they are never reported as zero. Kermadec 2021 has
+3,243,168 event-time valid buildings and Taumarunui 2026 has 3,219,311.
+Full event results are in `evidence/m3/README.md`.
 
 ## Validation and escalation
 

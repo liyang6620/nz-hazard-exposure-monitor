@@ -1,5 +1,5 @@
-event_id,h3_res8,h3_res6,mmi,mmi_source,source_version,event_building_count,event_footprint_area_m2,current_building_count,current_footprint_area_m2,population_2023
-3468575,615000000000000001,606000000000000001,7.2,official,fixture-reviewed,0,0,2,210,100
-3468575,615000000000000002,606000000000000001,5.8,official,fixture-reviewed,0,0,1,90,50
-2016p858000,615000000000000001,606000000000000001,6.4,official,fixture-reviewed,0,0,2,210,100
-2016p858000,615000000000000002,606000000000000001,7.0,official,fixture-reviewed,0,0,1,90,50
+event_id,h3_res8,h3_res6,mmi,mmi_source,source_version,event_building_count,event_footprint_area_m2,as_if_today_building_count,as_if_today_footprint_area_m2,current_building_count,current_footprint_area_m2,population_2023
+3468575,615000000000000001,606000000000000001,7.2,official,fixture-reviewed,0,0,2,210,2,210,100
+3468575,615000000000000002,606000000000000001,5.8,official,fixture-reviewed,0,0,1,90,1,90,50
+2016p858000,615000000000000001,606000000000000001,6.4,official,fixture-reviewed,0,0,2,210,2,210,100
+2016p858000,615000000000000002,606000000000000001,7.0,official,fixture-reviewed,0,0,1,90,1,90,50

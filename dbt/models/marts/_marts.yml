@@ -18,7 +18,7 @@ models:
       - name: event_id
         data_tests: [not_null, unique]
   - name: fct_event_exposure_cell
-    description: Event-time building and fixed-2023 population exposure by H3-8 cell.
+    description: As-if-today and event-time building plus fixed-2023 population exposure by H3-8 cell.
     columns:
       - name: event_id
         data_tests: [not_null]
