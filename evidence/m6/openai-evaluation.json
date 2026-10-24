@@ -1,0 +1,95 @@
+{
+  "model": "gpt-5-mini",
+  "pricing_usd_per_million": {
+    "input": 0.25,
+    "cached_input": 0.025,
+    "output": 2.0
+  },
+  "hard_budget_usd": 1.0,
+  "estimated_cost_usd_before_calls": 0.005531,
+  "actual_cost_usd": 0.0023465,
+  "mailpit_status": "failed:ConnectionRefusedError",
+  "mailpit_host": "127.0.0.1",
+  "records": [
+    {
+      "name": "executive_summary",
+      "estimated_input_tokens": 99,
+      "estimated_output_tokens": 450,
+      "estimated_cost_usd": 0.00092475,
+      "input_tokens": 108,
+      "output_tokens": 130,
+      "total_tokens": 238,
+      "actual_cost_usd": 0.000287,
+      "status": "success",
+      "response_text": "",
+      "error": null
+    },
+    {
+      "name": "quality_review",
+      "estimated_input_tokens": 85,
+      "estimated_output_tokens": 450,
+      "estimated_cost_usd": 0.00092125,
+      "input_tokens": 82,
+      "output_tokens": 151,
+      "total_tokens": 233,
+      "actual_cost_usd": 0.0003225,
+      "status": "success",
+      "response_text": "",
+      "error": null
+    },
+    {
+      "name": "owner_actions",
+      "estimated_input_tokens": 78,
+      "estimated_output_tokens": 450,
+      "estimated_cost_usd": 0.0009195,
+      "input_tokens": 79,
+      "output_tokens": 286,
+      "total_tokens": 365,
+      "actual_cost_usd": 0.00059175,
+      "status": "success",
+      "response_text": "",
+      "error": null
+    },
+    {
+      "name": "executive_summary",
+      "estimated_input_tokens": 99,
+      "estimated_output_tokens": 450,
+      "estimated_cost_usd": 0.00092475,
+      "input_tokens": 108,
+      "output_tokens": 125,
+      "total_tokens": 233,
+      "actual_cost_usd": 0.000277,
+      "status": "success",
+      "response_text": "- Exposure assessed using 3,219,311 current deduplicated buildings.  \n- Fixed 2023 SA1 population used: 4,994,034.  \n- Shaking model incorporates ten official GeoNet shaking surfaces.  \n- Eight pre-2018 event-time counts are unsupported and were excluded.  \n- Point-source mean absolute error (MAE) = 1.049 MMI.  \n- Note: the MAE (1.049 MMI) is a known limitation of the point-source shaking estimates.",
+      "error": null
+    },
+    {
+      "name": "quality_review",
+      "estimated_input_tokens": 85,
+      "estimated_output_tokens": 450,
+      "estimated_cost_usd": 0.00092125,
+      "input_tokens": 82,
+      "output_tokens": 135,
+      "total_tokens": 217,
+      "actual_cost_usd": 0.0002905,
+      "status": "success",
+      "response_text": "Controls look appropriate: using a half-open, building_id-deduplicated event-time lifecycle prevents overlap/duplicates; mapping pre-2018 event-times to NULL/not_supported avoids invalid historical timestamps; DuckDB and process RSS caps (512 MB and 768 MB) limit resource usage; using official surfaces for the local map ensures authoritative spatial data.\n\nResidual risk: downstream consumers or joins that assume non-null, continuous event-time values may misinterpret NULL/not_supported as valid timestamps, causing incorrect aggregations or temporal joins. Mitigation: document the NULL semantics and enforce validation in downstream queries.",
+      "error": null
+    },
+    {
+      "name": "owner_actions",
+      "estimated_input_tokens": 78,
+      "estimated_output_tokens": 450,
+      "estimated_cost_usd": 0.0009195,
+      "input_tokens": 79,
+      "output_tokens": 279,
+      "total_tokens": 358,
+      "actual_cost_usd": 0.00057775,
+      "status": "success",
+      "response_text": "NZHEM \u2014 Owner action list (post-local M3 / MG / M5 work)\n\n1. Confirm ArcGIS hosted content publish permissions\n   - Validate that owners have publish rights in the ArcGIS hosting environment (read-only checks are insufficient). Test by performing a publish or have an admin confirm publish-level permissions.\n\n2. Power BI deliverables\n   - Produce and upload Power BI screenshots and/or PDF exports for the final reports (these remain owner responsibilities).\n\n3. Azure / Terraform\n   - Note: Azure resource provisioning and Terraform tasks remain deferred to the appropriate teams \u2014 NZHEM to coordinate timelines and handover when required.\n\n4. D23 MAE 1.049 review\n   - Track and progress the open D23 MAE 1.049 review items; assign action owner(s) and target completion date.\n\n5. Handover & verification\n   - After changes, perform owner verification of published content and artifacts (confirm published maps, report PDFs/screenshots, and that any planned workarounds are documented).\n\n6. Communication & escalation\n   - Inform stakeholders of outstanding deferred items (Azure/Terraform) and the open D23 review; escalate if dates or dependencies slip.\n\nIf you want, I can convert this into a checklist with assigned owners and target dates.",
+      "error": null
+    }
+  ],
+  "api_key_logged": false,
+  "azure_called": false
+}
