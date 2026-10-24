@@ -29,7 +29,7 @@ jobs:
       TF_VAR_budget_webhook_identifier_uri: ${{ secrets.BUDGET_WEBHOOK_IDENTIFIER_URI }}
     steps:
       - uses: actions/checkout@v4
-      - uses: azure/login@v2
+      - uses: azure/login@v3
         if: env.ARM_CLIENT_ID != ''
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
