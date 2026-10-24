@@ -1,0 +1,18 @@
+{
+  "architecture": "ArcGIS Maps SDK with local static GeoJSON and no token",
+  "event_feature_counts": {
+    "2013p543824": 398,
+    "2013p613797": 289,
+    "2014p051675": 502,
+    "2016p661332": 55,
+    "2016p858000": 1514,
+    "2021p169764": 0,
+    "2026p776286": 0,
+    "3366146": 791,
+    "3468575": 291,
+    "3528839": 171
+  },
+  "events": 10,
+  "exposure_features": 4011,
+  "static_bytes": 1920997
+}

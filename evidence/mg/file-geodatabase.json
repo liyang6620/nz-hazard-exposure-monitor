@@ -1,0 +1,48 @@
+{
+  "driver": "OpenFileGDB",
+  "gdal_version": "3.12.4",
+  "layers": {
+    "event_exposure_r6": {
+      "crs": "EPSG:2193",
+      "feature_count": 4011,
+      "fields": [
+        "event_id",
+        "h3_r6",
+        "mmi",
+        "mmi_source",
+        "source_version",
+        "event_bldg",
+        "current_bldg",
+        "pop_2023"
+      ],
+      "geometry_type": "MultiPolygon"
+    },
+    "nzhem_events": {
+      "crs": "EPSG:2193",
+      "feature_count": 10,
+      "fields": [
+        "event_id",
+        "event_name",
+        "origin_time",
+        "magnitude",
+        "depth_km",
+        "valid_bldg",
+        "max_mmi",
+        "validation_mae"
+      ],
+      "geometry_type": "Point"
+    },
+    "nzhem_metadata": {
+      "crs": null,
+      "feature_count": 11,
+      "fields": [
+        "layer_name",
+        "field_name",
+        "description",
+        "source"
+      ],
+      "geometry_type": null
+    }
+  },
+  "path": ".local/artifacts/mg/nzhem_mg_sample.gdb"
+}

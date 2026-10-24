@@ -1,0 +1,16 @@
+{
+  "batch_size": 20000,
+  "compared_buildings": 3219311,
+  "comparison_population": "current_building_points_for_spatial_validation_only",
+  "event_id": "2016p858000",
+  "event_time_valid_buildings": 0,
+  "free_disk_floor_gb": 20.0,
+  "matching_mmi_band": 3201877,
+  "maximum_rss_mb": 768,
+  "mean_absolute_mmi_difference": 0.0036496007996766017,
+  "minimum_free_disk_gb": 57.271934509277344,
+  "mmi_band_agreement": 0.9945845555151397,
+  "numeric_mmi_comparisons": 3219311,
+  "output_csv": "evidence/mg/kaikoura-cross-validation.csv",
+  "peak_rss_mb": 450.41796875
+}

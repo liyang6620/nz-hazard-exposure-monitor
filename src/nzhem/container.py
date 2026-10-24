@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 
 from nzhem.config import Settings
 from nzhem.core.clock import SystemClock
@@ -72,9 +73,18 @@ def _build_local_container(settings: Settings) -> ServiceContainer:
     )
 
     objects = LocalObjectStore(settings.data_root)
-    try:
-        objects.get_bytes("web", "index.html")
-    except FileNotFoundError:
+    site_root = Path(__file__).resolve().parents[2] / "hosts" / "local" / "site"
+    if site_root.is_dir():
+        for source in sorted(path for path in site_root.rglob("*") if path.is_file()):
+            relative = source.relative_to(site_root).as_posix()
+            if relative == "index.html":
+                try:
+                    objects.get_bytes("web", relative)
+                    continue
+                except FileNotFoundError:
+                    pass
+            objects.put_bytes("web", relative, source.read_bytes())
+    else:
         objects.put_bytes(
             "web",
             "index.html",

@@ -1,0 +1,122 @@
+[
+  {
+    "event_id": "3366146",
+    "event_name": "darfield_2010",
+    "origin_time": "2010-09-04 04:35:41.836000+12:00",
+    "magnitude": 7.2,
+    "depth_km": 11.04,
+    "longitude": 172.168,
+    "latitude": -43.527,
+    "max_mmi": 8.4,
+    "shaking_version": "2023-09-07T22:28:59-reviewed",
+    "data_file": "data/exposure-3366146.geojson"
+  },
+  {
+    "event_id": "3468575",
+    "event_name": "christchurch_feb_2011",
+    "origin_time": "2011-02-22 12:51:42.320000+13:00",
+    "magnitude": 6.2,
+    "depth_km": 5.41,
+    "longitude": 172.678,
+    "latitude": -43.582,
+    "max_mmi": 9.4,
+    "shaking_version": "2023-09-07T22:29:02-reviewed",
+    "data_file": "data/exposure-3468575.geojson"
+  },
+  {
+    "event_id": "3528839",
+    "event_name": "christchurch_jun_2011",
+    "origin_time": "2011-06-13 14:20:49.260000+12:00",
+    "magnitude": 6.0,
+    "depth_km": 6.92,
+    "longitude": 172.738,
+    "latitude": -43.571,
+    "max_mmi": 8.8,
+    "shaking_version": "2023-09-07T22:28:45-reviewed",
+    "data_file": "data/exposure-3528839.geojson"
+  },
+  {
+    "event_id": "2013p543824",
+    "event_name": "cook_strait_2013",
+    "origin_time": "2013-07-21 17:09:30.528000+12:00",
+    "magnitude": 6.5,
+    "depth_km": 15.61,
+    "longitude": 174.323,
+    "latitude": -41.598,
+    "max_mmi": 7.6,
+    "shaking_version": "2023-04-20T09:47:18-reviewed",
+    "data_file": "data/exposure-2013p543824.geojson"
+  },
+  {
+    "event_id": "2013p613797",
+    "event_name": "lake_grassmere_2013",
+    "origin_time": "2013-08-16 14:31:05.926000+12:00",
+    "magnitude": 6.5,
+    "depth_km": 7.46,
+    "longitude": 174.162,
+    "latitude": -41.702,
+    "max_mmi": 8.0,
+    "shaking_version": "2023-04-20T10:47:24-reviewed",
+    "data_file": "data/exposure-2013p613797.geojson"
+  },
+  {
+    "event_id": "2014p051675",
+    "event_name": "eketahuna_2014",
+    "origin_time": "2014-01-20 15:52:45.984000+13:00",
+    "magnitude": 6.2,
+    "depth_km": 34.18,
+    "longitude": 175.865,
+    "latitude": -40.621,
+    "max_mmi": 6.8,
+    "shaking_version": "2023-04-20T10:54:15-reviewed",
+    "data_file": "data/exposure-2014p051675.geojson"
+  },
+  {
+    "event_id": "2016p661332",
+    "event_name": "east_cape_2016",
+    "origin_time": "2016-09-02 04:37:55.440000+12:00",
+    "magnitude": 7.1,
+    "depth_km": 21.79,
+    "longitude": 179.52,
+    "latitude": -36.979,
+    "max_mmi": 5.2,
+    "shaking_version": "2023-04-20T09:41:13-reviewed",
+    "data_file": "data/exposure-2016p661332.geojson"
+  },
+  {
+    "event_id": "2016p858000",
+    "event_name": "kaikoura_2016",
+    "origin_time": "2016-11-14 00:02:56.346000+13:00",
+    "magnitude": 7.8,
+    "depth_km": 15.11,
+    "longitude": 173.022,
+    "latitude": -42.693,
+    "max_mmi": 8.4,
+    "shaking_version": "2025-09-22T21:53:33-reviewed",
+    "data_file": "data/exposure-2016p858000.geojson"
+  },
+  {
+    "event_id": "2021p169764",
+    "event_name": "kermadec_2021",
+    "origin_time": "2021-03-05 08:28:32+13:00",
+    "magnitude": 7.9,
+    "depth_km": 26.0,
+    "longitude": -177.282,
+    "latitude": -29.735,
+    "max_mmi": 2.2,
+    "shaking_version": "2025-02-23T14:13:21-auto",
+    "data_file": "data/exposure-2021p169764.geojson"
+  },
+  {
+    "event_id": "2026p776286",
+    "event_name": "taumarunui_deep_2026",
+    "origin_time": "2026-10-15 18:25:34+13:00",
+    "magnitude": 5.5,
+    "depth_km": 268.7,
+    "longitude": 175.452,
+    "latitude": -38.623,
+    "max_mmi": 2.8,
+    "shaking_version": "2026-10-16T05:27:46-auto",
+    "data_file": "data/exposure-2026p776286.geojson"
+  }
+]
