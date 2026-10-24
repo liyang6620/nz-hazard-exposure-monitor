@@ -30,6 +30,17 @@ def _positive_int(name: str, default: int) -> int:
     return value
 
 
+def _positive_float(name: str, default: float) -> float:
+    raw = os.getenv(name, str(default)).strip()
+    try:
+        value = float(raw)
+    except ValueError as exc:
+        raise ConfigurationError(f"{name} must be a number") from exc
+    if value <= 0:
+        raise ConfigurationError(f"{name} must be greater than zero")
+    return value
+
+
 @dataclass(frozen=True)
 class Settings:
     environment: Literal["local", "azure"] = "local"
@@ -61,6 +72,14 @@ class Settings:
     key_vault_url: str = ""
     azure_openai_endpoint: str = ""
     azure_openai_deployment: str = "gpt-5-mini"
+    linz_api_key_name: str = "LINZ_API_KEY"
+    statsnz_api_key_name: str = "STATSNZ_API_KEY"
+    reference_page_size: int = 250
+    reference_min_free_disk_gb: float = 20.0
+    reference_max_rss_mb: int = 768
+    duckdb_memory_limit_mb: int = 512
+    reference_export_candidate_limit: int = 5000
+    reference_export_work_reserve_gb: float = 5.0
 
     @classmethod
     def from_env(cls) -> Settings:
@@ -100,6 +119,18 @@ class Settings:
             key_vault_url=os.getenv("KEY_VAULT_URL", "").strip(),
             azure_openai_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT", "").strip(),
             azure_openai_deployment=os.getenv("AZURE_OPENAI_DEPLOYMENT", "gpt-5-mini").strip(),
+            linz_api_key_name=os.getenv("LINZ_API_KEY_NAME", "LINZ_API_KEY").strip(),
+            statsnz_api_key_name=os.getenv("STATSNZ_API_KEY_NAME", "STATSNZ_API_KEY").strip(),
+            reference_page_size=_positive_int("REFERENCE_PAGE_SIZE", 250),
+            reference_min_free_disk_gb=_positive_float("REFERENCE_MIN_FREE_DISK_GB", 20.0),
+            reference_max_rss_mb=_positive_int("REFERENCE_MAX_RSS_MB", 768),
+            duckdb_memory_limit_mb=_positive_int("DUCKDB_MEMORY_LIMIT_MB", 512),
+            reference_export_candidate_limit=_positive_int(
+                "REFERENCE_EXPORT_CANDIDATE_LIMIT", 5000
+            ),
+            reference_export_work_reserve_gb=_positive_float(
+                "REFERENCE_EXPORT_WORK_RESERVE_GB", 5.0
+            ),
         )
         settings.validate()
         return settings
@@ -111,6 +142,16 @@ class Settings:
             raise ConfigurationError("LLM_REASONING_EFFORT must be minimal")
         if self.llm_max_output_tokens > self.briefing_total_token_limit:
             raise ConfigurationError("LLM_MAX_OUTPUT_TOKENS cannot exceed the briefing token limit")
+        if self.reference_page_size > 1000:
+            raise ConfigurationError("REFERENCE_PAGE_SIZE cannot exceed the safe limit of 1000")
+        if self.reference_min_free_disk_gb < 20:
+            raise ConfigurationError("REFERENCE_MIN_FREE_DISK_GB cannot be below 20")
+        if self.duckdb_memory_limit_mb > self.reference_max_rss_mb:
+            raise ConfigurationError("DUCKDB_MEMORY_LIMIT_MB cannot exceed REFERENCE_MAX_RSS_MB")
+        if self.reference_export_candidate_limit > 5000:
+            raise ConfigurationError("REFERENCE_EXPORT_CANDIDATE_LIMIT cannot exceed 5000")
+        if self.reference_export_work_reserve_gb < 5:
+            raise ConfigurationError("REFERENCE_EXPORT_WORK_RESERVE_GB cannot be below 5")
         if self.environment == "azure":
             required = {
                 "STORAGE_ACCOUNT_NAME": self.storage_account_name,

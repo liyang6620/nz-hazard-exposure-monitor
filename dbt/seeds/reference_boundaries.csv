@@ -1,0 +1,4 @@
+meshblock_code,sa1_code,sa2_code,sa2_name,region_code,region_name,territorial_authority_code,territorial_authority_name,land_water,land_water_name
+0000100,7000001,100100,Example Central,09,Wellington Region,047,Wellington City,12,Mainland
+0000200,7000001,100100,Example Central,09,Wellington Region,047,Wellington City,12,Mainland
+0000300,7000002,334400,Example South,13,Canterbury Region,060,Christchurch City,12,Mainland

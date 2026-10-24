@@ -7,10 +7,10 @@ with Docker Compose and requires no Azure or Microsoft account.
 
 ## Status
 
-M1-L is in progress. The shared core, local Docker host and Azure Functions host
-are kept separate. No Azure infrastructure is created until M1-A plans are
-approved. M0 evidence remains under [`docs/`](docs/) and
-[`evidence/m0/`](evidence/m0/).
+M1-L is complete and M2 reference-data processing is in progress. The shared
+core, local Docker host and Azure Functions host are kept separate. No Azure
+infrastructure is created until M1-A plans are approved. M0 evidence remains
+under [`docs/`](docs/) and [`evidence/m0/`](evidence/m0/).
 
 ## Important limitations
 
@@ -78,6 +78,26 @@ Stop the services without deleting data:
 ```bash
 docker compose down
 ```
+
+Place the untouched owner-created LINZ ZIP at
+`.local/data/raw/reference/linz_buildings_export/incoming/lds-nz-building-outlines-all-sources-GPKG.zip`.
+The export must be the complete layer in GeoPackage format, EPSG:4326, with no
+crop, filter or simplification. Copy it into the persistent data volume and run
+the bounded, resumable importer:
+
+```bash
+docker compose exec app mkdir -p /data/raw/reference/linz_buildings_export/incoming
+docker compose cp .local/data/raw/reference/linz_buildings_export/incoming/lds-nz-building-outlines-all-sources-GPKG.zip app:/data/raw/reference/linz_buildings_export/incoming/
+docker compose exec app python scripts/import_linz_export.py
+```
+
+The importer validates ZIP paths and declared expansion before extraction, then
+uses the GeoPackage RTree to create small national tiles. Each tile loads every
+intersecting meshblock regardless of region, so cross-region tiles cannot drop
+boundary buildings. It uses one thread, a 512 MB DuckDB limit, a 768 MB process
+RSS ceiling, and preserves at least 20 GB free plus a 5 GB work reserve. Verified
+tile checkpoints persist in `nzhem-data`, so the same command resumes after a
+controlled worker restart. The WFS downloader remains an explicit fallback.
 
 ## Azure host local check
 

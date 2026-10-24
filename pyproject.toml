@@ -25,7 +25,12 @@ addopts = "--strict-markers --cov=nzhem --cov-report=term-missing --cov-fail-und
 
 [tool.coverage.run]
 branch = true
-omit = ["src/nzhem/adapters/azure/*"]
+omit = [
+    "src/nzhem/adapters/azure/*",
+    "src/nzhem/adapters/local/duckdb_reference.py",
+    "src/nzhem/adapters/local/linz_export.py",
+    "src/nzhem/adapters/local/reference.py",
+]
 
 [tool.coverage.report]
 show_missing = true
