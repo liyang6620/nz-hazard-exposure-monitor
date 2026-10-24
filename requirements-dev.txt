@@ -5,7 +5,7 @@ pytest==8.4.2
 pytest-cov==7.0.0
 PyYAML==6.0.3
 ruff==0.14.2
-sqlfluff==3.5.0
+sqlfluff==4.4.0
 geopandas==1.2.0
 pyogrio==0.13.0
 pyproj==3.8.0
