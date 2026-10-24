@@ -16,16 +16,26 @@ M2 will measure memory and runtime before any resolution change is proposed.
 
 Each building uses a point on surface, not a centroid. Footprint area is
 computed from the original EPSG:2193 polygon. Current building presence is
-`end_lifespan IS NULL`; event-year presence is:
+`end_lifespan IS NULL`. Historical presence uses the exact UTC event timestamp
+and a half-open validity interval:
 
 ```text
-year(begin_lifespan) <= event_year
-AND (end_lifespan IS NULL OR year(end_lifespan) > event_year)
+begin_lifespan <= event_time
+AND (end_lifespan IS NULL OR end_lifespan > event_time)
 ```
 
-Rows with missing or contradictory dates remain in the current snapshot but
-are excluded from historical claims and counted in data-quality output until
-M2 establishes a defensible fallback.
+After filtering, overlapping source versions are reduced to one deterministic
+row per `building_id`, ordered by latest `begin_lifespan` and then highest
+`building_outline_id`. This prevents old and replacement outlines from both
+counting at one timestamp. Rows with missing or contradictory dates are
+excluded from historical claims.
+
+The approved M3 reference input is the manual-export generation
+`reference-export/dee5b263952e`; the retained WFS generation is not a fallback.
+The export's earliest `begin_lifespan` is 2018-10-16. Events before that date
+therefore have no source-supported historical building count. The pipeline does
+not substitute current buildings. The 21,483 outlines attributed to water
+meshblocks remain excluded pending a later owner decision.
 
 ## Population allocation
 
@@ -65,7 +75,7 @@ attenuation of Modified Mercalli intensity in New Zealand earthquakes",
 *Bulletin of the New Zealand Society for Earthquake Engineering* 38(4),
 185-214, <https://doi.org/10.5459/bnzsee.38.4.185-214>.
 
-The paper's Main Seismic Region Model 2 (Table 6) is:
+The paper's Main Seismic Region Model 2 (Table 6, p. 198) is:
 
 ```text
 I = A1 + A2*Mw + A3*log10((r^3 + d^3)^(1/3)) + A4*hc + A5*deltaC
@@ -84,31 +94,37 @@ This is a point-source approximation rather than the rupture-distance treatment
 used for larger earthquakes. Events of M6.5 or above without an official layer
 are marked `point_source_approx`.
 
-The paper also gives a deep-region model (Table 7):
+The paper also gives a deep-region Model 3 (Table 7, p. 198):
 
 ```text
 I = 3.76 + 1.48*Mw - 3.50*log10(r) + 0.0031*hc
 ```
 
-The implementation selects the deep-source model first at the paper's deep
-boundary, or 70 km only if the paper does not state one. Shallower epicentres
-inside an authoritative, licence-compatible TVZ boundary use the paper's TVZ
-model; if no suitable boundary is found, the TVZ branch is disabled and
-documented. Remaining events use the Main Seismic Region shallow crustal model.
+The implementation selects the deep-source model first at `hc >= 70 km`, the
+paper's deep-event definition (data classification on pp. 190-192 and Model 3
+on p. 198). Shallower events use Main Seismic Region Model 2. The TVZ branch is
+disabled because M0/M3 did not identify an authoritative, licence-compatible
+boundary suitable for deterministic point-in-polygon classification; it is not
+approximated with an undocumented box. The paper's TVZ coefficients are
+therefore not implemented. Remaining events use the main-region shallow model.
 The interface model is excluded because the project has neither slab geometry
-nor reliable focal-mechanism classification. Magnitudes outside a model's
-published validity range are not extrapolated; depth inputs outside a permitted
-range are clamped and flagged. Paper rules, table numbers and page citations
-take precedence if they conflict with these implementation rules.
+nor reliable focal-mechanism classification. The paper's 89-event calibration
+dataset spans Mw 4.9-8.2 (dataset description, pp. 187-193). Magnitudes outside
+that envelope are not extrapolated. Deep-event depth is clamped to the paper's
+observed 70-300 km range and flagged. Zero epicentral distance is evaluated at
+1 km to avoid `log10(0)` and is flagged. Paper rules, table numbers and page
+citations take precedence if they conflict with these implementation rules.
 
 For arithmetic regression only, the Table 6 equation produces
 `7.476132218744497` for `Mw=7.8`, `r=100 km`, `hc=15 km`, and `deltaC=1`.
 This value was calculated by the project and is **not** an example published in
 the paper. D23 approves an independent, step-by-step calculation of at least 12
 locked vectors covering every implemented model and boundary case, plus
-monotonicity properties. These vectors will be produced with the M3 formula
-implementation. `stationlist.json` supplies external MAE validation; MAE above
-1.0 MMI is escalated to the project manager.
+monotonicity properties. The independent calculations and locked vectors are
+in `docs/methodology-test-vectors.md`. `stationlist.json` supplies external MAE
+validation. The ten-event M3 run evaluated 2,547 intensity rows and produced
+MAE 1.049 MMI, so it is explicitly escalated at Checkpoint A. Official Shaking
+Layers surfaces remain the exposure source for all ten events.
 
 Only populated H3 cells inside the distance at which the selected model falls
 below MMI 3 are evaluated. The cutoff is solved from the chosen equation and

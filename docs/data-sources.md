@@ -88,9 +88,12 @@ section 10.4 of the plan through the 2021 Kermadec event:
 | 2016 East Cape | `2016p661332` | reviewed |
 | 2016 Kaikoura | `2016p858000` | reviewed |
 | 2021 Kermadec | `2021p169764` | automatic |
+| 2026 Taumarunui deep event | `2026p776286` | automatic |
 
-The tenth, recent event is deliberately selected in M3 so it is within the
-required rolling 12-month window at implementation time.
+The tenth event is `2026p776286`, origin time 2026-10-15T05:25:34Z, M5.5 in
+the latest Shaking Layers parameters. It falls inside the required 12-month
+window ending 2026-10-24. All M3 event downloads retain manifest version,
+status, source URL and SHA-256 checksum under the ignored local data root.
 
 ### Rolling ArcGIS layer
 

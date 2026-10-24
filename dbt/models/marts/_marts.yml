@@ -12,3 +12,26 @@ models:
         description: Final operation status.
       - name: completed_at
         description: UTC completion timestamp.
+  - name: dim_event
+    description: GeoNet event metadata and selected official MMI provenance.
+    columns:
+      - name: event_id
+        data_tests: [not_null, unique]
+  - name: fct_event_exposure_cell
+    description: Event-time building and fixed-2023 population exposure by H3-8 cell.
+    columns:
+      - name: event_id
+        data_tests: [not_null]
+      - name: h3_res8
+        data_tests: [not_null]
+  - name: mart_event_summary
+    description: National MMI 6 exposure and attenuation validation by event.
+    columns:
+      - name: event_id
+        data_tests: [not_null, unique]
+  - name: mart_event_exposure_h3r6
+    description: Presentation aggregation of event exposure at H3 resolution 6.
+  - name: mart_accumulation_cell
+    description: Strong-shaking event count times current building count by H3-8.
+  - name: mart_mmi_validation
+    description: Observed station MMI compared with the approved point-source estimate.

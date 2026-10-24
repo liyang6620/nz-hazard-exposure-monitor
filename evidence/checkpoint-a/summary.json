@@ -1,0 +1,17 @@
+{
+  "building_hash_runs": [
+    "b0c43ce34f4bbbb9b23acc673d81b64ad1d667b927822d9baa65975611c54b99",
+    "b0c43ce34f4bbbb9b23acc673d81b64ad1d667b927822d9baa65975611c54b99"
+  ],
+  "building_hashes_match": true,
+  "current_buildings": 3219311,
+  "linz_accepted_land_rows": 6612732,
+  "linz_source_rows": 6634223,
+  "mmi_validation_mae": 1.0487619131148715,
+  "mmi_validation_review_required": true,
+  "mmi_validation_station_count": 2547,
+  "population_2023": 4994034,
+  "population_invariant_failures": 0,
+  "reference_generation": "dee5b263952e",
+  "water_meshblock_exclusions": 21483
+}

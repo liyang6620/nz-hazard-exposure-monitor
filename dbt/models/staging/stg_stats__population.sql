@@ -1,5 +1,4 @@
-{% set reference_root = var('reference_data_root', '') %}
-{% set stats_reference_root = var('stats_reference_root', reference_root) %}
+{% set stats_reference_root = var('stats_reference_root', '') %}
 
 {% if stats_reference_root %}
     select

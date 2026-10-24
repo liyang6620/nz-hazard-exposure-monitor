@@ -40,7 +40,7 @@ def canonical_csv_hash(
 
 
 def replay_and_hash(gold_root: Path, manifest_path: Path) -> dict[str, Any]:
-    """Hash deterministic M1 fixtures; M3 replaces them with replayed gold snapshots."""
+    """Hash licensed real-event gold snapshots in deterministic primary-key order."""
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     output: dict[str, Any] = {
         "fixture_kind": manifest["fixture_kind"],
