@@ -8,7 +8,7 @@
   "hard_budget_usd": 1.0,
   "estimated_cost_usd_before_calls": 0.005531,
   "actual_cost_usd": 0.0023465,
-  "mailpit_status": "failed:ConnectionRefusedError",
+  "mailpit_status": "sent_to_local_mailpit",
   "mailpit_host": "127.0.0.1",
   "records": [
     {
