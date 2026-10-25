@@ -1,0 +1,52 @@
+{
+  "checked_at": "2026-10-25",
+  "owner": "liyang6620",
+  "secret_logged": false,
+  "account_or_permissions_changed": false,
+  "billing_changed": false,
+  "test_service": {
+    "name": "nzhem_write_test_20261025234933",
+    "item_id": "23cbe71e05d247258e134287f0557eb7",
+    "create_service": {
+      "http_status": 200,
+      "success": true
+    },
+    "add_layer_definition": {
+      "attempted_on_standard_and_admin_endpoints": true,
+      "http_status": 200,
+      "success": false,
+      "error_code": 403,
+      "message_code": "GWM_0003",
+      "message": "You do not have permissions to access this resource or perform this operation."
+    },
+    "features_added": 0,
+    "incremental_update_attempted": false,
+    "delete": {
+      "http_status": 200,
+      "success": false,
+      "error_code": 403,
+      "message_code": "GWM_0003",
+      "message": "You do not have permissions to access this resource or perform this operation."
+    },
+    "cleanup_required_by_owner": true
+  },
+  "formal_event_exposure_r6_publish": {
+    "attempted": false,
+    "reason": "The approved minimum write test could not add a layer definition."
+  },
+  "portal_storage": {
+    "reported_usage_bytes": 0,
+    "reported_quota_bytes": 2147483648,
+    "project_cap_bytes": 131072000,
+    "under_project_cap": true
+  },
+  "static_maps": {
+    "calls": 3,
+    "successful_calls": 0,
+    "http_statuses": [403, 403, 403],
+    "locations": ["Christchurch", "Kaikoura", "Taumarunui"],
+    "credentials_sent_in_authorization_header": true,
+    "credential_in_url_or_log": false
+  },
+  "prohibited_services_called": false
+}

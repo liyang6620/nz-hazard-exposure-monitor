@@ -79,9 +79,10 @@ the Docker Compose deployment check.
 
 - MG uses approved token-free option B for the browser map. Hosted-layer
   publication was not substituted with local evidence.
-- The Portal self endpoint accepted the ArcGIS key, but private owner-content
-  read returned HTTP 403 and the basemap/static-map hosts were not resolvable
-  from this environment. No write operation or permission change was attempted.
+- The Portal self endpoint accepted the ArcGIS key. The earlier inability to
+  resolve basemap/static-map hosts was an execution-environment limitation.
+  During the later owner-approved write window, an empty service item was
+  created, but layer-definition updates and cleanup returned `403 GWM_0003`.
 - M5 uses a local absolute `RepoRoot` parameter only during Desktop refresh;
   the committed value is the portable relative placeholder.
 - The required two-minute Power BI walkthrough was left to the repository
@@ -94,8 +95,9 @@ the Docker Compose deployment check.
 
 ## 4. Risks and unresolved items
 
-- Hosted ArcGIS layer creation/update, stable item IDs, quota measurements,
-  authenticated map access and Esri MCP static-map output are unverified.
+- Hosted ArcGIS service-item creation works, but layer-definition update and
+  deletion were rejected. Formal publishing, stable item IDs, editing quota
+  measurements, authenticated map access and Esri MCP output remain unverified.
 - No ArcGIS billing-page screenshot is committed.
 - M6 does not yet implement the four DuckDB-backed tools and their JSON
   schemas, draft rendering, numeric-fidelity retry, one-time HMAC approval
@@ -112,9 +114,9 @@ the Docker Compose deployment check.
 1. Approve treating the current work as the local M5 completion plus partial
    MG/M6 checkpoint, with the full M6 agent delivered as a separate follow-up
    PR before M7/M8.
-2. Decide whether and when to schedule an owner-observed, free-quota ArcGIS
-   write test. It must not require pay-as-you-go, a payment method, broader key
-   permissions or an account-setting change.
+2. Delete the empty ArcGIS test item `23cbe71e05d247258e134287f0557eb7`
+   through the portal and decide whether a different existing credential may be
+   supplied. The implementation will not broaden this key's permissions.
 3. Confirm whether Esri MCP evidence should remain deferred until its host is
    reachable and static-map permission can be verified without paid services.
 4. The owner still needs to record the required two-minute Power BI walkthrough.
