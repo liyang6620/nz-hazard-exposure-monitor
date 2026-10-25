@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from functools import lru_cache
+from typing import Any
 
 import requests
 from azure.communication.email import EmailClient
@@ -119,11 +120,12 @@ class AzureQueueStore:
 
 
 class AzureSecretStore:
-    def __init__(self, vault_url: str) -> None:
+    def __init__(self, vault_url: str, aliases: dict[str, str] | None = None) -> None:
         self._client = SecretClient(vault_url, credential=credential())
+        self._aliases = aliases or {}
 
     def get_secret(self, name: str) -> str:
-        return self._client.get_secret(name).value
+        return self._client.get_secret(self._aliases.get(name, name)).value
 
 
 class AzureMailer:
@@ -148,21 +150,48 @@ class AzureOpenAILlmClient:
         self._endpoint = endpoint.rstrip("/")
         self._deployment = deployment
 
-    def generate(self, prompt: str, *, max_output_tokens: int) -> str:
+    def generate(
+        self,
+        prompt: str,
+        *,
+        max_output_tokens: int,
+        response_schema: dict[str, Any] | None = None,
+    ) -> str:
         token = credential().get_token(self._SCOPE).token
+        request: dict[str, Any] = {
+            "model": self._deployment,
+            "input": prompt,
+            "reasoning": {"effort": "minimal"},
+            "max_output_tokens": max_output_tokens,
+        }
+        if response_schema is not None:
+            request["text"] = {
+                "format": {
+                    "type": "json_schema",
+                    "name": "nzhem_briefing",
+                    "strict": True,
+                    "schema": response_schema,
+                }
+            }
         response = requests.post(
             f"{self._endpoint}/openai/responses?api-version=2025-04-01-preview",
             headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
-            json={
-                "model": self._deployment,
-                "input": prompt,
-                "reasoning": {"effort": "minimal"},
-                "max_output_tokens": max_output_tokens,
-            },
+            json=request,
             timeout=30,
         )
         response.raise_for_status()
-        return str(response.json()["output_text"])
+        payload = response.json()
+        output_text = str(payload.get("output_text", ""))
+        if not output_text:
+            output_text = "\n".join(
+                str(content.get("text", ""))
+                for item in payload.get("output", [])
+                for content in item.get("content", [])
+                if content.get("type") == "output_text" and content.get("text")
+            )
+        if not output_text:
+            raise RuntimeError("Azure OpenAI response did not contain output text")
+        return output_text
 
 
 def build_azure_container(settings: Settings) -> ServiceContainer:
@@ -182,7 +211,10 @@ def build_azure_container(settings: Settings) -> ServiceContainer:
             max_dequeues=settings.queue_max_dequeue_count,
         ),
         tables=AzureTableStore(settings.storage_account_name),
-        secrets=AzureSecretStore(settings.key_vault_url),
+        secrets=AzureSecretStore(
+            settings.key_vault_url,
+            aliases={settings.approval_token_key_name: "approval-token-key"},
+        ),
         mailer=AzureMailer(settings.communication_endpoint, settings.email_sender),
         llm=AzureOpenAILlmClient(
             settings.azure_openai_endpoint,

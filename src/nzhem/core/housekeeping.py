@@ -4,6 +4,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import timedelta
 
+from nzhem.core.agent.approval import expire_pending_briefings
 from nzhem.core.runlog import RunLog
 from nzhem.ports import Clock, EventSource, QueueStore, TableStore
 
@@ -13,6 +14,7 @@ class HousekeepingResult:
     run_id: str
     catchup_from: str
     events_enqueued: int
+    briefings_expired: int
 
 
 class HousekeepingService:
@@ -29,6 +31,7 @@ class HousekeepingService:
     ) -> None:
         self._clock = clock
         self._runlog = RunLog(tables)
+        self._tables = tables
         self._queues = queues
         self._event_source = event_source
         self._default_lookback = default_lookback
@@ -42,9 +45,11 @@ class HousekeepingService:
             events = self._event_source.fetch_updated_after(updated_after)
             for event in events:
                 self._queues.send("events", dict(event))
+            briefings_expired = expire_pending_briefings(self._tables, now)
             details = {
                 "catchup_from": updated_after.isoformat(),
                 "events_enqueued": len(events),
+                "briefings_expired": briefings_expired,
             }
             self._runlog.record(
                 run_id=run_id,

@@ -1,0 +1,18 @@
+{
+  "run_id": "85c6c20e61a94e3490add4fcb25b599a",
+  "get_preview_action": "approve",
+  "draft_numeric_fidelity_passed": true,
+  "status_after_get": "pending",
+  "status_after_approval_post": "approved",
+  "approval_token_replay_rejected": true,
+  "rejection_status": "rejected",
+  "rejected_event_published": false,
+  "expired_count": 1,
+  "expired_token_rejected": true,
+  "approved_page_sha256": "47a634ffbf1384c6c6c39ccd5ef3d019766f3021700790f382111cee45b7750c",
+  "published_index_entries": 1,
+  "mailpit_messages_added": 3,
+  "mailpit_loopback_only": true,
+  "tokens_recorded_in_evidence": false,
+  "sanitized_mailpit_view": ".local/m6-workflow-demo/85c6c20e61a94e3490add4fcb25b599a/safe-mailpit.html"
+}

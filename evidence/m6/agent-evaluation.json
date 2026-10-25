@@ -1,0 +1,266 @@
+{
+  "model": "gpt-5-mini",
+  "reasoning_effort": "minimal",
+  "max_output_tokens": 1200,
+  "hard_budget_usd": 1.0,
+  "previous_known_actual_cost_usd": 0.0023465,
+  "unrecorded_call_budget_reserve_usd": 0.0102,
+  "this_run_cost_usd": 0.01052725,
+  "known_cumulative_actual_cost_usd": 0.01287375,
+  "budget_accounted_cost_usd": 0.02307375,
+  "pricing_usd_per_million": {
+    "input": 0.25,
+    "cached_input": 0.025,
+    "output": 2.0
+  },
+  "pricing_source": "https://developers.openai.com/api/docs/models/gpt-5-mini",
+  "events_evaluated": 10,
+  "fidelity_passed": 10,
+  "numeric_fidelity_percent": 100.0,
+  "records": [
+    {
+      "event_id": "3366146",
+      "status": "pending",
+      "fidelity_passed": true,
+      "invalid_numbers_or_provenance": [],
+      "attempts": 1,
+      "api_calls": 1,
+      "actual_cost_usd": 0.0006705,
+      "payload_sha256": "023e5d4d4afeb2bd64b6e6c6ad0bffdbf98d4fce55bb798ef48da283a0ff9139"
+    },
+    {
+      "event_id": "3468575",
+      "status": "pending",
+      "fidelity_passed": true,
+      "invalid_numbers_or_provenance": [],
+      "attempts": 1,
+      "api_calls": 1,
+      "actual_cost_usd": 0.0008055,
+      "payload_sha256": "31f23f6dd4ff727753a332997f42d96577c8c4af0f3bfe6bdad1bbe88e34aafa"
+    },
+    {
+      "event_id": "3528839",
+      "status": "pending",
+      "fidelity_passed": true,
+      "invalid_numbers_or_provenance": [],
+      "attempts": 1,
+      "api_calls": 1,
+      "actual_cost_usd": 0.0008035,
+      "payload_sha256": "2d3377f9e6862871186a9196d278a9213f0369126cf740b31739e5f4a1534d75"
+    },
+    {
+      "event_id": "2013p543824",
+      "status": "pending",
+      "fidelity_passed": true,
+      "invalid_numbers_or_provenance": [],
+      "attempts": 1,
+      "api_calls": 1,
+      "actual_cost_usd": 0.0008105,
+      "payload_sha256": "d4b55311cf8b4788bb692046f9ab63f3b30ad64e8c51310af1846033497d8163"
+    },
+    {
+      "event_id": "2013p613797",
+      "status": "pending",
+      "fidelity_passed": true,
+      "invalid_numbers_or_provenance": [],
+      "attempts": 1,
+      "api_calls": 1,
+      "actual_cost_usd": 0.00072875,
+      "payload_sha256": "ccdac9d85dfb8e455b99832a94c3e9553937a5208c1f4922300b3eaac7b1950c"
+    },
+    {
+      "event_id": "2014p051675",
+      "status": "pending",
+      "fidelity_passed": true,
+      "invalid_numbers_or_provenance": [],
+      "attempts": 2,
+      "api_calls": 2,
+      "actual_cost_usd": 0.00170525,
+      "payload_sha256": "cafdac2c27cb04598331bc4de1663ad70f3a4a12e9d5e6fffd16c45023739fba"
+    },
+    {
+      "event_id": "2016p661332",
+      "status": "pending",
+      "fidelity_passed": true,
+      "invalid_numbers_or_provenance": [],
+      "attempts": 2,
+      "api_calls": 2,
+      "actual_cost_usd": 0.00143425,
+      "payload_sha256": "7a34289e7e1869f8c47002159b49520d5bb42f68a644b3074d8068be34845d4b"
+    },
+    {
+      "event_id": "2016p858000",
+      "status": "pending",
+      "fidelity_passed": true,
+      "invalid_numbers_or_provenance": [],
+      "attempts": 1,
+      "api_calls": 1,
+      "actual_cost_usd": 0.00078225,
+      "payload_sha256": "e8cce0365e93d4a8a8de027e72b5ab2294278703dc445a8759de941350f12264"
+    },
+    {
+      "event_id": "2021p169764",
+      "status": "pending",
+      "fidelity_passed": true,
+      "invalid_numbers_or_provenance": [],
+      "attempts": 1,
+      "api_calls": 1,
+      "actual_cost_usd": 0.00065,
+      "payload_sha256": "fb37ff41fe3b8cda50f6db9658937f3f9aaa2454263dbf7ee5856179101120b1"
+    },
+    {
+      "event_id": "2026p776286",
+      "status": "pending",
+      "fidelity_passed": true,
+      "invalid_numbers_or_provenance": [],
+      "attempts": 3,
+      "api_calls": 3,
+      "actual_cost_usd": 0.00213675,
+      "payload_sha256": "357ac8ab697a0e26447947d82ff433d3ec4afbfd3380ab37aee65f256ccb3f72"
+    }
+  ],
+  "api_calls": [
+    {
+      "estimated_input_tokens": 461,
+      "max_output_tokens": 1200,
+      "estimated_cost_usd": 0.00251525,
+      "input_tokens": 682,
+      "cached_input_tokens": 0,
+      "output_tokens": 250,
+      "total_tokens": 932,
+      "actual_cost_usd": 0.0006705
+    },
+    {
+      "estimated_input_tokens": 408,
+      "max_output_tokens": 1200,
+      "estimated_cost_usd": 0.002502,
+      "input_tokens": 622,
+      "cached_input_tokens": 0,
+      "output_tokens": 325,
+      "total_tokens": 947,
+      "actual_cost_usd": 0.0008055
+    },
+    {
+      "estimated_input_tokens": 407,
+      "max_output_tokens": 1200,
+      "estimated_cost_usd": 0.00250175,
+      "input_tokens": 622,
+      "cached_input_tokens": 0,
+      "output_tokens": 324,
+      "total_tokens": 946,
+      "actual_cost_usd": 0.0008035
+    },
+    {
+      "estimated_input_tokens": 652,
+      "max_output_tokens": 1200,
+      "estimated_cost_usd": 0.002563,
+      "input_tokens": 906,
+      "cached_input_tokens": 0,
+      "output_tokens": 292,
+      "total_tokens": 1198,
+      "actual_cost_usd": 0.0008105
+    },
+    {
+      "estimated_input_tokens": 557,
+      "max_output_tokens": 1200,
+      "estimated_cost_usd": 0.00253925,
+      "input_tokens": 795,
+      "cached_input_tokens": 0,
+      "output_tokens": 265,
+      "total_tokens": 1060,
+      "actual_cost_usd": 0.00072875
+    },
+    {
+      "estimated_input_tokens": 508,
+      "max_output_tokens": 1200,
+      "estimated_cost_usd": 0.002527,
+      "input_tokens": 747,
+      "cached_input_tokens": 0,
+      "output_tokens": 385,
+      "total_tokens": 1132,
+      "actual_cost_usd": 0.00095675
+    },
+    {
+      "estimated_input_tokens": 528,
+      "max_output_tokens": 1200,
+      "estimated_cost_usd": 0.002532,
+      "input_tokens": 762,
+      "cached_input_tokens": 0,
+      "output_tokens": 279,
+      "total_tokens": 1041,
+      "actual_cost_usd": 0.0007485
+    },
+    {
+      "estimated_input_tokens": 312,
+      "max_output_tokens": 1200,
+      "estimated_cost_usd": 0.002478,
+      "input_tokens": 513,
+      "cached_input_tokens": 0,
+      "output_tokens": 311,
+      "total_tokens": 824,
+      "actual_cost_usd": 0.00075025
+    },
+    {
+      "estimated_input_tokens": 332,
+      "max_output_tokens": 1200,
+      "estimated_cost_usd": 0.002483,
+      "input_tokens": 528,
+      "cached_input_tokens": 0,
+      "output_tokens": 276,
+      "total_tokens": 804,
+      "actual_cost_usd": 0.000684
+    },
+    {
+      "estimated_input_tokens": 784,
+      "max_output_tokens": 1200,
+      "estimated_cost_usd": 0.002596,
+      "input_tokens": 1057,
+      "cached_input_tokens": 0,
+      "output_tokens": 259,
+      "total_tokens": 1316,
+      "actual_cost_usd": 0.00078225
+    },
+    {
+      "estimated_input_tokens": 309,
+      "max_output_tokens": 1200,
+      "estimated_cost_usd": 0.00247725,
+      "input_tokens": 512,
+      "cached_input_tokens": 0,
+      "output_tokens": 261,
+      "total_tokens": 773,
+      "actual_cost_usd": 0.00065
+    },
+    {
+      "estimated_input_tokens": 310,
+      "max_output_tokens": 1200,
+      "estimated_cost_usd": 0.0024775,
+      "input_tokens": 514,
+      "cached_input_tokens": 0,
+      "output_tokens": 253,
+      "total_tokens": 767,
+      "actual_cost_usd": 0.0006345
+    },
+    {
+      "estimated_input_tokens": 331,
+      "max_output_tokens": 1200,
+      "estimated_cost_usd": 0.00248275,
+      "input_tokens": 529,
+      "cached_input_tokens": 0,
+      "output_tokens": 355,
+      "total_tokens": 884,
+      "actual_cost_usd": 0.00084225
+    },
+    {
+      "estimated_input_tokens": 351,
+      "max_output_tokens": 1200,
+      "estimated_cost_usd": 0.00248775,
+      "input_tokens": 544,
+      "cached_input_tokens": 0,
+      "output_tokens": 262,
+      "total_tokens": 806,
+      "actual_cost_usd": 0.00066
+    }
+  ],
+  "api_key_logged": false,
+  "azure_called": false
+}

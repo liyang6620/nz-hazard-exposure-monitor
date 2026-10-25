@@ -7,10 +7,11 @@ with Docker Compose and requires no Azure or Microsoft account.
 
 ## Status
 
-M1-L, M2 and M3 are complete locally. The no-account portion of MG is also
-complete; hosted ArcGIS publishing remains deferred. The shared core, local
-Docker host and Azure Functions host are kept separate. No Azure infrastructure
-is created until M1-A plans are approved. Milestone evidence is under
+M1-L, M2, M3, M5 and the local M6 workflow are complete. MG's local GIS work is
+complete; hosted ArcGIS publishing and Esri static maps are blocked by the
+current key's `403 GWM_0003` response and remain explicitly unclaimed. The
+shared core, local Docker host and Azure Functions host are kept separate. No
+Azure infrastructure is created until M1-A plans are approved. Evidence is under
 [`evidence/`](evidence/).
 
 ## Important limitations
@@ -80,6 +81,16 @@ Stop the services without deleting data:
 ```bash
 docker compose down
 ```
+
+For the local briefing agent, set a random `APPROVAL_TOKEN_KEY` of at least 32
+bytes and `OPENAI_API_KEY` in ignored `.env`. Drafting is available through
+`POST /draft-briefing/{event_id}` after the M3/reference Parquet data is in the
+local data volume. Review links show a confirmation page on GET and execute
+only on POST. Approved pages appear in the static site's briefing list.
+
+The four-tool local MCP server and ten-event evaluation are documented in
+[`docs/mcp-local.md`](docs/mcp-local.md) and
+[`docs/evaluation.md`](docs/evaluation.md).
 
 Place the untouched owner-created LINZ ZIP at
 `.local/data/raw/reference/linz_buildings_export/incoming/lds-nz-building-outlines-all-sources-GPKG.zip`.

@@ -55,7 +55,13 @@ class Mailer(Protocol):
 
 
 class LlmClient(Protocol):
-    def generate(self, prompt: str, *, max_output_tokens: int) -> str: ...
+    def generate(
+        self,
+        prompt: str,
+        *,
+        max_output_tokens: int,
+        response_schema: Mapping[str, Any] | None = None,
+    ) -> str: ...
 
 
 class StaticSitePublisher(Protocol):

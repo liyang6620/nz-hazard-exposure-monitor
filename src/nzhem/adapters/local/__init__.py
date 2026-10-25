@@ -1,3 +1,4 @@
+from nzhem.adapters.local.briefing_tools import DuckDbBriefingTools
 from nzhem.adapters.local.filesystem import LocalObjectStore, LocalStaticSitePublisher
 from nzhem.adapters.local.geonet import GeoNetFdsnEventSource, NullEventSource
 from nzhem.adapters.local.openai import OpenAILlmClient
@@ -8,6 +9,7 @@ from nzhem.adapters.local.sqlite import SqliteQueueStore, SqliteTableStore
 
 __all__ = [
     "EnvironmentSecretStore",
+    "DuckDbBriefingTools",
     "GeoNetFdsnEventSource",
     "LocalObjectStore",
     "LocalStaticSitePublisher",

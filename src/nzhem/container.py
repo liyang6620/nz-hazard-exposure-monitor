@@ -4,6 +4,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from nzhem.config import Settings
+from nzhem.core.agent.approval import ApprovalService, ApprovalTokenSigner
+from nzhem.core.agent.briefing import BriefingTools, DraftBriefingService
 from nzhem.core.clock import SystemClock
 from nzhem.core.housekeeping import HousekeepingService
 from nzhem.ports import (
@@ -34,6 +36,7 @@ class ServiceContainer:
     static_site: StaticSitePublisher
     event_source: EventSource
     reference_data: ReferenceDataRefresher | None = None
+    briefing_tools: BriefingTools | None = None
 
     def housekeeping(self) -> HousekeepingService:
         return HousekeepingService(
@@ -50,6 +53,26 @@ class ServiceContainer:
 
         return RefreshReferenceService(self.reference_data).run()
 
+    def draft_briefing(self) -> DraftBriefingService:
+        if self.briefing_tools is None:
+            raise RuntimeError("M6 briefing data is not available in this deployment")
+        return DraftBriefingService(
+            self.briefing_tools,
+            self.llm,
+            max_output_tokens=self.settings.llm_max_output_tokens,
+            total_token_limit=self.settings.briefing_total_token_limit,
+        )
+
+    def approval(self) -> ApprovalService:
+        secret = self.secrets.get_secret(self.settings.approval_token_key_name)
+        return ApprovalService(
+            signer=ApprovalTokenSigner(secret),
+            tables=self.tables,
+            objects=self.objects,
+            publisher=self.static_site,
+            mailer=self.mailer,
+        )
+
 
 def build_container(settings: Settings | None = None) -> ServiceContainer:
     active_settings = settings or Settings.from_env()
@@ -60,6 +83,7 @@ def build_container(settings: Settings | None = None) -> ServiceContainer:
 
 def _build_local_container(settings: Settings) -> ServiceContainer:
     from nzhem.adapters.local import (
+        DuckDbBriefingTools,
         EnvironmentSecretStore,
         GeoNetFdsnEventSource,
         LocalObjectStore,
@@ -101,6 +125,26 @@ def _build_local_container(settings: Settings) -> ServiceContainer:
         if settings.geonet_poll_enabled
         else NullEventSource()
     )
+    event_root = settings.data_root / "curated" / "events" / "m3"
+    reference_parent = settings.data_root / "curated" / "reference-export"
+    reference_generations = (
+        sorted(
+            path
+            for path in reference_parent.iterdir()
+            if path.is_dir() and not path.name.startswith(".")
+        )
+        if reference_parent.is_dir()
+        else []
+    )
+    briefing_tools = (
+        DuckDbBriefingTools(
+            event_root,
+            reference_generations[-1],
+            memory_limit_mb=settings.duckdb_memory_limit_mb,
+        )
+        if (event_root / "dim_event.parquet").is_file() and reference_generations
+        else None
+    )
     return ServiceContainer(
         settings=settings,
         clock=SystemClock(),
@@ -121,6 +165,7 @@ def _build_local_container(settings: Settings) -> ServiceContainer:
         static_site=LocalStaticSitePublisher(objects),
         event_source=event_source,
         reference_data=LocalReferenceDataRefresher(settings, secrets),
+        briefing_tools=briefing_tools,
     )
 
 

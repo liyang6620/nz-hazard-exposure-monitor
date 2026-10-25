@@ -57,6 +57,8 @@ class Settings:
     notification_email: str = "owner@example.invalid"
     openai_model: str = "gpt-5-mini"
     openai_api_key_name: str = "OPENAI_API_KEY"
+    approval_token_key_name: str = "APPROVAL_TOKEN_KEY"
+    review_base_url: str = "http://127.0.0.1:8000/review-briefing"
     arcgis_publisher_enabled: bool = False
     run_startup_housekeeping: bool = True
     llm_reasoning_effort: str = "minimal"
@@ -104,6 +106,12 @@ class Settings:
             notification_email=os.getenv("NOTIFICATION_EMAIL", "owner@example.invalid").strip(),
             openai_model=os.getenv("OPENAI_MODEL", "gpt-5-mini").strip(),
             openai_api_key_name=os.getenv("OPENAI_API_KEY_NAME", "OPENAI_API_KEY").strip(),
+            approval_token_key_name=os.getenv(
+                "APPROVAL_TOKEN_KEY_NAME", "APPROVAL_TOKEN_KEY"
+            ).strip(),
+            review_base_url=os.getenv(
+                "REVIEW_BASE_URL", "http://127.0.0.1:8000/review-briefing"
+            ).strip(),
             arcgis_publisher_enabled=_bool("ARCGIS_PUBLISHER_ENABLED", False),
             run_startup_housekeeping=_bool("RUN_STARTUP_HOUSEKEEPING", True),
             llm_reasoning_effort=os.getenv("LLM_REASONING_EFFORT", "minimal").strip(),
