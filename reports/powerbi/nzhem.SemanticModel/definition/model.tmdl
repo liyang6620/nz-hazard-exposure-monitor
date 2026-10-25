@@ -1,0 +1,18 @@
+model Model
+	culture: en-NZ
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-NZ
+	dataAccessOptions
+		returnErrorValuesAsNull
+
+annotation PBI_QueryOrder = ["Event Summary","Exposure Cells","Method Notes","RepoRoot"]
+
+annotation PBI_ProTooling = ["DevMode"]
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+ref table 'Event Summary'
+ref table 'Exposure Cells'
+ref table 'Method Notes'
+ref table DateTableTemplate_4ed199fe-c5e9-44dd-bf30-87beb14b8158
+ref table LocalDateTable_cf046424-2105-4519-9455-b5ada5e33890

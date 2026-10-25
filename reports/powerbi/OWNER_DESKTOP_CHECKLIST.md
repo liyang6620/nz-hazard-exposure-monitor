@@ -1,21 +1,16 @@
 # Power BI Desktop owner checklist
 
-The agent could not complete a Desktop interaction: the first attempt was
-stopped by the physical Escape key and a second attempt remained on a blank
-loading window. The repository PBIP assets are complete;
-the owner should perform the remaining visual QA locally.
+Desktop validation is complete. Power BI Desktop 2.155.756.0 loaded and
+refreshed both M3 Parquet tables, and all five pages were visually checked.
+Screenshots and the exported five-page PDF are under `evidence/m5/`.
 
-1. Open `reports/powerbi/nzhem.pbip` in Power BI Desktop.
-2. If a Microsoft sign-in prompt appears, close it or choose Skip. Do not enter
-   credentials.
-3. If a license, privacy, or terms prompt appears, stop and record the exact
-   prompt; do not accept it.
-4. Check that the model loads both Parquet tables. If the path is unresolved,
-   update the `RepoRoot` parameter to the repository root and refresh.
-5. Refresh the model and check that all five pages are present.
-6. Add or verify the five page layouts using the fields in `README.md` and the
-   M3 evidence tables. Keep event-time `NULL` values visible as unsupported,
-   never as zero.
-7. Export a PDF and capture screenshots locally for the acceptance package.
-8. Do not publish to Power BI Service, connect to a tenant, or record a video
-   as part of this task.
+The remaining owner action is to record the required two-minute walkthrough.
+During recording:
+
+1. Open `reports/powerbi/nzhem.pbip` without signing in.
+2. Set `RepoRoot` locally to the absolute repository root before refreshing;
+   do not commit that machine-specific value.
+3. Show all five pages and the visible limitations on Method and quality.
+4. Mention that pre-2018-10-16 event-time values are unsupported rather than
+   zero and that the report presents the as-if-today exposure view.
+5. Do not publish to Power BI Service or connect the project to a tenant.

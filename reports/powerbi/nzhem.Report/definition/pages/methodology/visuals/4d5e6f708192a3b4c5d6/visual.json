@@ -1,0 +1,122 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "4d5e6f708192a3b4c5d6",
+  "position": {
+    "x": 10,
+    "y": 10,
+    "z": 0,
+    "height": 400,
+    "width": 1260,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Event Summary"
+                    }
+                  },
+                  "Property": "event_name"
+                }
+              },
+              "queryRef": "Event Summary.event_name",
+              "nativeQueryRef": "event_name"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Event Summary"
+                    }
+                  },
+                  "Property": "event_time_status"
+                }
+              },
+              "queryRef": "Event Summary.event_time_status",
+              "nativeQueryRef": "event_time_status"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Event Summary"
+                        }
+                      },
+                      "Property": "validation_mae"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(Event Summary.validation_mae)",
+              "nativeQueryRef": "Sum of validation_mae"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "f3a245c2df1530f8ea40",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Event Summary"
+              }
+            },
+            "Property": "event_name"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "cc8833bfb0b4342a9575",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Event Summary"
+              }
+            },
+            "Property": "event_time_status"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "a25a54ce5eafb1abc977",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Event Summary"
+                  }
+                },
+                "Property": "validation_mae"
+              }
+            },
+            "Function": 0
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
+  }
+}

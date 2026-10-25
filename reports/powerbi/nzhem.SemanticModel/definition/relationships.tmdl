@@ -1,0 +1,8 @@
+relationship 'Event Summary to Exposure Cells'
+	fromColumn: 'Exposure Cells'.event_id
+	toColumn: 'Event Summary'.event_id
+
+relationship 0417521f-7c15-4305-8814-c0691ab923e3
+	joinOnDateBehavior: datePartOnly
+	fromColumn: 'Event Summary'.origin_time
+	toColumn: LocalDateTable_cf046424-2105-4519-9455-b5ada5e33890.Date

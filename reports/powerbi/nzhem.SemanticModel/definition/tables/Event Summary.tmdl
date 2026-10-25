@@ -1,0 +1,168 @@
+table 'Event Summary'
+	lineageTag: 9cc62f73-5889-4237-af11-28549c9d4ac6
+
+	column event_id
+		dataType: string
+		lineageTag: e529890e-9d61-4384-8809-a4d9babb7204
+		summarizeBy: none
+		sourceColumn: event_id
+
+	column event_name
+		dataType: string
+		lineageTag: f47b5b12-6175-4549-82e9-87f68a5e0145
+		summarizeBy: none
+		sourceColumn: event_name
+
+	column origin_time
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 26ec6d26-fa46-4187-a0df-2cd1d4e8797b
+		summarizeBy: none
+		sourceColumn: origin_time
+
+		variation Variation
+			isDefault
+			relationship: 0417521f-7c15-4305-8814-c0691ab923e3
+			defaultHierarchy: LocalDateTable_cf046424-2105-4519-9455-b5ada5e33890.'Date Hierarchy'
+
+	column magnitude
+		dataType: double
+		lineageTag: dee72afd-8cc1-47a6-a4b8-3c5496bf731e
+		summarizeBy: sum
+		sourceColumn: magnitude
+
+		annotation SummarizationSetBy = Automatic
+
+	column max_mmi
+		dataType: double
+		lineageTag: 952f689e-b621-40fc-9b8a-d6af24e29336
+		summarizeBy: sum
+		sourceColumn: max_mmi
+
+		annotation SummarizationSetBy = Automatic
+
+	column valid_buildings
+		dataType: int64
+		lineageTag: 547bcb08-1b70-4a2b-9831-e8ec1f8c0dfe
+		summarizeBy: sum
+		sourceColumn: valid_buildings
+
+	column as_if_today_buildings
+		dataType: int64
+		lineageTag: e928c033-fc10-47b3-ad27-010b89f44351
+		summarizeBy: sum
+		sourceColumn: as_if_today_buildings
+
+	column event_time_status
+		dataType: string
+		lineageTag: 0f88a693-5e86-4603-a746-eac40a467341
+		summarizeBy: none
+		sourceColumn: event_time_status
+
+	column buildings_mmi_ge_6
+		dataType: int64
+		lineageTag: 4b8e5e51-6f18-4678-a03e-29cb6ce15497
+		summarizeBy: sum
+		sourceColumn: buildings_mmi_ge_6
+
+	column population_mmi_ge_6
+		dataType: double
+		lineageTag: 6c265e8f-9c5c-4281-a6ad-119ae9689654
+		summarizeBy: sum
+		sourceColumn: population_mmi_ge_6
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column validation_mae
+		dataType: double
+		lineageTag: 00e6d334-3e3f-45c3-a2fc-449ece72fb17
+		summarizeBy: sum
+		sourceColumn: validation_mae
+
+		annotation SummarizationSetBy = Automatic
+
+	column depth_km
+		dataType: double
+		lineageTag: fb498c02-b326-41e5-babc-03802f1a5184
+		summarizeBy: sum
+		sourceColumn: depth_km
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column latitude
+		dataType: double
+		lineageTag: 82ff6030-e5c5-4aef-b920-b00317610509
+		summarizeBy: sum
+		sourceColumn: latitude
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column longitude
+		dataType: double
+		lineageTag: 8e00fa88-bd12-40c7-a73c-761ff58cd6c9
+		summarizeBy: sum
+		sourceColumn: longitude
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column mmi_source
+		dataType: string
+		lineageTag: 5f0a037e-3daf-45d6-9af5-8135fd12e149
+		summarizeBy: none
+		sourceColumn: mmi_source
+
+		annotation SummarizationSetBy = Automatic
+
+	column shaking_version
+		dataType: string
+		lineageTag: a05cc0bb-7a3e-40be-a614-4d1dcc343036
+		summarizeBy: none
+		sourceColumn: shaking_version
+
+		annotation SummarizationSetBy = Automatic
+
+	column event_time_buildings_mmi_ge_6
+		dataType: int64
+		formatString: 0
+		lineageTag: 3a7c5e13-25f0-4bee-9eeb-f2a3debd7a9d
+		summarizeBy: sum
+		sourceColumn: event_time_buildings_mmi_ge_6
+
+		annotation SummarizationSetBy = Automatic
+
+	column footprint_m2_mmi_ge_6
+		dataType: double
+		lineageTag: c98b2cb7-fb2f-4695-a152-7670c64bac8b
+		summarizeBy: sum
+		sourceColumn: footprint_m2_mmi_ge_6
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column validation_station_count
+		dataType: int64
+		formatString: 0
+		lineageTag: 2a11262b-5bec-4446-82bc-fcc096986a53
+		summarizeBy: sum
+		sourceColumn: validation_station_count
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Event Summary' = m
+		mode: import
+		source =
+				let
+					Source = Parquet.Document(File.Contents(RepoRoot & "\\.local\\data\\curated\\events\\m3\\mart_event_summary.parquet"))
+				in
+					Source
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
