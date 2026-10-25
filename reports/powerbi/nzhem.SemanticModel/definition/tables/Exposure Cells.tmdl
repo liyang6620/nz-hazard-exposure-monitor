@@ -1,0 +1,125 @@
+table 'Exposure Cells'
+	lineageTag: cee158e4-f1f4-44dd-ab56-e396e271ede5
+
+	column event_id
+		dataType: string
+		lineageTag: ccfdd531-13fc-47da-8d50-138b4b20320d
+		summarizeBy: none
+		sourceColumn: event_id
+
+	column h3_res6
+		dataType: string
+		lineageTag: 65b799fd-8e44-4e50-b2bf-11ddb302ba05
+		summarizeBy: none
+		sourceColumn: h3_res6
+
+	column mmi
+		dataType: double
+		lineageTag: c468b43b-d151-44c3-a2b5-19da3fa517a8
+		summarizeBy: none
+		sourceColumn: mmi
+
+	column as_if_today_building_count
+		dataType: int64
+		lineageTag: 7561f28e-3859-4e57-9339-f15ecd39d26f
+		summarizeBy: sum
+		sourceColumn: as_if_today_building_count
+
+	column as_if_today_footprint_area_m2
+		dataType: double
+		lineageTag: 99d0560b-e9af-43b1-a5b6-c0e46939085b
+		summarizeBy: sum
+		sourceColumn: as_if_today_footprint_area_m2
+
+	column population_2023
+		dataType: double
+		lineageTag: 31577ac6-a256-441f-adce-ed32aeac9d84
+		summarizeBy: sum
+		sourceColumn: population_2023
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column mmi_source
+		dataType: string
+		lineageTag: 016cba91-1f49-45da-94a8-8f640fe054c3
+		summarizeBy: none
+		sourceColumn: mmi_source
+
+		annotation SummarizationSetBy = Automatic
+
+	column source_version
+		dataType: string
+		lineageTag: 3e952487-a426-434b-9f24-f892e2e640d4
+		summarizeBy: none
+		sourceColumn: source_version
+
+		annotation SummarizationSetBy = Automatic
+
+	column event_building_count
+		dataType: int64
+		formatString: 0
+		lineageTag: b1c742b9-a33c-4036-9700-b857434845fe
+		summarizeBy: sum
+		sourceColumn: event_building_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column event_footprint_area_m2
+		dataType: double
+		lineageTag: 0719b834-93f2-47a0-839d-c04ebfdd4a6a
+		summarizeBy: sum
+		sourceColumn: event_footprint_area_m2
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column event_time_building_count
+		dataType: int64
+		formatString: 0
+		lineageTag: f6230771-5cff-40c6-8460-b0e8c147fe4c
+		summarizeBy: sum
+		sourceColumn: event_time_building_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column event_time_footprint_area_m2
+		dataType: double
+		lineageTag: 57e7e35b-7421-406c-a681-920e2b11e723
+		summarizeBy: sum
+		sourceColumn: event_time_footprint_area_m2
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column current_building_count
+		dataType: int64
+		formatString: 0
+		lineageTag: 5d919d5a-3bfe-4f84-9f9f-f4b498b64862
+		summarizeBy: sum
+		sourceColumn: current_building_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column current_footprint_area_m2
+		dataType: double
+		lineageTag: 0a8b1c7d-00c3-4ec7-8161-ff796f35fc76
+		summarizeBy: sum
+		sourceColumn: current_footprint_area_m2
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition 'Exposure Cells' = m
+		mode: import
+		source =
+				let
+					Source = Parquet.Document(File.Contents(RepoRoot & "\\.local\\data\\curated\\events\\m3\\mart_event_exposure_h3r6.parquet"))
+				in
+					Source
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table

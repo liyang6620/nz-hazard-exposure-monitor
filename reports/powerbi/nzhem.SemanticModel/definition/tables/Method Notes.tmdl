@@ -1,0 +1,28 @@
+table 'Method Notes'
+	lineageTag: 953006f1-779e-4570-b9db-5213f9a7a291
+
+	column 'Limitations and quality notes'
+		dataType: string
+		lineageTag: 5484de2c-2fd7-47b6-9cab-84a8feeb765f
+		summarizeBy: none
+		sourceColumn: note
+
+	partition 'Method Notes' = m
+		mode: import
+		source =
+				let
+					Source = #table(
+						type table [note = text],
+						{
+							{"1. LIMITATIONS"},
+							{"2. No policy data: exposure uses building count, footprint area, and population as proxies."},
+							{"3. Shaking intensity is indicative only; it is not actuarial or engineering advice."},
+							{"4. Building appearance and disappearance dates are approximate and inferred from imagery."}
+						}
+					)
+				in
+					Source
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table

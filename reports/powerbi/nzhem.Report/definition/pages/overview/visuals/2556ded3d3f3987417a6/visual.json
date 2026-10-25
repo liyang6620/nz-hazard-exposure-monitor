@@ -1,0 +1,170 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "2556ded3d3f3987417a6",
+  "position": {
+    "x": 10,
+    "y": 0,
+    "z": 0,
+    "height": 680,
+    "width": 1260,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Event Summary"
+                    }
+                  },
+                  "Property": "event_name"
+                }
+              },
+              "queryRef": "Event Summary.event_name",
+              "nativeQueryRef": "event_name"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Event Summary"
+                        }
+                      },
+                      "Property": "magnitude"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(Event Summary.magnitude)",
+              "nativeQueryRef": "Sum of magnitude"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Event Summary"
+                        }
+                      },
+                      "Property": "max_mmi"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(Event Summary.max_mmi)",
+              "nativeQueryRef": "Sum of max_mmi"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Event Summary"
+                        }
+                      },
+                      "Property": "population_mmi_ge_6"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(Event Summary.population_mmi_ge_6)",
+              "nativeQueryRef": "Sum of population_mmi_ge_6"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "4d1d790717161b639d9b",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Event Summary"
+              }
+            },
+            "Property": "event_name"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "a3e1c8df68e0e44ec6e1",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Event Summary"
+                  }
+                },
+                "Property": "magnitude"
+              }
+            },
+            "Function": 0
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "8a4436e14e686d469c8f",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Event Summary"
+                  }
+                },
+                "Property": "max_mmi"
+              }
+            },
+            "Function": 0
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "8112a1bb404adc212e95",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Event Summary"
+                  }
+                },
+                "Property": "population_mmi_ge_6"
+              }
+            },
+            "Function": 0
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
+  }
+}

@@ -10,15 +10,20 @@ outputs. It contains one semantic model and five report pages:
 5. Method and quality
 
 The model reads the local Parquet outputs under
-`.local/data/curated/events/m3`. The `RepoRoot` M expression defaults to the
-repository root relative to the project folder. If Power BI Desktop resolves
-the project from another working directory, edit only that parameter to the
-absolute repository path; do not copy secrets or data into this folder.
+`.local/data/curated/events/m3`. Power Query requires an absolute path for
+`File.Contents`, so before the first refresh edit the `RepoRoot` M expression
+from its source-controlled relative placeholder to the absolute repository
+root. Do not commit that local path or copy secrets or data into this folder.
 
-The five page definitions intentionally start with no visuals. The owner can
-open the project, refresh, and add visuals from the documented fields without
-changing the reproducible semantic model. The event-time fields are nullable
-for events before 2018-10-16; use `event_time_status` when presenting them.
+Each page contains a table visual backed by the refreshed M3 Parquet outputs.
+The Method and quality page also shows the required limitations. Event-time
+fields are nullable for events before 2018-10-16; use `event_time_status` when
+presenting them and never substitute zero for unsupported values.
+
+Power BI Desktop 2.155.756.0 opened and refreshed the project successfully on
+2026-10-25 after that local-only `RepoRoot` change. The acceptance screenshots and five-page PDF are under
+`evidence/m5/`. The source-controlled semantic-model and report definitions
+are under 1 MB; Power BI's local cache is excluded from Git.
 
 No Power BI Service connection, Microsoft login, publish action, or external
 data source is configured in this project.

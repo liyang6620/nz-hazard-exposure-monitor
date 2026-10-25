@@ -1,0 +1,76 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "2b3c4d5e6f708192a3b4",
+  "position": {
+    "x": 10,
+    "y": 10,
+    "z": 0,
+    "height": 680,
+    "width": 1260,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Event Summary"
+                    }
+                  },
+                  "Property": "event_name"
+                }
+              },
+              "queryRef": "Event Summary.event_name",
+              "nativeQueryRef": "event_name"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Event Summary"
+                        }
+                      },
+                      "Property": "population_mmi_ge_6"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(Event Summary.population_mmi_ge_6)",
+              "nativeQueryRef": "Sum of population_mmi_ge_6"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Event Summary"
+                        }
+                      },
+                      "Property": "as_if_today_buildings"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(Event Summary.as_if_today_buildings)",
+              "nativeQueryRef": "Sum of as_if_today_buildings"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

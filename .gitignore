@@ -45,5 +45,9 @@ Thumbs.db
 .idea/
 .vscode/
 
+# Power BI Desktop local state
+**/.pbi/cache.abf
+**/.pbi/localSettings.json
+
 # Phase-zero research downloads and local experiments
 tmp/

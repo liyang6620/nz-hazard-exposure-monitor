@@ -1,0 +1,6 @@
+expression RepoRoot =
+		let
+			Value = "..\\.."
+		in
+			Value
+	lineageTag: 41ab27c8-7c8d-41f7-9247-77accfeb5e81

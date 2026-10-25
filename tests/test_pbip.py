@@ -7,22 +7,36 @@ PBIP_ROOT = ROOT / "reports" / "powerbi"
 
 def test_pbip_project_has_five_pages_and_local_only_sources() -> None:
     project = json.loads((PBIP_ROOT / "nzhem.pbip").read_text(encoding="utf-8"))
-    report = json.loads(
-        (PBIP_ROOT / "nzhem.Report" / "definition" / "report.json").read_text(encoding="utf-8")
-    )
-    pages = list((PBIP_ROOT / "nzhem.Report" / "definition" / "pages").glob("*/page.json"))
+    definition = PBIP_ROOT / "nzhem.Report" / "definition"
+    page_metadata = json.loads((definition / "pages" / "pages.json").read_text(encoding="utf-8"))
+    pages_root = definition / "pages"
+    page_names = [
+        "overview",
+        "event-explorer",
+        "population",
+        "building-footprint",
+        "methodology",
+    ]
 
-    assert project["Version"] == "1.0"
-    assert len(report["sections"]) == 5
-    assert len(pages) == 5
-    assert all(
-        json.loads(page.read_text(encoding="utf-8"))["visualContainers"] == [] for page in pages
-    )
+    assert project["version"] == "1.0"
+    assert page_metadata["pageOrder"] == page_names
+    for page_name in page_names:
+        page = json.loads((pages_root / page_name / "page.json").read_text(encoding="utf-8"))
+        visuals = list((pages_root / page_name / "visuals").glob("*/visual.json"))
+        assert page["name"] == page_name
+        assert visuals
 
-    model_text = (PBIP_ROOT / "nzhem.SemanticModel" / "definition" / "model.bim").read_text(
-        encoding="utf-8"
-    )
+    model_root = PBIP_ROOT / "nzhem.SemanticModel" / "definition"
+    report_text = "\n".join(path.read_text(encoding="utf-8") for path in definition.rglob("*.json"))
+    model_text = "\n".join(path.read_text(encoding="utf-8") for path in model_root.rglob("*.tmdl"))
     assert "File.Contents" in model_text
     assert "https://" not in model_text
-    assert "OPENAI_API_KEY" not in model_text
-    assert "ARCGIS_API_KEY" not in model_text
+    assert 'Value = "..\\\\.."' in model_text
+    combined_text = report_text + model_text
+    assert "OPENAI_API_KEY" not in combined_text
+    assert "ARCGIS_API_KEY" not in combined_text
+    assert "C:/Users/" not in combined_text
+    assert "C:\\\\Users\\\\" not in combined_text
+    assert "No policy data" in combined_text
+    assert "not actuarial or engineering advice" in combined_text
+    assert "appearance and disappearance dates are approximate" in combined_text

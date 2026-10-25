@@ -1,0 +1,104 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "1a2b3c4d5e6f708192a3",
+  "position": {
+    "x": 10,
+    "y": 10,
+    "z": 0,
+    "height": 680,
+    "width": 1260,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Event Summary"
+                    }
+                  },
+                  "Property": "event_name"
+                }
+              },
+              "queryRef": "Event Summary.event_name",
+              "nativeQueryRef": "event_name"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Event Summary"
+                    }
+                  },
+                  "Property": "origin_time"
+                }
+              },
+              "queryRef": "Event Summary.origin_time",
+              "nativeQueryRef": "origin_time"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Event Summary"
+                        }
+                      },
+                      "Property": "magnitude"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(Event Summary.magnitude)",
+              "nativeQueryRef": "Sum of magnitude"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Event Summary"
+                        }
+                      },
+                      "Property": "max_mmi"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(Event Summary.max_mmi)",
+              "nativeQueryRef": "Sum of max_mmi"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Event Summary"
+                    }
+                  },
+                  "Property": "event_time_status"
+                }
+              },
+              "queryRef": "Event Summary.event_time_status",
+              "nativeQueryRef": "event_time_status"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

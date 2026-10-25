@@ -100,7 +100,9 @@ jobs:
       - name: Reject committed Azure identifiers or personal email addresses
         shell: bash
         run: |
-          if git grep -nE '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}'; then
+          if git grep -nE '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}' -- . \
+            ':(exclude)reports/powerbi/**/*.tmdl' \
+            ':(exclude)reports/powerbi/**/.platform'; then
             echo 'A GUID-like identifier is committed.' >&2
             exit 1
           fi
