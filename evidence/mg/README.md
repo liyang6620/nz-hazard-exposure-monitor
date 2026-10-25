@@ -73,3 +73,24 @@ following remain deferred until an owner-approved, free-quota test window:
 - API key or minimum-scope OAuth configuration;
 - refresh-token storage, renewal and expiry alerting;
 - hosted-layer publication and Esri MCP validation.
+
+## Owner-approved write and static-map test
+
+The owner-approved test window ran on 2026-10-25. Network access to the ArcGIS
+hosts was available; the earlier DNS result was an execution-environment
+limitation rather than evidence about the account or key.
+
+The API key created the empty private service item
+`23cbe71e05d247258e134287f0557eb7`, but both the standard and official admin
+`addToDefinition` requests returned `403 GWM_0003`. No feature was added, so no
+incremental update was attempted and the formal `event_exposure_r6` publication
+was correctly skipped. The same key received `403 GWM_0003` when deleting the
+empty test service; the owner must remove that item in the portal. No account,
+permission or billing setting was changed.
+
+Three authorized Static Maps `/with-point` calls were made for Christchurch,
+Kaikoura and Taumarunui. All three returned HTTP 403 and no image. The key was
+sent only in the Authorization header. No geocoding, routing, elevation or
+other prohibited service was called. Portal self reported zero bytes of
+storage usage against a 2 GB organization quota. Machine-readable details are
+in `arcgis-write-test.json`.

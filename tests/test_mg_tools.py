@@ -55,3 +55,15 @@ def test_local_map_geojson_is_strict_wgs84_xy() -> None:
             assert 160 <= max_x <= 180 or -180 <= max_x <= -170
             assert -50 <= min_y <= -30
             assert -50 <= max_y <= -30
+
+
+def test_arcgis_write_test_respects_static_map_and_secret_limits() -> None:
+    path = Path("evidence/mg/arcgis-write-test.json")
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    text = path.read_text(encoding="utf-8")
+
+    assert payload["static_maps"]["calls"] <= 3
+    assert payload["prohibited_services_called"] is False
+    assert payload["secret_logged"] is False
+    assert payload["account_or_permissions_changed"] is False
+    assert "AAPT" not in text
