@@ -108,6 +108,7 @@ class ApprovalService:
         title: str,
         html: str,
         markdown: str,
+        map_image: bytes | None = None,
         recipient: str,
         review_base_url: str,
         now: datetime,
@@ -117,6 +118,25 @@ class ApprovalService:
     ) -> PendingBriefing:
         expires_at = now.astimezone(UTC) + timedelta(hours=72)
         draft_root = f"drafts/{event_id}/{revision}"
+        draft_map_path: str | None = None
+        published_map_path: str | None = None
+        if map_image is not None:
+            draft_map_path = f"{draft_root}/map.png"
+            published_map_path = (
+                f"briefings/maps/{hashlib.sha256(briefing_id.encode('utf-8')).hexdigest()}.png"
+            )
+            self._objects.put_bytes("briefings", draft_map_path, map_image)
+            map_section = (
+                "<section><h2>Static event map</h2>"
+                f"<img src='/{published_map_path}' "
+                "alt='Static map centered on this earthquake event' "
+                "width='800' height='500' loading='lazy'></section>"
+            )
+            if "</main></html>" in html:
+                html = html.replace("</main></html>", map_section + "</main></html>", 1)
+            else:
+                html += map_section
+            markdown += f"\n## Static event map\n\n![Event map](/{published_map_path})\n"
         self._objects.put_bytes("briefings", f"{draft_root}/index.html", html.encode())
         self._objects.put_bytes("briefings", f"{draft_root}/briefing.md", markdown.encode())
         entity: dict[str, Any] = {
@@ -130,6 +150,8 @@ class ApprovalService:
             "status": "pending",
             "needs_manual_review": needs_manual_review,
             "draft_html_path": f"{draft_root}/index.html",
+            "draft_map_path": draft_map_path,
+            "published_map_path": published_map_path,
             "created_at": now.astimezone(UTC).isoformat(),
             "expires_at": expires_at.isoformat(),
         }
@@ -157,6 +179,12 @@ class ApprovalService:
         action = claims["action"]
         if action == "approve":
             document = self._objects.get_bytes("briefings", entity["draft_html_path"])
+            if entity.get("draft_map_path"):
+                map_image = self._objects.get_bytes("briefings", entity["draft_map_path"])
+                self._publisher.publish(
+                    str(entity["published_map_path"]),
+                    map_image,
+                )
             published_path = f"briefings/{entity['event_id']}.html"
             self._publisher.publish(published_path, document)
             self._publish_index(entity["event_id"], entity["title"], published_path)

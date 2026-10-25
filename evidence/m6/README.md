@@ -60,3 +60,12 @@ restored. The shared core, Azure adapters and Key Vault secret-name mapping are
 implemented, but no Azure resource was created and no Azure claim is made.
 
 `openai-evaluation.json` is retained as the earlier six-call M6 smoke test.
+
+## ArcGIS completion addendum
+
+The follow-up MG block published the formal hosted layer and connected briefings
+to Esri MCP `map_with_overlay`. The server-side adapter uses the existing
+pre-request guard, so every attempted image counts toward the two-per-briefing
+and 200-per-month limits. Successful PNGs remain draft artifacts until POST
+approval, then publish with the briefing. Static-map failure remains non-fatal.
+See `evidence/mg/arcgis-publish.json` and `docs/arcgis-operations.md`.

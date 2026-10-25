@@ -14,6 +14,8 @@ def test_local_settings_have_safe_defaults(monkeypatch: pytest.MonkeyPatch) -> N
     assert settings.environment == "local"
     assert settings.data_root == Path(".local/data")
     assert settings.arcgis_publisher_enabled is False
+    assert settings.arcgis_static_maps_enabled is False
+    assert settings.arcgis_api_key_name == "ARCGIS_API_KEY"
 
 
 def test_settings_reject_unknown_environment(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -49,4 +51,12 @@ def test_azure_settings_require_platform_values(monkeypatch: pytest.MonkeyPatch)
 def test_invalid_boolean_is_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("ARCGIS_PUBLISHER_ENABLED", "sometimes")
     with pytest.raises(ConfigurationError, match="true or false"):
+        Settings.from_env()
+
+
+def test_static_maps_require_a_secret_name(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("ARCGIS_STATIC_MAPS_ENABLED", "true")
+    monkeypatch.setenv("ARCGIS_API_KEY_NAME", "")
+
+    with pytest.raises(ConfigurationError, match="ARCGIS_API_KEY_NAME"):
         Settings.from_env()

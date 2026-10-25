@@ -13,7 +13,13 @@ from nzhem.core.agent.schemas import BRIEFING_OUTPUT_SCHEMA, LIMITATIONS, TOOL_S
 
 class FixedTools:
     def get_event(self, event_id: str) -> dict:
-        return {"event_id": event_id, "magnitude": 6.0, "depth_km": 10.0}
+        return {
+            "event_id": event_id,
+            "magnitude": 6.0,
+            "depth_km": 10.0,
+            "longitude": 172.6,
+            "latitude": -43.5,
+        }
 
     def get_exposure_summary(self, event_id: str, mmi_threshold: float) -> list[dict]:
         return [
@@ -92,6 +98,22 @@ class RetryingLlm:
         )
 
 
+class StaticMapRecorder:
+    def __init__(self) -> None:
+        self.calls: list[dict] = []
+
+    def render(self, *, briefing_id: str, longitude: float, latitude: float) -> bytes:
+        self.calls.append(
+            {"briefing_id": briefing_id, "longitude": longitude, "latitude": latitude}
+        )
+        return b"\x89PNG\r\n\x1a\nmap"
+
+
+class FailingStaticMap:
+    def render(self, *, briefing_id: str, longitude: float, latitude: float) -> bytes:
+        raise RuntimeError("provider details must not escape")
+
+
 def test_four_tool_schemas_are_closed() -> None:
     assert set(TOOL_SCHEMAS) == {
         "get_event",
@@ -114,6 +136,35 @@ def test_draft_retries_unsupported_numbers_and_renders_both_formats() -> None:
     assert "## Limitations" in result.markdown
     assert "<h2>Limitations</h2>" in result.html
     assert llm.schemas == [BRIEFING_OUTPUT_SCHEMA, BRIEFING_OUTPUT_SCHEMA]
+
+
+def test_draft_attaches_server_side_static_map_when_enabled() -> None:
+    maps = StaticMapRecorder()
+    result = DraftBriefingService(
+        FixedTools(),
+        RetryingLlm(),
+        max_output_tokens=450,
+        total_token_limit=12000,
+        static_map_provider=maps,
+    ).draft("event-1", briefing_id="briefing-1")
+
+    assert result.map_status == "attached"
+    assert result.map_image == b"\x89PNG\r\n\x1a\nmap"
+    assert maps.calls == [{"briefing_id": "briefing-1", "longitude": 172.6, "latitude": -43.5}]
+
+
+def test_static_map_failure_does_not_block_briefing() -> None:
+    result = DraftBriefingService(
+        FixedTools(),
+        RetryingLlm(),
+        max_output_tokens=450,
+        total_token_limit=12000,
+        static_map_provider=FailingStaticMap(),
+    ).draft("event-1", briefing_id="briefing-1")
+
+    assert result.status == "pending"
+    assert result.map_status == "failed"
+    assert result.map_image is None
 
 
 def test_fidelity_ignores_provenance_field_digits_but_checks_visible_numbers() -> None:

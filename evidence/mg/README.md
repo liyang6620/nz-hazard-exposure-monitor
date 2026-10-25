@@ -94,3 +94,29 @@ sent only in the Authorization header. No geocoding, routing, elevation or
 other prohibited service was called. Portal self reported zero bytes of
 storage usage against a 2 GB organization quota. Machine-readable details are
 in `arcgis-write-test.json`.
+
+## Formal hosted layer and static-map integration
+
+On 2026-10-26 the owner replaced the restricted credential with a server-side
+Private application with all owner privileges. The existing File Geodatabase
+source was directly published as `event_exposure_r6`, item
+`ce9c69b085584965a236d0c6fdfb7ebc`. The service contains all 4,011 expected
+features and both service and layer report
+`Create,Delete,Query,Update,Editing`. These capabilities were part of the
+publish request; no definition administration operation was used.
+
+An `applyEdits` same-value update succeeded on object 1. The service item ID and
+4,011-feature count were unchanged. The usage report subsequently recorded one
+edit using 849 bytes. All feature traffic for the current month was 32,941
+bytes, and portal storage was 3,513,272 bytes, both below the 125 MB project
+limits. The 433,080-byte source item is retained as the reproducible publishing
+input.
+
+Two direct Static Maps validation calls returned PNG images with HTTP 200. One
+real Esri MCP `map_with_overlay` integration call returned a 171,840-byte PNG.
+The portal usage report showed two calls at capture time, so its delayed counter
+is not treated as the runtime guard. The application records all three known
+calls and enforces at most two attempts per briefing and 200 per UTC month.
+No other MCP or Location Services tool was called. Details are in
+`arcgis-publish.json`, and the server-only credential contract is documented in
+`docs/arcgis-operations.md`.
