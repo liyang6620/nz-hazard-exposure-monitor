@@ -64,17 +64,26 @@ def test_smtp_mailer_sends_plain_text(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_openai_adapter_enforces_configured_limits(monkeypatch: pytest.MonkeyPatch) -> None:
     response = Mock()
-    response.json.return_value = {"output_text": "briefing"}
+    response.json.return_value = {
+        "output": [{"content": [{"type": "output_text", "text": "briefing"}]}],
+        "usage": {
+            "input_tokens": 100,
+            "input_tokens_details": {"cached_tokens": 25},
+            "output_tokens": 50,
+            "total_tokens": 150,
+        },
+    }
     post = Mock(return_value=response)
     monkeypatch.setattr("nzhem.adapters.local.openai.requests.post", post)
     secrets = Mock()
     secrets.get_secret.return_value = "secret-value"
 
-    result = OpenAILlmClient(secrets, api_key_name="OPENAI_API_KEY", model="gpt-5-mini").generate(
-        "prompt", max_output_tokens=1200
-    )
+    client = OpenAILlmClient(secrets, api_key_name="OPENAI_API_KEY", model="gpt-5-mini")
+    result = client.generate("prompt", max_output_tokens=1200)
 
     assert result == "briefing"
     assert post.call_args.kwargs["json"]["reasoning"] == {"effort": "minimal"}
     assert post.call_args.kwargs["json"]["max_output_tokens"] == 1200
+    assert client.usage[0].cached_input_tokens == 25
+    assert client.usage[0].total_tokens == 150
     response.raise_for_status.assert_called_once()

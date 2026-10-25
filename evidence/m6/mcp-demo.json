@@ -1,0 +1,14 @@
+{
+  "event_call_error": false,
+  "event_result_blocks": 1,
+  "exposure_call_error": false,
+  "exposure_result_blocks": 6,
+  "network_required": false,
+  "tools": [
+    "compare_then_now",
+    "get_event",
+    "get_exposure_summary",
+    "get_region_context"
+  ],
+  "transport": "stdio"
+}

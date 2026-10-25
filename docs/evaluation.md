@@ -50,3 +50,34 @@ status `not_supported`; it is never represented as zero. The current building
 points used here are not substituted into the M3 exposure result and are not
 presented as a 2016 building inventory.
 
+## M6 briefing agent evaluation
+
+The M6 evaluation runs the ten fixed historical events against the local M3
+gold Parquet and approved national reference generation. It uses the same four
+read-only tools as the application and local MCP server.
+
+Run it from the repository root:
+
+```text
+python scripts/run_m6_agent_evaluation.py
+```
+
+The script reads `OPENAI_API_KEY` from ignored `.env`, uses `gpt-5-mini` with
+minimal reasoning, enforces a 1,200 output-token ceiling, and checks the US$1
+cumulative budget before every call. Evidence contains token counts, cost,
+status and payload hashes, never prompts, generated content or credentials.
+
+The 2026-10-26 result is 10/10 payloads with 100% numeric fidelity. Measured
+cost for the complete ten-event run was US$0.01052725; known cumulative M6
+actual cost was US$0.01287375. Two setup calls whose usage was not persisted
+are represented by a conservative US$0.0102 reserve, making the budget-accounted
+total US$0.02307375.
+
+The validator requires:
+
+- the exact strict JSON field set and all three required limitations;
+- every visible number to occur in the current tool results;
+- every key figure's declared tool and field to contain its exact value;
+- no more than two retries after an incomplete, invalid or unfaithful result.
+
+Machine-readable results are in `evidence/m6/agent-evaluation.json`.

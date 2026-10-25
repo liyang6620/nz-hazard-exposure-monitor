@@ -4,13 +4,48 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>NZ Hazard Exposure Monitor</title>
+    <style>
+      :root { color-scheme: light; font-family: "Segoe UI", sans-serif; }
+      body { margin: 0; color: #17211b; background: #f4f7f5; }
+      header { padding: 2.5rem max(1.25rem, calc((100% - 64rem) / 2)); background: #173f35; color: white; }
+      main { max-width: 64rem; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+      h1, h2 { letter-spacing: 0; }
+      nav a, header a { color: #d7f4e7; }
+      ul { padding: 0; list-style: none; border-top: 1px solid #cbd6d0; }
+      li { padding: 1rem 0; border-bottom: 1px solid #cbd6d0; }
+      li a { color: #075d4a; font-weight: 650; }
+      .status { color: #52625a; }
+    </style>
   </head>
   <body>
-    <main>
+    <header>
       <h1>NZ Hazard Exposure Monitor</h1>
-      <p>The local static site is running. Approved briefings will appear here.</p>
-      <p><a href="/map/">Open the token-free historical event map</a></p>
+      <p>New Zealand earthquake exposure briefings using buildings and population as proxies.</p>
+      <nav><a href="/map/">Historical event map</a></nav>
+    </header>
+    <main>
+      <h2>Approved Briefings</h2>
+      <p id="briefing-status" class="status">No approved briefings yet.</p>
+      <ul id="briefings"></ul>
+      <p>Built by <a href="https://github.com/liyang6620">Yang Li</a>.</p>
     </main>
+    <script>
+      fetch("/briefings/index.json")
+        .then((response) => response.ok ? response.json() : [])
+        .then((entries) => {
+          if (!entries.length) return;
+          document.querySelector("#briefing-status").remove();
+          const list = document.querySelector("#briefings");
+          for (const entry of entries) {
+            const item = document.createElement("li");
+            const link = document.createElement("a");
+            link.href = entry.path;
+            link.textContent = entry.title;
+            item.append(link);
+            list.append(item);
+          }
+        });
+    </script>
   </body>
 </html>
 

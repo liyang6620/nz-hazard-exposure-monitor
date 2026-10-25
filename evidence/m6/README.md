@@ -1,20 +1,62 @@
-# M6 local LLM evaluation
+# M6 briefing agent, approval and MCP evidence
 
-`openai-evaluation.json` records the budgeted local evaluation using
-`gpt-5-mini`. It contains estimated and actual token costs for every attempted
-call and the Mailpit delivery status. The hard cumulative cap is US$1.00.
+## Ten-event evaluation
 
-The evaluation uses the OpenAI Responses API with minimal reasoning and a
-450-token output ceiling. The API key is read only from the ignored root
-`.env`; it is never written to evidence, logs, prompts, or screenshots. The
-approval draft is sent to the local Mailpit SMTP listener only.
+`agent-evaluation.json` records the complete evaluation of the ten fixed M3
+events with `gpt-5-mini`, minimal reasoning and a 1,200-output-token ceiling.
+All ten final payloads passed strict-schema, required-limitations, key-figure
+provenance and visible-number fidelity checks: **10/10, 100%**.
 
-On 2026-10-25 the saved successful drafts were delivered without another
-OpenAI call. Mailpit reported one message with subject
-`NZHEM M6 local approval draft`, and the evidence status is
-`sent_to_local_mailpit`. Both SMTP port 1025 and Web UI port 8025 are exposed
-only on `127.0.0.1` by Compose.
+The successful evaluation made 14 measured API calls because three events
+needed fidelity retries. It cost **US$0.01052725**. Together with the earlier
+measured M6 calls, known actual spend is **US$0.01287375**. Two failed setup
+calls did not persist usage before their processes exited; evidence reserves
+their full pre-call upper bound of **US$0.0102** instead of inventing token
+counts. Budget-accounted M6 spend is therefore **US$0.02307375**, below the
+US$1 hard cap.
 
-If Docker Desktop was unavailable during evaluation, start the local Compose
-Mailpit service and run `python scripts/run_m6_evaluation.py --mailpit-only`.
-That retry sends saved drafts and makes no additional OpenAI call.
+Pricing was checked against the official OpenAI `gpt-5-mini` model page on
+2026-10-26: US$0.25/M input, US$0.025/M cached input and US$2/M output. Every
+call was checked against the cumulative cap before dispatch. The API key was
+read only from ignored `.env` and is absent from evidence, logs and images.
+
+## Local approval workflow
+
+`workflow-demo.json` records a real Kaikoura path through the M3 DuckDB tools,
+the shared draft renderer, numeric validation, draft storage, loopback Mailpit,
+HMAC review and local static-site publisher:
+
+- GET preview left the briefing `pending`; POST changed it to `approved`;
+- the approved page and one-entry publication index were written;
+- token replay and a 73-hour-expired token were rejected;
+- the reject path wrote `rejected` and did not publish;
+- three messages were added through loopback-only SMTP.
+
+`approved-briefing.png` shows the published page.
+`mailpit-delivery-sanitized.png` shows sender, recipient and subjects only;
+message bodies and review tokens are deliberately omitted. Compose binds the
+app, Mailpit SMTP/UI and Caddy ports to `127.0.0.1`.
+
+## Local MCP server
+
+`mcp-demo.json` records a real stdio client/server handshake. Exactly four
+read-only tools were registered, and `get_event` plus
+`get_exposure_summary` returned successful content without network access.
+The tool adapter reads M3 gold and reference generation
+`reference-export/dee5b263952e`, with DuckDB capped at 512 MB and one thread.
+
+## Esri and Azure status
+
+The owner-approved ArcGIS test is recorded under `evidence/mg/`. The key could
+create an empty service item but layer-definition update, deletion and all
+three allowed Static Maps calls returned `403 GWM_0003`. Formal
+`event_exposure_r6` publishing and Esri MCP imagery were therefore not
+attempted further. The M6 static-map guard still enforces a hard
+`static_map`-only whitelist, at most two reservations per briefing and 200 per
+month, with failed attempts recorded without blocking the briefing.
+
+Azure deployment evidence remains deferred until the Microsoft account is
+restored. The shared core, Azure adapters and Key Vault secret-name mapping are
+implemented, but no Azure resource was created and no Azure claim is made.
+
+`openai-evaluation.json` is retained as the earlier six-call M6 smoke test.
