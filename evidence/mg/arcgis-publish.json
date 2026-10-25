@@ -1,0 +1,51 @@
+{
+  "checked_at": "2026-10-26",
+  "credential": {
+    "account_or_credential_settings_changed_by_implementation": false,
+    "browser_exposure": false,
+    "secret_logged": false,
+    "type": "Private application with all owner privileges"
+  },
+  "hosted_layer": {
+    "capabilities": "Create,Delete,Query,Update,Editing",
+    "definition_admin_operations_called": false,
+    "feature_count": 4011,
+    "item_id": "ce9c69b085584965a236d0c6fdfb7ebc",
+    "item_size_bytes": 3080192,
+    "layer_name": "event_exposure_r6",
+    "source_item_id": "1575d3cc5a134c4b84f1b8f015b66ec5",
+    "source_item_retained": true
+  },
+  "incremental_update": {
+    "feature_count_after": 4011,
+    "item_id_unchanged": true,
+    "method": "applyEdits",
+    "semantic_value_changed": false,
+    "success": true,
+    "updated_object_id": 1
+  },
+  "limits": {
+    "feature_edit_bandwidth_bytes": 849,
+    "feature_edit_operations": 1,
+    "monthly_all_feature_bandwidth_bytes": 32941,
+    "monthly_feature_bandwidth_cap_bytes": 131072000,
+    "portal_storage_bytes": 3513272,
+    "project_storage_cap_bytes": 131072000,
+    "under_limits": true
+  },
+  "static_maps": {
+    "known_successful_calls_this_work": 3,
+    "mcp_integration_calls": 1,
+    "mcp_png_bytes": 171840,
+    "monthly_limit": 200,
+    "portal_usage_reported_calls_at_check_time": 2,
+    "portal_usage_reporting_lag_observed": true,
+    "prohibited_services_called": false,
+    "rest_validation_calls": 2,
+    "rest_validation_http_statuses": [
+      200,
+      200
+    ],
+    "tool": "map_with_overlay"
+  }
+}

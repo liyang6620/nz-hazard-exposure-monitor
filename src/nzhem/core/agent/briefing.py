@@ -11,7 +11,7 @@ from typing import Any, Protocol
 
 from nzhem.core.agent.limits import BriefingLimitExceeded
 from nzhem.core.agent.schemas import BRIEFING_OUTPUT_SCHEMA, LIMITATIONS
-from nzhem.ports import LlmClient
+from nzhem.ports import LlmClient, StaticMapProvider
 
 NUMBER_PATTERN = re.compile(r"(?<![A-Za-z0-9_])[-+]?\d[\d,]*(?:\.\d+)?%?")
 
@@ -39,6 +39,8 @@ class DraftResult:
     invalid_numbers: tuple[str, ...]
     attempts: int
     status: str
+    map_image: bytes | None = None
+    map_status: str = "not_requested"
 
 
 def should_draft_briefing(
@@ -213,13 +215,21 @@ class DraftBriefingService:
         *,
         max_output_tokens: int,
         total_token_limit: int,
+        static_map_provider: StaticMapProvider | None = None,
     ) -> None:
         self._tools = tools
         self._llm = llm
         self._max_output_tokens = max_output_tokens
         self._total_token_limit = total_token_limit
+        self._static_map_provider = static_map_provider
 
-    def draft(self, event_id: str, *, mmi_threshold: float = 6.0) -> DraftResult:
+    def draft(
+        self,
+        event_id: str,
+        *,
+        mmi_threshold: float = 6.0,
+        briefing_id: str | None = None,
+    ) -> DraftResult:
         event = dict(self._tools.get_event(event_id))
         exposure = [dict(row) for row in self._tools.get_exposure_summary(event_id, mmi_threshold)]
         comparison = [dict(row) for row in self._tools.compare_then_now(event_id, mmi_threshold)]
@@ -287,6 +297,22 @@ class DraftBriefingService:
         if not valid_payload_received:
             raise ValueError("Model did not return a complete briefing payload")
         status = "pending" if not invalid else "needs_manual_review"
+        map_image: bytes | None = None
+        map_status = "not_requested"
+        if self._static_map_provider is not None and briefing_id is not None:
+            map_status = "failed"
+            try:
+                map_image = self._static_map_provider.render(
+                    briefing_id=briefing_id,
+                    longitude=float(event["longitude"]),
+                    latitude=float(event["latitude"]),
+                )
+                map_status = "attached"
+            except Exception:
+                # A failed optional map must not prevent a briefing from going
+                # through the existing approval workflow.  The adapter records
+                # the failed, quota-counted attempt without exposing details.
+                map_image = None
         return DraftResult(
             payload=payload,
             markdown=render_markdown(payload),
@@ -295,4 +321,6 @@ class DraftBriefingService:
             invalid_numbers=invalid,
             attempts=attempts,
             status=status,
+            map_image=map_image,
+            map_status=map_status,
         )

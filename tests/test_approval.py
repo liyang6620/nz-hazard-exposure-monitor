@@ -36,13 +36,14 @@ def service(tmp_path: Path) -> tuple[ApprovalService, SqliteTableStore, Recordin
     )
 
 
-def create_pending(approval: ApprovalService, now: datetime):
+def create_pending(approval: ApprovalService, now: datetime, *, map_image: bytes | None = None):
     return approval.create_pending(
         briefing_id="briefing-1",
         event_id="event-1",
         title="Test briefing",
         html="<h1>Approved</h1>",
         markdown="# Approved",
+        map_image=map_image,
         recipient="owner@example.invalid",
         review_base_url="http://127.0.0.1:8000/review-briefing",
         now=now,
@@ -67,6 +68,24 @@ def test_get_preview_does_not_mutate_and_post_approval_is_one_time(tmp_path: Pat
         approval.decide(pending.approve_token, now, "127.0.0.1")
 
 
+def test_static_map_is_kept_with_draft_and_published_only_after_approval(tmp_path: Path) -> None:
+    approval, tables, _ = service(tmp_path)
+    now = datetime(2026, 10, 26, tzinfo=UTC)
+    image = b"\x89PNG\r\n\x1a\nmap"
+    pending = create_pending(approval, now, map_image=image)
+    entity = tables.get_entity("briefings", "briefing", "briefing-1")
+    assert entity["status"] == "pending"
+    assert entity["published_map_path"].startswith("briefings/maps/")
+    assert not (tmp_path / "data/web" / entity["published_map_path"]).exists()
+
+    approval.decide(pending.approve_token, now, "127.0.0.1")
+
+    published_map = tmp_path / "data/web" / entity["published_map_path"]
+    published_html = tmp_path / "data/web/briefings/event-1.html"
+    assert published_map.read_bytes() == image
+    assert f"/{entity['published_map_path']}" in published_html.read_text(encoding="utf-8")
+
+
 def test_tampered_expired_rejected_and_timeout_paths(tmp_path: Path) -> None:
     approval, tables, _ = service(tmp_path)
     now = datetime(2026, 10, 26, tzinfo=UTC)
@@ -84,11 +103,13 @@ def test_tampered_expired_rejected_and_timeout_paths(tmp_path: Path) -> None:
 def test_reject_does_not_publish(tmp_path: Path) -> None:
     approval, tables, _ = service(tmp_path)
     now = datetime(2026, 10, 26, tzinfo=UTC)
-    pending = create_pending(approval, now)
+    pending = create_pending(approval, now, map_image=b"\x89PNG\r\n\x1a\nmap")
+    entity = tables.get_entity("briefings", "briefing", "briefing-1")
 
     assert approval.decide(pending.reject_token, now, "127.0.0.1") == "rejected"
     assert tables.get_entity("briefings", "briefing", "briefing-1")["status"] == "rejected"
     assert not (tmp_path / "data/web/briefings/event-1.html").exists()
+    assert not (tmp_path / "data/web" / entity["published_map_path"]).exists()
 
 
 def test_http_get_only_previews_and_post_executes(

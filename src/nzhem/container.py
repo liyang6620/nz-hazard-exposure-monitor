@@ -18,6 +18,7 @@ from nzhem.ports import (
     ReferenceDataRefresher,
     ReferenceRefreshResult,
     SecretStore,
+    StaticMapProvider,
     StaticSitePublisher,
     TableStore,
 )
@@ -37,6 +38,7 @@ class ServiceContainer:
     event_source: EventSource
     reference_data: ReferenceDataRefresher | None = None
     briefing_tools: BriefingTools | None = None
+    static_map_provider: StaticMapProvider | None = None
 
     def housekeeping(self) -> HousekeepingService:
         return HousekeepingService(
@@ -61,6 +63,7 @@ class ServiceContainer:
             self.llm,
             max_output_tokens=self.settings.llm_max_output_tokens,
             total_token_limit=self.settings.briefing_total_token_limit,
+            static_map_provider=self.static_map_provider,
         )
 
     def approval(self) -> ApprovalService:
@@ -85,6 +88,7 @@ def _build_local_container(settings: Settings) -> ServiceContainer:
     from nzhem.adapters.local import (
         DuckDbBriefingTools,
         EnvironmentSecretStore,
+        EsriStaticMapsMcpClient,
         GeoNetFdsnEventSource,
         LocalObjectStore,
         LocalReferenceDataRefresher,
@@ -145,6 +149,7 @@ def _build_local_container(settings: Settings) -> ServiceContainer:
         if (event_root / "dim_event.parquet").is_file() and reference_generations
         else None
     )
+    tables = SqliteTableStore(settings.sqlite_path)
     return ServiceContainer(
         settings=settings,
         clock=SystemClock(),
@@ -154,7 +159,7 @@ def _build_local_container(settings: Settings) -> ServiceContainer:
             visibility_timeout_seconds=settings.queue_visibility_timeout_seconds,
             max_dequeue_count=settings.queue_max_dequeue_count,
         ),
-        tables=SqliteTableStore(settings.sqlite_path),
+        tables=tables,
         secrets=secrets,
         mailer=SmtpMailer(settings.smtp_host, settings.smtp_port, settings.mail_from),
         llm=OpenAILlmClient(
@@ -166,6 +171,17 @@ def _build_local_container(settings: Settings) -> ServiceContainer:
         event_source=event_source,
         reference_data=LocalReferenceDataRefresher(settings, secrets),
         briefing_tools=briefing_tools,
+        static_map_provider=(
+            EsriStaticMapsMcpClient(
+                secrets,
+                tables,
+                api_key_name=settings.arcgis_api_key_name,
+                per_briefing_limit=2,
+                monthly_limit=200,
+            )
+            if settings.arcgis_static_maps_enabled
+            else None
+        ),
     )
 
 

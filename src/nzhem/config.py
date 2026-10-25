@@ -60,6 +60,8 @@ class Settings:
     approval_token_key_name: str = "APPROVAL_TOKEN_KEY"
     review_base_url: str = "http://127.0.0.1:8000/review-briefing"
     arcgis_publisher_enabled: bool = False
+    arcgis_static_maps_enabled: bool = False
+    arcgis_api_key_name: str = "ARCGIS_API_KEY"
     run_startup_housekeeping: bool = True
     llm_reasoning_effort: str = "minimal"
     llm_max_output_tokens: int = 1200
@@ -113,6 +115,8 @@ class Settings:
                 "REVIEW_BASE_URL", "http://127.0.0.1:8000/review-briefing"
             ).strip(),
             arcgis_publisher_enabled=_bool("ARCGIS_PUBLISHER_ENABLED", False),
+            arcgis_static_maps_enabled=_bool("ARCGIS_STATIC_MAPS_ENABLED", False),
+            arcgis_api_key_name=os.getenv("ARCGIS_API_KEY_NAME", "ARCGIS_API_KEY").strip(),
             run_startup_housekeeping=_bool("RUN_STARTUP_HOUSEKEEPING", True),
             llm_reasoning_effort=os.getenv("LLM_REASONING_EFFORT", "minimal").strip(),
             llm_max_output_tokens=_positive_int("LLM_MAX_OUTPUT_TOKENS", 1200),
@@ -160,6 +164,8 @@ class Settings:
             raise ConfigurationError("REFERENCE_EXPORT_CANDIDATE_LIMIT cannot exceed 5000")
         if self.reference_export_work_reserve_gb < 5:
             raise ConfigurationError("REFERENCE_EXPORT_WORK_RESERVE_GB cannot be below 5")
+        if self.arcgis_static_maps_enabled and not self.arcgis_api_key_name:
+            raise ConfigurationError("ARCGIS_API_KEY_NAME is required when static maps are enabled")
         if self.environment == "azure":
             required = {
                 "STORAGE_ACCOUNT_NAME": self.storage_account_name,

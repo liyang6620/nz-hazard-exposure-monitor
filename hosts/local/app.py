@@ -143,14 +143,15 @@ def draft_briefing(event_id: str) -> dict[str, object]:
             total_token_limit=container.settings.briefing_total_token_limit,
             max_output_tokens=container.settings.llm_max_output_tokens,
         )
-        draft = container.draft_briefing().draft(event_id)
         briefing_id = f"{event_id}-{uuid.uuid4().hex[:12]}"
+        draft = container.draft_briefing().draft(event_id, briefing_id=briefing_id)
         pending = container.approval().create_pending(
             briefing_id=briefing_id,
             event_id=event_id,
             title=str(draft.payload["headline"]),
             html=draft.html,
             markdown=draft.markdown,
+            map_image=draft.map_image,
             recipient=container.settings.notification_email,
             review_base_url=container.settings.review_base_url,
             now=now,
@@ -163,6 +164,7 @@ def draft_briefing(event_id: str) -> dict[str, object]:
             "status": draft.status,
             "fidelity_passed": draft.fidelity_passed,
             "attempts": draft.attempts,
+            "static_map": draft.map_status,
             "expires_at": pending.expires_at.isoformat(),
         }
     except ValueError as exc:

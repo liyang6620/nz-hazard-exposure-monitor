@@ -67,3 +67,20 @@ def test_arcgis_write_test_respects_static_map_and_secret_limits() -> None:
     assert payload["secret_logged"] is False
     assert payload["account_or_permissions_changed"] is False
     assert "AAPT" not in text
+
+
+def test_arcgis_formal_publish_evidence_is_within_project_limits() -> None:
+    path = Path("evidence/mg/arcgis-publish.json")
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    text = path.read_text(encoding="utf-8")
+
+    assert payload["hosted_layer"]["feature_count"] == 4011
+    assert payload["hosted_layer"]["definition_admin_operations_called"] is False
+    assert payload["incremental_update"]["item_id_unchanged"] is True
+    assert payload["limits"]["under_limits"] is True
+    assert payload["static_maps"]["rest_validation_calls"] <= 2
+    assert payload["static_maps"]["known_successful_calls_this_work"] <= 200
+    assert payload["static_maps"]["prohibited_services_called"] is False
+    assert payload["credential"]["browser_exposure"] is False
+    assert payload["credential"]["secret_logged"] is False
+    assert "AAPT" not in text

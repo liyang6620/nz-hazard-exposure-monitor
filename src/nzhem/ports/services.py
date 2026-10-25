@@ -68,6 +68,23 @@ class StaticSitePublisher(Protocol):
     def publish(self, path: str, content: bytes) -> None: ...
 
 
+class StaticMapProvider(Protocol):
+    """Server-side provider for an optional briefing map attachment.
+
+    The core package only knows this narrow port.  Authentication and the
+    remote protocol belong to an adapter, so browser hosts never receive a
+    provider or its credential.
+    """
+
+    def render(
+        self,
+        *,
+        briefing_id: str,
+        longitude: float,
+        latitude: float,
+    ) -> bytes: ...
+
+
 class EventSource(Protocol):
     def fetch_updated_after(self, updated_after: datetime) -> Sequence[Mapping[str, Any]]: ...
 

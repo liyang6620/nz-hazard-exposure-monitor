@@ -9,6 +9,7 @@ from nzhem.ports.services import (
     ReferenceDataRefresher,
     ReferenceRefreshResult,
     SecretStore,
+    StaticMapProvider,
     StaticSitePublisher,
     TableStore,
 )
@@ -24,6 +25,7 @@ __all__ = [
     "ReferenceDataRefresher",
     "ReferenceRefreshResult",
     "SecretStore",
+    "StaticMapProvider",
     "StaticSitePublisher",
     "TableStore",
 ]
