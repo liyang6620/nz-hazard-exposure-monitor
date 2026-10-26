@@ -50,14 +50,7 @@ resource "azurerm_function_app_flex_consumption" "main" {
     minimum_tls_version                    = "1.2"
     scm_minimum_tls_version                = "1.2"
     http2_enabled                          = true
-    ip_restriction_default_action          = "Deny"
-
-    ip_restriction {
-      name        = "allow-action-group"
-      action      = "Allow"
-      priority    = 100
-      service_tag = "ActionGroup"
-    }
+    ip_restriction_default_action          = "Allow"
   }
 
   app_settings = {
@@ -71,7 +64,7 @@ resource "azurerm_function_app_flex_consumption" "main" {
     "AZURE_SUBSCRIPTION_ID"                 = var.subscription_id
     "AZURE_RESOURCE_GROUP"                  = var.resource_group_name
     "AZURE_FUNCTION_APP_NAME"               = local.names.function_app
-    "ACS_ENDPOINT"                          = "https://${azurerm_communication_service.main.hostname}"
+    "ACS_CONNECTION_STRING"                 = azurerm_communication_service.main.primary_connection_string
     "ACS_SENDER"                            = "DoNotReply@${azurerm_email_communication_service_domain.managed.from_sender_domain}"
     "NOTIFICATION_EMAIL"                    = var.notification_email
     "AZURE_OPENAI_ENDPOINT"                 = azurerm_cognitive_account.openai.endpoint
@@ -81,6 +74,11 @@ resource "azurerm_function_app_flex_consumption" "main" {
     "BRIEFING_TOTAL_TOKEN_LIMIT"            = "12000"
     "BRIEFING_MONTHLY_LIMIT"                = "10"
     "BUDGET_WEBHOOK_TOKEN"                  = random_password.budget_webhook_token.result
+    "APPROVAL_TOKEN_KEY"                    = random_password.approval_token_key.result
+    "REVIEW_BASE_URL"                       = "https://${local.names.function_app}.azurewebsites.net/api/review-briefing"
+    "MAP_TOKEN_ENABLED"                     = "false"
+    "MAP_TOKEN_ALLOWED_ORIGIN"              = trimsuffix(azurerm_storage_account.data.primary_web_endpoint, "/")
+    "MAP_TOKEN_RATE_LIMIT_PER_MINUTE"       = "30"
   }
 
   depends_on = [azurerm_role_assignment.package_storage_blob]

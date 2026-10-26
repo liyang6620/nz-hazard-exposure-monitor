@@ -45,22 +45,23 @@ is not allowed by this subscription policy.
 
 | Namespace | Registration state |
 |---|---|
-| `Microsoft.Storage` | NotRegistered |
-| `Microsoft.Web` | NotRegistered |
-| `Microsoft.KeyVault` | NotRegistered |
-| `Microsoft.ManagedIdentity` | NotRegistered |
-| `Microsoft.Communication` | NotRegistered |
-| `Microsoft.OperationalInsights` | NotRegistered |
+| `Microsoft.Storage` | Registered after explicit approval |
+| `Microsoft.Web` | Registered after explicit approval |
+| `Microsoft.KeyVault` | Registered after explicit approval |
+| `Microsoft.ManagedIdentity` | Registered after explicit approval |
+| `Microsoft.Communication` | Registered after explicit approval |
+| `Microsoft.OperationalInsights` | Registered after explicit approval |
 | `Microsoft.Insights` | Registered |
-| `Microsoft.CognitiveServices` | NotRegistered |
+| `Microsoft.CognitiveServices` | Registered after explicit approval |
 | `Microsoft.Resources` | Registered |
 | `Microsoft.Authorization` | Registered |
 | `Microsoft.CostManagement` | Registered |
 | `Microsoft.Consumption` | Registered |
 | `Microsoft.AVS` | NotRegistered; leave unmanaged and unregistered |
 
-Provider registration is a write operation and was not attempted. Each needed
-registration must remain an explicit, separately approved Terraform action.
+The initial table was read-only. The project manager subsequently approved the
+seven registrations, which were executed and all reached `Registered`. No
+resource was created by registration.
 
 ## Service availability
 
@@ -69,14 +70,14 @@ registration must remain an explicit, separately approved Terraform action.
 | Flex Consumption Functions | The subscription-specific catalog lists `australiaeast`. FC1 with Python 3.12 is returned, including 512 MB, 2,048 MB and 4,096 MB memory options. The regional quota API cannot be validated before `Microsoft.Web` registration. |
 | Storage | The subscription SKU API returns 26 SKUs in `australiaeast`, including `Standard_LRS`. |
 | Key Vault | The `vaults` resource type catalog lists `Australia East`; deployment remains conditional on approved `Microsoft.KeyVault` registration. |
-| Azure Communication Services Email | `CommunicationServices`, `EmailServices` and managed email-domain resource types are present as global resources. Subscription-level location/usage inspection is blocked before provider registration, so actual creation eligibility is not yet proven. |
+| Azure Communication Services Email | After registration, `CommunicationServices`, `EmailServices` and `EmailServices/Domains` are all listed as global resources. The usage endpoint returned `InvalidResourceType` and a name-check probe returned `InvalidRequestContent`; no resource was created. Azure-managed-domain creation therefore remains an apply-time acceptance item. |
 | Application Insights | `Microsoft.Insights` is registered; `components` lists `Australia East`. The FC1 runtime response also reports Application Insights support. |
 | Log Analytics | `workspaces` lists `Australia East`; deployment remains conditional on approved `Microsoft.OperationalInsights` registration. |
 | Action Groups | The read API succeeds and returns zero existing groups. `actiongroups` is a global resource type and `Microsoft.Insights` is registered. |
 
-These are catalog and read-API findings, not deployment evidence. The first
-approved Terraform plan must still expose provider registrations and any offer
-or quota rejection before an apply is considered.
+These are catalog and read-API findings, not deployment evidence. The approved
+provider registrations do not prove that the student offer will accept every
+planned resource or quota request.
 
 ## Entra application and GitHub OIDC
 

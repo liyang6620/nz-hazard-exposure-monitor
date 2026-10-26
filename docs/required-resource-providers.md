@@ -15,9 +15,10 @@ managed and remains unregistered in the Azure for Students subscription.
 | `Microsoft.Insights` | Application Insights, Action Groups and metric alert |
 | `Microsoft.CognitiveServices` | Azure OpenAI account and model deployment |
 
-On the 2026-10-26 Azure for Students assessment, `Microsoft.Insights` was
-already registered. The first approval list therefore contains the other seven
-namespaces only. Registration is free but remains an explicit write operation.
+On 2026-10-26, `Microsoft.Insights` was already registered. The project manager
+then approved registration of the other seven namespaces, and all seven reached
+`Registered`. Registration is free and was the only Azure write performed in
+this review round.
 
 `Microsoft.Resources`, `Microsoft.Authorization`, and
 `Microsoft.CostManagement` are platform namespaces used for the resource group,
@@ -25,4 +26,4 @@ RBAC, and budgets. Their registration state is checked before apply; they are
 not included in the registration root unless Azure reports that they support
 explicit registration and are unregistered.
 
-No provider registration command may run before plan approval.
+Any future provider registration remains a separately reviewed operation.

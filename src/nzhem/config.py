@@ -75,7 +75,10 @@ class Settings:
     resource_group_name: str = ""
     function_app_name: str = ""
     budget_webhook_token: str = ""
-    communication_endpoint: str = ""
+    map_token_enabled: bool = False
+    map_token_allowed_origin: str = ""
+    map_token_rate_limit_per_minute: int = 30
+    communication_connection_string: str = ""
     email_sender: str = ""
     key_vault_url: str = ""
     azure_openai_endpoint: str = ""
@@ -136,7 +139,10 @@ class Settings:
             resource_group_name=os.getenv("AZURE_RESOURCE_GROUP", "").strip(),
             function_app_name=os.getenv("AZURE_FUNCTION_APP_NAME", "").strip(),
             budget_webhook_token=os.getenv("BUDGET_WEBHOOK_TOKEN", "").strip(),
-            communication_endpoint=os.getenv("ACS_ENDPOINT", "").strip(),
+            map_token_enabled=_bool("MAP_TOKEN_ENABLED", False),
+            map_token_allowed_origin=os.getenv("MAP_TOKEN_ALLOWED_ORIGIN", "").strip(),
+            map_token_rate_limit_per_minute=_positive_int("MAP_TOKEN_RATE_LIMIT_PER_MINUTE", 30),
+            communication_connection_string=os.getenv("ACS_CONNECTION_STRING", "").strip(),
             email_sender=os.getenv("ACS_SENDER", "").strip(),
             key_vault_url=os.getenv("KEY_VAULT_URL", "").strip(),
             azure_openai_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT", "").strip(),
@@ -176,6 +182,10 @@ class Settings:
             raise ConfigurationError("REFERENCE_EXPORT_WORK_RESERVE_GB cannot be below 5")
         if self.arcgis_static_maps_enabled and not self.arcgis_api_key_name:
             raise ConfigurationError("ARCGIS_API_KEY_NAME is required when static maps are enabled")
+        if self.map_token_enabled and not self.map_token_allowed_origin.startswith("https://"):
+            raise ConfigurationError(
+                "MAP_TOKEN_ALLOWED_ORIGIN must be an HTTPS origin when map token relay is enabled"
+            )
         if self.environment == "azure":
             required = {
                 "STORAGE_ACCOUNT_NAME": self.storage_account_name,
@@ -183,7 +193,7 @@ class Settings:
                 "AZURE_RESOURCE_GROUP": self.resource_group_name,
                 "AZURE_FUNCTION_APP_NAME": self.function_app_name,
                 "BUDGET_WEBHOOK_TOKEN": self.budget_webhook_token,
-                "ACS_ENDPOINT": self.communication_endpoint,
+                "ACS_CONNECTION_STRING": self.communication_connection_string,
                 "ACS_SENDER": self.email_sender,
                 "KEY_VAULT_URL": self.key_vault_url,
                 "AZURE_OPENAI_ENDPOINT": self.azure_openai_endpoint,
@@ -191,5 +201,5 @@ class Settings:
             missing = [name for name, value in required.items() if not value]
             if missing:
                 raise ConfigurationError(f"Azure mode requires: {', '.join(missing)}")
-            if not self.communication_endpoint.startswith("https://"):
-                raise ConfigurationError("ACS_ENDPOINT must use HTTPS")
+            if "endpoint=https://" not in self.communication_connection_string.lower():
+                raise ConfigurationError("ACS_CONNECTION_STRING must contain an HTTPS endpoint")

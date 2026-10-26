@@ -3,6 +3,11 @@ resource "random_password" "budget_webhook_token" {
   special = false
 }
 
+resource "random_password" "approval_token_key" {
+  length  = 48
+  special = false
+}
+
 resource "azurerm_monitor_action_group" "budget_stop" {
   name                = "ag-nzhem-budget-stop"
   resource_group_name = var.resource_group_name

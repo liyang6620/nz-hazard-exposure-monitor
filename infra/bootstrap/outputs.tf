@@ -22,3 +22,7 @@ output "github_client_id" {
 output "github_principal_id" {
   value = azurerm_user_assigned_identity.github.principal_id
 }
+
+output "function_stop_role_definition_id" {
+  value = azurerm_role_definition.function_stop.role_definition_resource_id
+}

@@ -30,8 +30,9 @@ state migration requires the project manager's approval relayed by the owner.
 2. In Azure Monitor, use **Test action group** on `ag-nzhem-budget-stop` with the
    common alert schema. This test is a state-changing operation and is run only
    inside the approved drill window.
-3. Verify requests outside the Action Group service tag or with the wrong token
-   are rejected. Then verify the test request enables the
+3. Verify a request with a missing or wrong random webhook token is rejected
+   before any storage, email or ARM call. Then verify the Action Group test
+   request enables the
    `control / budget-killswitch` entity, records the stop run, sends the ACS
    email, and stops the Function App in ARM.
 4. Capture screenshots and timestamps without subscription IDs, tenant IDs, or

@@ -3,20 +3,20 @@
 Generated: 2026-10-26 NZDT
 
 All plans used the interactively selected Azure for Students subscription,
-`australiaeast`, Terraform 1.16.6 and AzureRM 4.81.0. No provider registration,
-apply, import, state migration, Azure resource creation or paid API call was
-performed. Subscription ID, tenant ID and notification email are absent from
-this evidence.
+`australiaeast`, Terraform 1.16.6 and AzureRM 4.81.0. The seven explicitly
+approved provider registrations were performed. No Terraform apply, import,
+state migration, Azure resource creation or paid API call was performed.
+Subscription ID, tenant ID and notification email are absent from this evidence.
 
 The subscription billing profile reports NZD and has its spending limit on.
 The fixed budgets therefore retain their original NZD 2, NZD 5 and NZD 8
 amounts; the production kill-switch budget remains NZD 5. The student spending
 limit is the final backstop and must not be disabled or replaced with PAYG.
 
-## Provider-registration approval list
+## Provider registration and ACS recheck
 
-The following seven providers are currently `NotRegistered`. Registration is a
-subscription-level write but has no direct charge:
+The project manager approved registration of these seven providers. Registration
+was executed on 2026-10-26 and all seven reached `Registered`:
 
 1. `Microsoft.CognitiveServices`
 2. `Microsoft.Communication`
@@ -26,28 +26,36 @@ subscription-level write but has no direct charge:
 6. `Microsoft.Storage`
 7. `Microsoft.Web`
 
-`Microsoft.Insights` is already registered and is not in the write list.
+`Microsoft.Insights` was already registered and was not written.
 `Microsoft.AVS` remains unregistered and unmanaged.
 
-After approved registration, recheck the ACS location/usage APIs immediately.
-Actual Azure-managed email-domain eligibility cannot be proved by a read-only
-query; it is represented by the production plan's email service, managed domain
-and association resources. If any of those creates are rejected, stop without
-substituting another mail service and submit the exact error plus an alternative
-design for approval.
+After registration, the resource catalog lists `CommunicationServices`,
+`EmailServices` and `EmailServices/Domains` as global resource types. The usage
+endpoint returned `InvalidResourceType`, and a read-only name-check probe
+returned `InvalidRequestContent`. No ACS resource was created. Actual
+Azure-managed-domain eligibility therefore remains unverified; if its approved
+create is rejected, stop and submit the exact error plus an alternative design.
+
+The subscription also does not expose the planned `Azure Communication Services
+Email Sender` built-in role. The only visible communication/email management
+role is too broad for the runtime. The revised production plan therefore uses
+the ACS connection string from protected Terraform state and Function app
+settings. It is never committed or copied to evidence.
 
 ## Bootstrap plan
 
-Result: **11 add, 0 change, 0 destroy**.
+Result: **12 add, 0 change, 0 destroy**.
 
 Plan SHA-256:
-`E63F7200563A4D49E8F95D8A33DB3B8A7276793E2172599FF7869411CD96E622`
+`F3A26DD95E4C0B03656FA6D2ED00D4D0EAE80C9B29C70126FFCDE46B8E1C87C7`
 
 Resources:
 
 - two resource groups: remote state and production;
 - one Standard LRS state storage account and one private state container;
 - one GitHub user-assigned managed identity;
+- one custom `NZHEM Function Stop Operator` role, created by the owner-run
+  bootstrap with a deterministic role ID;
 - two workload identity credentials, restricted to this repository's pull
   requests and `main` branch;
 - `Storage Blob Data Contributor` for the owner and GitHub identity on the state
@@ -55,11 +63,24 @@ Resources:
 - `Contributor` and `Role Based Access Control Administrator` for the GitHub
   identity on the production resource group only.
 
-There is no subscription-level role for GitHub. The RBAC administrator role is
-needed because the production module creates narrowly scoped runtime role
-assignments and one custom Function stop role. If either managed-identity
-federation or scoped role assignment is rejected, stop and use the approved
-fallback: owner-run local `az login` deployment while CI runs only fmt/validate.
+There is no subscription-level role for GitHub. The production-resource-group
+RBAC Administrator assignment has condition version 2.0. It allows assignment
+and deletion only for these roles, and only when the target principal type is
+`ServicePrincipal`:
+
+- `Storage Blob Data Contributor`;
+- `Storage Queue Data Contributor`;
+- `Storage Table Data Contributor`;
+- `Key Vault Secrets User`;
+- `Cognitive Services OpenAI User`;
+- custom `NZHEM Function Stop Operator`.
+
+Owner, User Access Administrator and Role Based Access Control Administrator are
+not in the allowlist. The custom role definition itself is bootstrap-owned, so
+the GitHub identity cannot create or modify role definitions. Human owner role
+assignments are not present in the GitHub-applied production root. If federation
+or the conditioned assignment is rejected, stop and use the approved fallback:
+owner-run local `az login`, with CI limited to fmt/validate.
 
 Network exposure: the state storage account uses a public Azure endpoint, but
 the container is private, anonymous nested-item access is disabled and shared
@@ -94,10 +115,10 @@ and does not import or migrate that archive.
 
 ## Production plan
 
-Result: **44 add, 0 change, 0 destroy**.
+Result: **41 add, 0 change, 0 destroy**.
 
 Plan SHA-256:
-`A69800459EDC39BFD8753F2467F846B2394CC6123B037D342A19A7F84E1100C1`
+`7DF01C5D8DD9D07C5D927D028DF048172639D2ECFCA69E6D8952A450CB4DFCA9`
 
 Resources by function:
 
@@ -111,16 +132,22 @@ Resources by function:
   domain and one domain association;
 - LLM: one Azure OpenAI account and one `gpt-5-mini` Global Standard deployment
   at capacity 1;
-- cost stop: one NZD 5 subscription budget, one random 32-byte webhook token,
-  and the budget Action Group;
-- authorization: one custom stop-only role and 14 role assignments for the
-  Function, package identity and owner. No GitHub or subscription-level role is
-  created by this plan.
+- cost and approvals: one NZD 5 subscription budget, one random 32-byte webhook
+  token, one random 48-byte HMAC key, and the budget Action Group;
+- authorization: 11 role assignments for the Function and package identity. The
+  custom role is now bootstrap-owned, and the two human owner assignments and
+  unavailable ACS sender-role assignment were removed. No GitHub or
+  subscription-level role is created by this plan.
+
+The count changed from 44 to 41: remove one custom role definition, two human
+role assignments and one unavailable ACS sender role assignment; add one random
+approval HMAC key. No billable service was added by the revision.
 
 Network exposure:
 
-- Function public networking is enabled, HTTPS is mandatory, application
-  ingress defaults to deny, and only the `ActionGroup` service tag is allowed;
+- Function public networking is enabled and HTTPS is mandatory. Whole-app
+  access restrictions default to allow because they cannot distinguish routes;
+  every HTTP route authenticates in application code as shown below;
 - the SCM deployment endpoint is public, basic authentication is disabled, and
   deployment relies on Azure RBAC/OIDC;
 - Storage, Key Vault and Azure OpenAI use public Azure endpoints to avoid fixed
@@ -130,10 +157,36 @@ Network exposure:
 - the static website is intentionally public; it contains approved public
   outputs only.
 
-The budget webhook token is sensitive and is not present in source or this
-summary. Terraform stores it in protected state and supplies it to the Function
-setting and Action Group URI. The Function rejects a missing or incorrect token
-before any table, email or ARM operation.
+Microsoft documents that disabling Blob anonymous access does not affect a
+storage static website and that `$web` remains publicly accessible. Static
+website reads use the separate website endpoint; the five ordinary containers
+remain private. Source:
+<https://learn.microsoft.com/azure/storage/blobs/anonymous-read-access-configure>.
+
+## Function HTTP route authentication
+
+| Route | Method | Application authentication | Missing or failed authentication |
+|---|---|---|---|
+| `/api/budget-stop` | POST | Terraform-generated 32-byte random query token, constant-time comparison, then Azure Monitor common-alert-schema validation | Missing/wrong token: 403 before storage, email or ARM work. Invalid JSON/schema after authentication: 400. |
+| `/api/review-briefing` | GET | Signed HMAC token containing briefing ID, action and expiry; briefing must still be pending and unused | Uniform 400; no mutation. Valid GET only renders a confirmation form. |
+| `/api/review-briefing` | POST | Same HMAC plus expiry, pending-state and one-time-use checks | Uniform 400 for tamper, expiry, replay or unavailable briefing. Only valid POST approves/rejects and may publish. |
+| `/api/map-token` | GET | Currently disabled under MG plan B and returns 404. If later enabled, exact HTTPS `Origin`, same-origin `Referer` when supplied, and a hashed-client-IP limit of 30 requests/minute run before any broker call | Disabled: 404; wrong origin: 403; limit exceeded: 429. Even a valid guarded request currently returns 503 until a separately approved read-only OAuth broker exists. |
+
+Those are the only HTTP triggers. `housekeeping` is a timer trigger. All HTTP
+decorators use Functions `ANONYMOUS` auth deliberately so browsers and Action
+Groups do not need a platform Function key. Function keys are not used as
+authorization and do not bypass the application checks; SCM basic publishing
+authentication is disabled. The owner-privileged ArcGIS publisher key is never
+served to a browser.
+
+The budget webhook token, approval HMAC key and ACS connection string are
+sensitive and absent from source and this summary. Terraform stores them in
+protected state and supplies them only to Function settings as required.
+
+The Azure OpenAI deployment uses `GlobalStandard`. Microsoft states that Global
+requests may be processed in any Azure region, so processing may occur outside
+Australia. This is accepted because prompts contain only public earthquake and
+exposure data; no private owner or subscriber data is sent to the model.
 
 Expected normal demonstration-month cost: approximately **NZD 0.50-1.60**.
 There is no always-ready Function instance or private endpoint. The estimate is
@@ -156,11 +209,12 @@ The bootstrap saved plan is generated from the real bootstrap root and can be
 matched by its hash. Because the remote state account does not yet exist, the
 guardrails and production plans are pre-bootstrap review plans generated from
 temporary, ignored copies of the exact modules with only `backend.tf` omitted.
-They are not apply artifacts.
+They are not apply artifacts. The revised production pre-bootstrap plan uses
+an ignored copy of the exact module with only `backend.tf` omitted.
 
 After an approved bootstrap apply, initialize the formal `guardrails.tfstate`
 and `production.tfstate` backends and regenerate both saved plans. They must
-still report 3 and 44 creates respectively. Any content or count difference is
+still report 3 and 41 creates respectively. Any content or count difference is
 submitted for review before apply.
 
 No action in this approval package authorizes registration or apply.

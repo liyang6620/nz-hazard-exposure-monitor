@@ -178,8 +178,9 @@ The Azure workflows are gated by repository variables and remain inactive until
 the approved bootstrap creates the GitHub managed identity and its federated
 credentials.
 
-Runtime secrets come from local environment variables or Azure Key Vault. No
-long-lived credentials belong in this repository or GitHub CI.
+Runtime secrets come from local environment variables, Azure Key Vault, or
+Terraform-generated values held in protected remote state and Function app
+settings. No long-lived credentials belong in this repository or GitHub CI.
 
 CI also runs `scripts/check_pbip_portability.py`; PBIP sources containing local
 drive, UNC, macOS user-home or Linux user-home paths are rejected.

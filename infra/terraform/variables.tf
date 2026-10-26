@@ -12,17 +12,16 @@ variable "tenant_id" {
   sensitive   = true
 }
 
-variable "owner_object_id" {
-  description = "Entra object ID of the repository owner for local Power BI reads."
-  type        = string
-  nullable    = false
-  sensitive   = true
-}
-
 variable "resource_group_name" {
   description = "Production resource group pre-created by infra/bootstrap."
   type        = string
   default     = "rg-nzhem-prod"
+}
+
+variable "github_repository" {
+  description = "GitHub owner/name used to derive the bootstrap-owned custom role ID."
+  type        = string
+  default     = "liyang6620/nz-hazard-exposure-monitor"
 }
 
 variable "notification_email" {

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from functools import lru_cache
 from typing import Any
 
@@ -125,12 +126,15 @@ class AzureSecretStore:
         self._aliases = aliases or {}
 
     def get_secret(self, name: str) -> str:
+        environment_value = os.getenv(name, "")
+        if environment_value:
+            return environment_value
         return self._client.get_secret(self._aliases.get(name, name)).value
 
 
 class AzureMailer:
-    def __init__(self, endpoint: str, sender: str) -> None:
-        self._client = EmailClient(endpoint, credential())
+    def __init__(self, connection_string: str, sender: str) -> None:
+        self._client = EmailClient.from_connection_string(connection_string)
         self._sender = sender
 
     def send(self, recipient: str, subject: str, text: str) -> None:
@@ -215,7 +219,7 @@ def build_azure_container(settings: Settings) -> ServiceContainer:
             settings.key_vault_url,
             aliases={settings.approval_token_key_name: "approval-token-key"},
         ),
-        mailer=AzureMailer(settings.communication_endpoint, settings.email_sender),
+        mailer=AzureMailer(settings.communication_connection_string, settings.email_sender),
         llm=AzureOpenAILlmClient(
             settings.azure_openai_endpoint,
             settings.azure_openai_deployment,

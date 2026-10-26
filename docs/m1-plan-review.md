@@ -52,7 +52,19 @@ Students spending limit is the final backstop and must remain enabled.
 
 - Actual model deployment availability and version in Australia East.
 - Managed-domain sender address and the minimum ACS email RBAC role.
-- Action Group service-tag access and webhook-token rejection/acceptance.
+- Public HTTPS route authentication: webhook rejection/acceptance, approval
+  token expiry/replay, and the disabled map-token relay.
 - Function startup, managed-identity table write, metric alert email, and the
   complete stop/recovery drill.
 - Linux package compressed size and temporary-space headroom from GitHub CI.
+
+## Public static website behavior
+
+The data storage account disables shared-key authorization and ordinary Blob
+anonymous access. The static website remains intentionally readable through
+its separate static-website endpoint. Microsoft documents that disabling Blob
+anonymous access does not affect a static website and that the `$web` container
+is always publicly accessible:
+<https://learn.microsoft.com/azure/storage/blobs/anonymous-read-access-configure>.
+Only approved public outputs are written to `$web`; all other containers remain
+private and require Entra RBAC.
