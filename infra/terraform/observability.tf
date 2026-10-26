@@ -1,7 +1,7 @@
 resource "azurerm_log_analytics_workspace" "main" {
   name                = local.names.log_analytics
-  resource_group_name = azurerm_resource_group.production.name
-  location            = azurerm_resource_group.production.location
+  resource_group_name = var.resource_group_name
+  location            = var.location
   sku                 = "PerGB2018"
   retention_in_days   = 30
   daily_quota_gb      = 0.1
@@ -10,8 +10,8 @@ resource "azurerm_log_analytics_workspace" "main" {
 
 resource "azurerm_application_insights" "main" {
   name                 = local.names.app_insights
-  resource_group_name  = azurerm_resource_group.production.name
-  location             = azurerm_resource_group.production.location
+  resource_group_name  = var.resource_group_name
+  location             = var.location
   workspace_id         = azurerm_log_analytics_workspace.main.id
   application_type     = "web"
   sampling_percentage  = 20
@@ -22,7 +22,7 @@ resource "azurerm_application_insights" "main" {
 
 resource "azurerm_monitor_action_group" "failure_email" {
   name                = "ag-nzhem-function-failure"
-  resource_group_name = azurerm_resource_group.production.name
+  resource_group_name = var.resource_group_name
   short_name          = "nzhemfail"
   tags                = var.tags
 
@@ -35,7 +35,7 @@ resource "azurerm_monitor_action_group" "failure_email" {
 
 resource "azurerm_monitor_metric_alert" "function_failure" {
   name                = "nzhem-function-execution-failure"
-  resource_group_name = azurerm_resource_group.production.name
+  resource_group_name = var.resource_group_name
   scopes              = [azurerm_application_insights.main.id]
   description         = "At least one Function exception was reported in five minutes."
   severity            = 1

@@ -2,7 +2,7 @@
 
 All AzureRM provider blocks disable automatic registration. Registration is a
 separately reviewed operation in `infra/providers`; `Microsoft.AVS` is not
-managed and is intentionally left registered under D26.
+managed and remains unregistered in the Azure for Students subscription.
 
 | Namespace | M1 use |
 |---|---|
@@ -14,6 +14,10 @@ managed and is intentionally left registered under D26.
 | `Microsoft.OperationalInsights` | Log Analytics workspace |
 | `Microsoft.Insights` | Application Insights, Action Groups and metric alert |
 | `Microsoft.CognitiveServices` | Azure OpenAI account and model deployment |
+
+On the 2026-10-26 Azure for Students assessment, `Microsoft.Insights` was
+already registered. The first approval list therefore contains the other seven
+namespaces only. Registration is free but remains an explicit write operation.
 
 `Microsoft.Resources`, `Microsoft.Authorization`, and
 `Microsoft.CostManagement` are platform namespaces used for the resource group,

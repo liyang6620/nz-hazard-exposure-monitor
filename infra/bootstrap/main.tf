@@ -8,6 +8,12 @@ resource "azurerm_resource_group" "state" {
   tags     = var.tags
 }
 
+resource "azurerm_resource_group" "production" {
+  name     = var.production_resource_group_name
+  location = var.location
+  tags     = var.tags
+}
+
 resource "azurerm_storage_account" "state" {
   name                            = "stnzhemtf${local.suffix}"
   resource_group_name             = azurerm_resource_group.state.name
@@ -40,7 +46,48 @@ resource "azurerm_storage_container" "state" {
 }
 
 resource "azurerm_role_assignment" "owner_state" {
-  scope                = azurerm_storage_container.state.resource_manager_id
+  scope                = azurerm_storage_container.state.id
   role_definition_name = "Storage Blob Data Contributor"
   principal_id         = var.owner_object_id
+}
+
+resource "azurerm_user_assigned_identity" "github" {
+  name                = "id-nzhem-github"
+  resource_group_name = azurerm_resource_group.production.name
+  location            = azurerm_resource_group.production.location
+  tags                = var.tags
+}
+
+resource "azurerm_federated_identity_credential" "github_pull_request" {
+  name                      = "github-pull-request-plan"
+  user_assigned_identity_id = azurerm_user_assigned_identity.github.id
+  audience                  = ["api://AzureADTokenExchange"]
+  issuer                    = "https://token.actions.githubusercontent.com"
+  subject                   = "repo:${var.github_repository}:pull_request"
+}
+
+resource "azurerm_federated_identity_credential" "github_main" {
+  name                      = "github-main-deploy"
+  user_assigned_identity_id = azurerm_user_assigned_identity.github.id
+  audience                  = ["api://AzureADTokenExchange"]
+  issuer                    = "https://token.actions.githubusercontent.com"
+  subject                   = "repo:${var.github_repository}:ref:refs/heads/main"
+}
+
+resource "azurerm_role_assignment" "github_state" {
+  scope                = azurerm_storage_container.state.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azurerm_user_assigned_identity.github.principal_id
+}
+
+resource "azurerm_role_assignment" "github_production_contributor" {
+  scope                = azurerm_resource_group.production.id
+  role_definition_name = "Contributor"
+  principal_id         = azurerm_user_assigned_identity.github.principal_id
+}
+
+resource "azurerm_role_assignment" "github_production_rbac" {
+  scope                = azurerm_resource_group.production.id
+  role_definition_name = "Role Based Access Control Administrator"
+  principal_id         = azurerm_user_assigned_identity.github.principal_id
 }

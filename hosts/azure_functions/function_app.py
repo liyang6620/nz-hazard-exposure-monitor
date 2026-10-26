@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hmac
 import json
 import logging
 import uuid
@@ -37,6 +38,12 @@ def budget_stop(request: func.HttpRequest) -> func.HttpResponse:
     settings = Settings.from_env()
     if settings.environment != "azure":
         return func.HttpResponse("budget-stop is Azure-only", status_code=501)
+    supplied_token = request.params.get("token", "")
+    if not supplied_token or not hmac.compare_digest(
+        supplied_token,
+        settings.budget_webhook_token,
+    ):
+        return func.HttpResponse("Forbidden", status_code=403)
     try:
         payload = request.get_json()
     except ValueError:

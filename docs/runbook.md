@@ -8,19 +8,20 @@ state migration requires the project manager's approval relayed by the owner.
 
 ## M1 rollout order
 
-1. Save and review the `infra/providers` plan. Import already registered
-   namespaces into that root; register only approved missing namespaces.
-2. Save, review and apply `infra/bootstrap`. Keep its local state encrypted and
-   backed up outside GitHub.
-3. Initialize `infra/identity` against `identity.tfstate`, then save, review and
-   apply its plan.
-4. Pass identity outputs to `infra/terraform` through untracked environment
-   variables. Save and review the complete production plan before apply.
-5. Set the GitHub encrypted secrets listed in the workflow files. Never print
+1. Review the seven missing namespaces in `infra/providers`; register only the
+   approved set. `Microsoft.Insights` is already registered.
+2. Save, review and apply `infra/bootstrap`. It creates both resource groups,
+   state storage and the GitHub UAMI with PR/main federated credentials. Keep
+   its local state encrypted and backed up outside GitHub.
+3. Initialize `infra/guardrails` against the new `guardrails.tfstate` backend
+   key and apply only its approved new-subscription plan. Never migrate the old
+   subscription state archived under ignored `tmp/`.
+4. Initialize `infra/terraform` against `production.tfstate`. Save and review
+   the complete production plan before apply.
+5. Set the GitHub encrypted secrets and enablement variables listed in the
+   workflow files. Never print
    their values in an issue, PR comment, log, screenshot, or repository file.
-6. Initialize `infra/guardrails` with `-migrate-state` only after the migration
-   has been approved. Confirm a subsequent guardrails plan reports no changes.
-7. Merge the PR only after CI passes. The main-branch deployment workflow builds
+6. Merge the PR only after CI passes. The main-branch deployment workflow builds
    the locked package, deploys it and checks the startup `housekeeping` run.
 
 ## Pre-upgrade stop drill
@@ -29,9 +30,10 @@ state migration requires the project manager's approval relayed by the owner.
 2. In Azure Monitor, use **Test action group** on `ag-nzhem-budget-stop` with the
    common alert schema. This test is a state-changing operation and is run only
    inside the approved drill window.
-3. Verify the request was accepted by Easy Auth, the `control / budget-killswitch`
-   entity is enabled, the `budget_stop_switch` run record exists, the ACS email
-   arrived, and ARM reports the Function App as stopped.
+3. Verify requests outside the Action Group service tag or with the wrong token
+   are rejected. Then verify the test request enables the
+   `control / budget-killswitch` entity, records the stop run, sends the ACS
+   email, and stops the Function App in ARM.
 4. Capture screenshots and timestamps without subscription IDs, tenant IDs, or
    personal email addresses.
 
@@ -57,15 +59,12 @@ alert is healthy. Deleting the switch entity is deliberate: a missing entity is
 the only disabled state and avoids storing the string `"false"` as a truthy
 Table value.
 
-## Post-upgrade budget drill
+## Live budget drill
 
-Within seven days after PAYG upgrade, first confirm that Cost Management is
-calculating actual usage. Submit a new plan that temporarily lowers only
+After deployment, first confirm that Cost Management is calculating actual
+usage on Azure for Students. Submit a new plan that temporarily lowers only
 `budget-killswitch` to the approved test amount. After the real budget triggers,
 restore NZD 5 through another approved plan and perform the recovery procedure.
 
-## Deadline gate
-
-The PAYG upgrade deadline is 2026-11-18. If M1 is not clearly on track by
-2026-11-14, report immediately and stop expanding scope while the project
-manager decides whether to deploy only the minimum automatic-stop chain.
+The Azure for Students spending limit remains enabled as the final backstop. Do
+not upgrade the subscription or attach a payment method.

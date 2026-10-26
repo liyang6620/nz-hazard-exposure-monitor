@@ -37,6 +37,7 @@ def test_azure_settings_require_platform_values(monkeypatch: pytest.MonkeyPatch)
         "AZURE_SUBSCRIPTION_ID",
         "AZURE_RESOURCE_GROUP",
         "AZURE_FUNCTION_APP_NAME",
+        "BUDGET_WEBHOOK_TOKEN",
         "ACS_ENDPOINT",
         "ACS_SENDER",
         "KEY_VAULT_URL",

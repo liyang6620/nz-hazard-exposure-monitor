@@ -19,6 +19,12 @@ variable "owner_object_id" {
   sensitive   = true
 }
 
+variable "resource_group_name" {
+  description = "Production resource group pre-created by infra/bootstrap."
+  type        = string
+  default     = "rg-nzhem-prod"
+}
+
 variable "notification_email" {
   description = "Personal address for operational, failure and budget alerts."
   type        = string
@@ -29,34 +35,6 @@ variable "notification_email" {
     condition     = can(regex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$", var.notification_email))
     error_message = "notification_email must be a valid email address."
   }
-}
-
-variable "github_principal_id" {
-  description = "Service principal object ID emitted by infra/identity."
-  type        = string
-  nullable    = false
-  sensitive   = true
-}
-
-variable "budget_webhook_client_id" {
-  description = "Application client ID used by Function Easy Auth."
-  type        = string
-  nullable    = false
-  sensitive   = true
-}
-
-variable "budget_webhook_object_id" {
-  description = "Application object ID used by the secure Action Group webhook."
-  type        = string
-  nullable    = false
-  sensitive   = true
-}
-
-variable "budget_webhook_identifier_uri" {
-  description = "Audience URI emitted by infra/identity."
-  type        = string
-  nullable    = false
-  sensitive   = true
 }
 
 variable "location" {

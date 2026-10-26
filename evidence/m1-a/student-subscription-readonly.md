@@ -86,11 +86,10 @@ role and owns no applications. It therefore cannot create the two Entra
 applications or their federated identity credentials required by the current
 `infra/identity` design.
 
-Per the project-manager decision, Azure deployment must remain disabled and CI
-must remain plan/validation-only unless the school directory administrator
-later grants the required application-creation path. No request for broader
-directory rights was made. A different identity design was not assumed in this
-assessment.
+The project manager subsequently selected a user-assigned managed identity with
+GitHub federated credentials. That design uses Azure Resource Manager and does
+not require an Entra application registration. No request for broader directory
+rights was made.
 
 ## Budgets and kill switch
 
@@ -108,6 +107,6 @@ deployment acceptance item until an approved apply and live test are possible.
 
 ## Decision gate
 
-Do not proceed to Terraform plan or any Azure write. The project manager must
-first decide how to handle the blocked Entra application/OIDC design and the
-unverified student-credit expiry, ACS Email eligibility and budget calculation.
+This read-only assessment is superseded by the separately reviewed M1-A plans.
+No Azure write is allowed until those plans and the provider-registration list
+are approved.

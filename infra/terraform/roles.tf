@@ -1,9 +1,9 @@
 locals {
   function_blob_scopes = {
-    raw       = azurerm_storage_container.data["raw"].resource_manager_id
-    curated   = azurerm_storage_container.data["curated"].resource_manager_id
-    gold      = azurerm_storage_container.data["gold"].resource_manager_id
-    briefings = azurerm_storage_container.data["briefings"].resource_manager_id
+    raw       = azurerm_storage_container.data["raw"].id
+    curated   = azurerm_storage_container.data["curated"].id
+    gold      = azurerm_storage_container.data["gold"].id
+    briefings = azurerm_storage_container.data["briefings"].id
     web       = "${azurerm_storage_account.data.id}/blobServices/default/containers/$web"
   }
 }
@@ -50,7 +50,7 @@ resource "azurerm_role_assignment" "function_openai" {
 
 resource "azurerm_role_definition" "function_stop" {
   name        = "NZHEM Function Stop Operator"
-  scope       = azurerm_resource_group.production.id
+  scope       = "/subscriptions/${var.subscription_id}/resourceGroups/${var.resource_group_name}"
   description = "May read and stop only the NZHEM Function App."
 
   permissions {
@@ -61,7 +61,7 @@ resource "azurerm_role_definition" "function_stop" {
     not_actions = []
   }
 
-  assignable_scopes = [azurerm_resource_group.production.id]
+  assignable_scopes = ["/subscriptions/${var.subscription_id}/resourceGroups/${var.resource_group_name}"]
 }
 
 resource "azurerm_role_assignment" "function_stop" {
@@ -71,7 +71,7 @@ resource "azurerm_role_assignment" "function_stop" {
 }
 
 resource "azurerm_role_assignment" "owner_gold_reader" {
-  scope                = azurerm_storage_container.data["gold"].resource_manager_id
+  scope                = azurerm_storage_container.data["gold"].id
   role_definition_name = "Storage Blob Data Reader"
   principal_id         = var.owner_object_id
 }
@@ -80,34 +80,4 @@ resource "azurerm_role_assignment" "owner_killswitch_operator" {
   scope                = azurerm_storage_account.data.id
   role_definition_name = "Storage Table Data Contributor"
   principal_id         = var.owner_object_id
-}
-
-resource "azurerm_role_assignment" "github_reader" {
-  scope                = azurerm_resource_group.production.id
-  role_definition_name = "Reader"
-  principal_id         = var.github_principal_id
-}
-
-resource "azurerm_role_assignment" "github_website_deployer" {
-  scope                = azurerm_function_app_flex_consumption.main.id
-  role_definition_name = "Website Contributor"
-  principal_id         = var.github_principal_id
-}
-
-resource "azurerm_role_assignment" "github_package_storage" {
-  scope                = azurerm_storage_container.data["deployments"].resource_manager_id
-  role_definition_name = "Storage Blob Data Contributor"
-  principal_id         = var.github_principal_id
-}
-
-resource "azurerm_role_assignment" "github_runlog_reader" {
-  scope                = azurerm_storage_account.data.id
-  role_definition_name = "Storage Table Data Reader"
-  principal_id         = var.github_principal_id
-}
-
-resource "azurerm_role_assignment" "github_cost_reader" {
-  scope                = "/subscriptions/${var.subscription_id}"
-  role_definition_name = "Cost Management Reader"
-  principal_id         = var.github_principal_id
 }

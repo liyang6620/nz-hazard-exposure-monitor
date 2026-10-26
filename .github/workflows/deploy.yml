@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   deploy:
-    if: ${{ false }} # D31: disabled until the Microsoft account is restored.
+    if: ${{ vars.AZURE_DEPLOYMENT_ENABLED == 'true' }}
     runs-on: ubuntu-latest
     environment: production
     env:

@@ -5,15 +5,16 @@
 The M1 rollout is staged so every Azure mutation has a saved plan:
 
 1. Explicit provider registrations in `infra/providers`.
-2. State resource group, storage account and container in `infra/bootstrap`.
-3. Entra applications, service principals and federated credentials in
-   `infra/identity`.
+2. State and production resource groups, state storage, GitHub UAMI, federated
+   credentials and scoped roles in `infra/bootstrap`.
+3. Fixed subscription budgets in `infra/guardrails`, using a new empty state.
 4. Production resources in `infra/terraform`.
-5. Guardrails local-state migration to the `guardrails.tfstate` backend key.
 
-No apply, registration, import, state migration, Action Group test, email send,
-or model inference occurs before approval. The three M0 fixed budgets remain in
-their independent root and are not present in the production plan.
+No apply, registration, import, Action Group test, email send, or model
+inference occurs before approval. The three fixed budgets remain in their
+independent root and are not present in the production plan. The old
+subscription's guardrails state is archived under ignored `tmp/` and is never
+migrated.
 
 ## Azure OpenAI price and hard limits
 
@@ -43,14 +44,15 @@ storage configuration, and the Azure OpenAI deployment does not itself produce
 token charges. Storage capacity/operations, Function execution, logs, Key Vault
 operations, ACS email, and later model inference are metered. The existing M0
 estimate remains USD 0.25-0.90 in a normal demonstration month and below the
-USD 3 hard ceiling; the NZD 5 `budget-killswitch` is the approved approximate
-ceiling in the subscription billing currency.
+USD 3 hard ceiling. The billing profile reports NZD; the NZD 2/5/8 fixed budgets
+and NZD 5 `budget-killswitch` retain the approved thresholds. The Azure for
+Students spending limit is the final backstop and must remain enabled.
 
 ## Items verified only after approved apply
 
 - Actual model deployment availability and version in Australia East.
 - Managed-domain sender address and the minimum ACS email RBAC role.
-- Secure Action Group token acceptance by Easy Auth.
+- Action Group service-tag access and webhook-token rejection/acceptance.
 - Function startup, managed-identity table write, metric alert email, and the
   complete stop/recovery drill.
 - Linux package compressed size and temporary-space headroom from GitHub CI.

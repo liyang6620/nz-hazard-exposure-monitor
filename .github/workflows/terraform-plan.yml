@@ -1,6 +1,10 @@
 name: Terraform plan
 
 on:
+  pull_request:
+    paths:
+      - "infra/**"
+      - ".github/workflows/terraform-plan.yml"
   workflow_dispatch:
 
 permissions:
@@ -10,7 +14,7 @@ permissions:
 
 jobs:
   production-plan:
-    if: ${{ false }} # D31: disabled until the Microsoft account is restored.
+    if: ${{ vars.AZURE_OIDC_ENABLED == 'true' }}
     runs-on: ubuntu-latest
     environment: terraform-plan
     env:
@@ -23,10 +27,6 @@ jobs:
       TF_VAR_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
       TF_VAR_owner_object_id: ${{ secrets.AZURE_OWNER_OBJECT_ID }}
       TF_VAR_notification_email: ${{ secrets.NOTIFICATION_EMAIL }}
-      TF_VAR_github_principal_id: ${{ secrets.AZURE_GITHUB_PRINCIPAL_ID }}
-      TF_VAR_budget_webhook_client_id: ${{ secrets.BUDGET_WEBHOOK_CLIENT_ID }}
-      TF_VAR_budget_webhook_object_id: ${{ secrets.BUDGET_WEBHOOK_OBJECT_ID }}
-      TF_VAR_budget_webhook_identifier_uri: ${{ secrets.BUDGET_WEBHOOK_IDENTIFIER_URI }}
     steps:
       - uses: actions/checkout@v4
       - uses: azure/login@v2
@@ -63,7 +63,7 @@ jobs:
           terraform show -no-color production.tfplan > full-plan.txt
           python ../../scripts/sanitize_terraform_plan.py < full-plan.txt > sanitized-plan.txt
       - name: Publish only the sanitized plan
-        if: env.ARM_CLIENT_ID != ''
+        if: env.ARM_CLIENT_ID != '' && github.event_name == 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
           PR_URL: ${{ github.event.pull_request.html_url }}

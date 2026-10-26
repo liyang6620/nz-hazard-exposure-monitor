@@ -21,9 +21,9 @@ private hosted ArcGIS layer has
 server-side Esri MCP static maps within the enforced quotas. The shared core,
 local Docker host and Azure Functions host remain separate. Outstanding work is
 the owner's two-minute Power BI walkthrough, M7 Snowflake work when scheduled by
-the project manager, and the Azure for Students deployment. The reviewed Azure
-plan remains isolated in unmerged PR #31; no provider registration or Terraform
-apply has run. Evidence is under [`evidence/`](evidence/).
+the project manager, and the Azure for Students deployment. Seven required
+resource providers have been registered; no Terraform infrastructure has been
+applied. Evidence is under [`evidence/`](evidence/).
 
 ## Important limitations
 
@@ -47,9 +47,9 @@ src/nzhem/adapters/   local and Azure implementations
 hosts/local/          FastAPI + APScheduler Docker host
 hosts/azure_functions Azure Functions trigger bindings
 dbt/                  DuckDB/dbt transformation project
-infra/bootstrap/      one-time remote-state storage
+infra/bootstrap/      state storage, production resource group and GitHub UAMI
 infra/providers/      explicitly approved Azure provider registrations
-infra/identity/       Entra applications and GitHub OIDC bootstrap
+infra/identity/       retired Entra-application design notes
 infra/guardrails/     independent subscription budget root module
 infra/terraform/      production Azure infrastructure
 scripts/              build and verification tooling
@@ -173,9 +173,10 @@ dbt build --project-dir dbt --profiles-dir dbt/profiles --target duckdb_local
 ```
 
 The parity fixture contains locked real GeoNet Kaikoura and Christchurch M3
-summary outputs. Terraform roots remain validation-only. `terraform-plan.yml`
-and `deploy.yml` are hard-disabled until the Microsoft account is restored and
-M1-A is approved.
+summary outputs. Terraform roots remain validation-only until M1-A approval.
+The Azure workflows are gated by repository variables and remain inactive until
+the approved bootstrap creates the GitHub managed identity and its federated
+credentials.
 
 Runtime secrets come from local environment variables or Azure Key Vault. No
 long-lived credentials belong in this repository or GitHub CI.

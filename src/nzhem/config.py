@@ -74,6 +74,7 @@ class Settings:
     subscription_id: str = ""
     resource_group_name: str = ""
     function_app_name: str = ""
+    budget_webhook_token: str = ""
     communication_endpoint: str = ""
     email_sender: str = ""
     key_vault_url: str = ""
@@ -134,6 +135,7 @@ class Settings:
             subscription_id=os.getenv("AZURE_SUBSCRIPTION_ID", "").strip(),
             resource_group_name=os.getenv("AZURE_RESOURCE_GROUP", "").strip(),
             function_app_name=os.getenv("AZURE_FUNCTION_APP_NAME", "").strip(),
+            budget_webhook_token=os.getenv("BUDGET_WEBHOOK_TOKEN", "").strip(),
             communication_endpoint=os.getenv("ACS_ENDPOINT", "").strip(),
             email_sender=os.getenv("ACS_SENDER", "").strip(),
             key_vault_url=os.getenv("KEY_VAULT_URL", "").strip(),
@@ -180,6 +182,7 @@ class Settings:
                 "AZURE_SUBSCRIPTION_ID": self.subscription_id,
                 "AZURE_RESOURCE_GROUP": self.resource_group_name,
                 "AZURE_FUNCTION_APP_NAME": self.function_app_name,
+                "BUDGET_WEBHOOK_TOKEN": self.budget_webhook_token,
                 "ACS_ENDPOINT": self.communication_endpoint,
                 "ACS_SENDER": self.email_sender,
                 "KEY_VAULT_URL": self.key_vault_url,
