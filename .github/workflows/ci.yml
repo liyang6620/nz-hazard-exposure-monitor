@@ -32,7 +32,7 @@ jobs:
       - run: npm run build
       - name: Enforce home-page JavaScript and CSS budget
         run: node scripts/check-home-budget.mjs
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install chromium
       - run: npm run test:e2e
       - if: always()
         uses: actions/upload-artifact@v4
