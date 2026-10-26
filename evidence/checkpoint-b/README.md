@@ -1,129 +1,81 @@
-# Checkpoint B: MG, M5 and M6 progress review
+# Checkpoint B: MG, M5 and M6 completion
 
-Date: 2026-10-25 (Pacific/Auckland)
+Date: 2026-10-26 (Pacific/Auckland)
 
-This checkpoint is a progress review, not a claim that every MG and M6
-acceptance criterion is complete. The local deliverables are reproducible, but
-the hosted ArcGIS work is blocked by the current credential/network result and
-the full M6 approval agent remains a separate implementation scope.
+MG, M5 and M6 are complete and accepted. This summary supersedes the earlier
+progress review.
 
 ## 1. Completed work
 
 ### MG
 
-- Exported a three-layer File Geodatabase and read it back with GDAL in
-  EPSG:2193.
-- Cross-validated 3,219,311 Kaikoura building points with exact
-  GeoPandas/Shapely assignment against the production H3-centre method.
-- Built a token-free ArcGIS Maps SDK page with 4,011 local MMI 5+ features.
-- Documented NZTM2000/WGS84 axis-order handling.
-- Performed read-only ArcGIS key checks without changing account state.
+- Exported and validated the three-layer File Geodatabase in EPSG:2193.
+- Cross-validated 3,219,311 Kaikoura building points against the production
+  H3-centre method.
+- Published the private `event_exposure_r6` hosted feature layer with 4,011
+  features.
+- Verified one `applyEdits` incremental update without changing item ID
+  `ce9c69b085584965a236d0c6fdfb7ebc`.
+- Verified Static Maps with two REST calls and one Esri MCP
+  `map_with_overlay` call.
+- Documented that the publisher credential is server-side only and may operate
+  only on this project's content and approved Basemaps/Static Maps services.
 
 ### M5
 
-- Delivered a Desktop-generated PBIP semantic model and five report pages.
+- Delivered the PBIP semantic model and five report pages.
 - Refreshed the model from the real M3 Parquet outputs in Power BI Desktop
-  2.155.756.0 without signing in or publishing.
+  without signing in or publishing.
 - Captured all five pages and exported a five-page PDF.
-- Kept the three required limitations visible in Desktop and the PDF.
-- Verified the model contains no key or machine-specific repository path.
+- Kept the required limitations visible in Desktop and the PDF.
+- Added a CI portability check that rejects machine-local absolute paths in
+  committed PBIP sources.
 
 ### M6
 
-- Enforced the existing per-briefing and monthly token limits.
-- Ran six real `gpt-5-mini` evaluation calls with minimal reasoning and a
-  450-token output ceiling.
-- Recorded token usage and cost per call without logging the API key.
-- Delivered the saved successful approval draft to local Mailpit without a
-  further model call. SMTP and the Mailpit UI bind only to `127.0.0.1`.
+- Implemented four DuckDB-backed tools and their JSON schemas, briefing draft
+  rendering, numeric-fidelity validation and retry.
+- Implemented one-time HMAC approval with confirmation-only GET and mutating
+  POST, including tamper, expiry, replay, rejection and timeout handling.
+- Published approved briefings to the local static site and delivered approval
+  mail through local Mailpit.
+- Delivered the local project MCP server.
+- Evaluated all 10 fixed events with 10/10 numeric-fidelity passes (100%).
+- Enforced per-briefing and monthly token limits and recorded cost without
+  logging credentials.
 
-## 2. Evidence
+## 2. Pull requests and CI
 
-### Pull requests and CI
+The implementation PRs are merged and their CI checks passed, including:
 
-All listed pull requests are merged and all nine CI jobs passed:
+- [PR #27: complete M6 briefing agent and approval workflow](https://github.com/liyang6620/nz-hazard-exposure-monitor/pull/27)
+- [PR #28: publish ArcGIS layer and attach static maps](https://github.com/liyang6620/nz-hazard-exposure-monitor/pull/28)
 
-- [PR #16: MG local GIS validation and token-free map](https://github.com/liyang6620/nz-hazard-exposure-monitor/pull/16)
-- [PR #18: M5 PBIP model and five pages](https://github.com/liyang6620/nz-hazard-exposure-monitor/pull/18)
-- [PR #19: MG read-only ArcGIS key check](https://github.com/liyang6620/nz-hazard-exposure-monitor/pull/19)
-- [PR #20: budgeted M6 OpenAI evaluation](https://github.com/liyang6620/nz-hazard-exposure-monitor/pull/20)
-- [PR #21: Power BI Desktop validation status](https://github.com/liyang6620/nz-hazard-exposure-monitor/pull/21)
-- [PR #22: saved-draft Mailpit-only retry path](https://github.com/liyang6620/nz-hazard-exposure-monitor/pull/22)
-- [PR #23: Power BI Desktop report and evidence](https://github.com/liyang6620/nz-hazard-exposure-monitor/pull/23)
-- [PR #24: loopback Mailpit SMTP delivery](https://github.com/liyang6620/nz-hazard-exposure-monitor/pull/24)
+Earlier M5 and MG evidence PRs are retained in repository history. Detailed
+evidence is under `evidence/mg/`, `evidence/m5/` and `evidence/m6/`.
 
-### Key measurements
+## 3. Key measurements
 
 | Area | Measurement |
 |---|---:|
-| File Geodatabase layers | 3 |
-| Kaikoura building points checked | 3,219,311 |
-| MMI band agreement | 99.458% |
-| Cross-validation peak RSS | 450.4 MB |
-| Local map features | 4,011 |
-| Local map payload | 2,195,110 bytes |
-| Tracked Power BI semantic-model files | 16,489 bytes |
-| Refreshed local Power BI cache | 51,530 bytes |
-| Power BI PDF | 5 pages, 275,462 bytes |
-| Real OpenAI calls | 6 |
-| Actual OpenAI cost | US$0.0023465 |
-| Mailpit messages delivered in final retry | 1 |
-| Esri static-map calls | 0 |
-| C-drive free after validation | 54.96 GB |
+| Hosted feature count | 4,011 |
+| ArcGIS portal storage | 3,513,272 bytes |
+| Hosted item size | 3,080,192 bytes |
+| Incremental edit usage | 1 operation / 849 bytes |
+| Monthly feature bandwidth observed | 32,941 bytes |
+| Static Map calls for MG validation | 3 |
+| M6 events evaluated | 10 |
+| M6 numeric fidelity | 100% |
+| Known cumulative OpenAI cost | US$0.01287375 |
+| Budget-accounted OpenAI cost | US$0.02307375 |
 
-Detailed evidence is under `evidence/mg/`, `evidence/m5/` and `evidence/m6/`.
-The latest local suite passed 69 tests at 84.88% coverage. PR #24 also passed
-the Docker Compose deployment check.
+ArcGIS storage and editing remained within the 125 MB project limits, and
+Static Map use remained within the maximum of 200 calls per month.
 
-## 3. Deviations from the plan
+## 4. Remaining work
 
-- MG uses approved token-free option B for the browser map. Hosted-layer
-  publication was not substituted with local evidence.
-- The Portal self endpoint accepted the ArcGIS key. The earlier inability to
-  resolve basemap/static-map hosts was an execution-environment limitation.
-  During the later owner-approved write window, an empty service item was
-  created, but layer-definition updates and cleanup returned `403 GWM_0003`.
-- M5 uses a local absolute `RepoRoot` parameter only during Desktop refresh;
-  the committed value is the portable relative placeholder.
-- The required two-minute Power BI walkthrough was left to the repository
-  owner, as instructed.
-- M6 evaluation used six paid calls rather than the ten-event target. It proves
-  model access, limits and cost accounting, but it is not the complete agent
-  evaluation.
-- Mailpit proves local delivery only. It is not evidence for Azure
-  Communication Services delivery.
+1. Repository owner records the two-minute Power BI walkthrough video.
+2. M7 Snowflake work awaits project-manager scheduling.
+3. Azure deployment awaits Microsoft account recovery.
 
-## 4. Risks and unresolved items
-
-- Hosted ArcGIS service-item creation works, but layer-definition update and
-  deletion were rejected. Formal publishing, stable item IDs, editing quota
-  measurements, authenticated map access and Esri MCP output remain unverified.
-- No ArcGIS billing-page screenshot is committed.
-- M6 does not yet implement the four DuckDB-backed tools and their JSON
-  schemas, draft rendering, numeric-fidelity retry, one-time HMAC approval
-  state machine, reject/expiry handling, approved static-site publication or
-  the local project MCP server.
-- Consequently, the M6 trigger-to-approval-to-publication demonstration,
-  approval security tests, ten-event 100% numeric-fidelity evaluation and MCP
-  combination recording are outstanding.
-- Azure deployment acceptance remains deferred under D30/D31. No Azure
-  operation was performed in this stage.
-
-## 5. Project-manager decisions required
-
-1. Approve treating the current work as the local M5 completion plus partial
-   MG/M6 checkpoint, with the full M6 agent delivered as a separate follow-up
-   PR before M7/M8.
-2. Delete the empty ArcGIS test item `23cbe71e05d247258e134287f0557eb7`
-   through the portal and decide whether a different existing credential may be
-   supplied. The implementation will not broaden this key's permissions.
-3. Confirm whether Esri MCP evidence should remain deferred until its host is
-   reachable and static-map permission can be verified without paid services.
-4. The owner still needs to record the required two-minute Power BI walkthrough.
-
-## 6. Actual cost
-
-- OpenAI API: **US$0.0023465**.
-- Azure: **US$0.00**; no Azure action was performed.
-- Esri: **US$0.00**; no metered ArcGIS or Esri MCP operation was performed.
-- Power BI Desktop and local Docker validation: **US$0.00**.
+No Azure or Snowflake operation was performed for this checkpoint.
