@@ -7,12 +7,14 @@ with Docker Compose and requires no Azure or Microsoft account.
 
 ## Status
 
-M1-L, M2, M3, M5 and the local M6 workflow are complete. MG's local GIS work is
-complete; hosted ArcGIS publishing and Esri static maps are blocked by the
-current key's `403 GWM_0003` response and remain explicitly unclaimed. The
-shared core, local Docker host and Azure Functions host are kept separate. No
-Azure infrastructure is created until M1-A plans are approved. Evidence is under
-[`evidence/`](evidence/).
+M1-L, M2, M3, MG, M5 and M6 are complete. The private hosted ArcGIS layer has
+4,011 features, incremental editing is verified, and approved briefings can use
+server-side Esri MCP static maps within the enforced quotas. The shared core,
+local Docker host and Azure Functions host remain separate. Outstanding work is
+the owner's two-minute Power BI walkthrough, M7 Snowflake work when scheduled by
+the project manager, and Azure deployment after the Microsoft account is
+restored. No Azure infrastructure is created until M1-A plans are approved.
+Evidence is under [`evidence/`](evidence/).
 
 ## Important limitations
 
@@ -155,6 +157,9 @@ M1-A is approved.
 
 Runtime secrets come from local environment variables or Azure Key Vault. No
 long-lived credentials belong in this repository or GitHub CI.
+
+CI also runs `scripts/check_pbip_portability.py`; PBIP sources containing local
+drive, UNC, macOS user-home or Linux user-home paths are rejected.
 
 ## Data attribution
 

@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+from scripts.check_pbip_portability import find_local_paths
+
 ROOT = Path(__file__).resolve().parents[1]
 PBIP_ROOT = ROOT / "reports" / "powerbi"
 
@@ -37,6 +39,7 @@ def test_pbip_project_has_five_pages_and_local_only_sources() -> None:
     assert "ARCGIS_API_KEY" not in combined_text
     assert "C:/Users/" not in combined_text
     assert "C:\\\\Users\\\\" not in combined_text
+    assert find_local_paths(PBIP_ROOT) == []
     assert "No policy data" in combined_text
     assert "not actuarial or engineering advice" in combined_text
     assert "appearance and disappearance dates are approximate" in combined_text
