@@ -145,4 +145,4 @@ def test_only_approved_briefing_paths_are_published_and_generations_are_bounded(
     for name in ("001", "002", "003"):
         (root / name).mkdir(parents=True)
     publisher._remove_old_generations(root, keep=2)  # noqa: SLF001
-    assert [path.name for path in root.iterdir()] == ["002", "003"]
+    assert sorted(path.name for path in root.iterdir()) == ["002", "003"]
