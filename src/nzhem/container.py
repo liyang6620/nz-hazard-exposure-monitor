@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -18,6 +19,7 @@ from nzhem.ports import (
     ReferenceDataRefresher,
     ReferenceRefreshResult,
     SecretStore,
+    SiteDataPublisher,
     StaticMapProvider,
     StaticSitePublisher,
     TableStore,
@@ -39,6 +41,7 @@ class ServiceContainer:
     reference_data: ReferenceDataRefresher | None = None
     briefing_tools: BriefingTools | None = None
     static_map_provider: StaticMapProvider | None = None
+    site_data_publisher: SiteDataPublisher | None = None
 
     def housekeeping(self) -> HousekeepingService:
         return HousekeepingService(
@@ -76,6 +79,11 @@ class ServiceContainer:
             mailer=self.mailer,
         )
 
+    def publish_site_data(self) -> Mapping[str, object] | None:
+        if self.site_data_publisher is None:
+            return None
+        return self.site_data_publisher.publish(self.clock.now())
+
 
 def build_container(settings: Settings | None = None) -> ServiceContainer:
     active_settings = settings or Settings.from_env()
@@ -92,6 +100,7 @@ def _build_local_container(settings: Settings) -> ServiceContainer:
         GeoNetFdsnEventSource,
         LocalObjectStore,
         LocalReferenceDataRefresher,
+        LocalSiteDataPublisher,
         LocalStaticSitePublisher,
         NullEventSource,
         OpenAILlmClient,
@@ -101,11 +110,19 @@ def _build_local_container(settings: Settings) -> ServiceContainer:
     )
 
     objects = LocalObjectStore(settings.data_root)
-    site_root = Path(__file__).resolve().parents[2] / "hosts" / "local" / "site"
-    if site_root.is_dir():
+    repository_root = Path(__file__).resolve().parents[2]
+    candidates = [
+        settings.site_assets_root,
+        repository_root / "frontend" / "dist",
+        repository_root / "hosts" / "local" / "site",
+    ]
+    site_root = next((path for path in candidates if path is not None and path.is_dir()), None)
+    if site_root is not None:
         for source in sorted(path for path in site_root.rglob("*") if path.is_file()):
             relative = source.relative_to(site_root).as_posix()
-            if relative == "index.html":
+            if relative.startswith("briefings/"):
+                continue
+            if relative.startswith("data/"):
                 try:
                     objects.get_bytes("web", relative)
                     continue
@@ -150,6 +167,17 @@ def _build_local_container(settings: Settings) -> ServiceContainer:
         else None
     )
     tables = SqliteTableStore(settings.sqlite_path)
+    site_data_publisher = (
+        LocalSiteDataPublisher(
+            event_root=event_root,
+            reference_root=reference_generations[-1],
+            web_root=settings.data_root / "web",
+            tables=tables,
+            memory_limit_mb=settings.duckdb_memory_limit_mb,
+        )
+        if (event_root / "mart_event_summary.parquet").is_file() and reference_generations
+        else None
+    )
     return ServiceContainer(
         settings=settings,
         clock=SystemClock(),
@@ -182,6 +210,7 @@ def _build_local_container(settings: Settings) -> ServiceContainer:
             if settings.arcgis_static_maps_enabled
             else None
         ),
+        site_data_publisher=site_data_publisher,
     )
 
 

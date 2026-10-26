@@ -68,6 +68,10 @@ class StaticSitePublisher(Protocol):
     def publish(self, path: str, content: bytes) -> None: ...
 
 
+class SiteDataPublisher(Protocol):
+    def publish(self, generated_at: datetime) -> Mapping[str, Any]: ...
+
+
 class StaticMapProvider(Protocol):
     """Server-side provider for an optional briefing map attachment.
 

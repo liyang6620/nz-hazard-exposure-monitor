@@ -25,10 +25,15 @@ def test_geonet_uses_updatedafter_and_normalises_events(monkeypatch: pytest.Monk
 
     assert events[0]["event_id"] == "event-1"
     assert events[0]["magnitude"] == 4.2
+    assert events[0]["depth_km"] == 10
+    assert events[0]["latitude"] == -41
+    assert events[0]["longitude"] == 174
+    assert events[0]["event_name"] == "NZ"
     assert get.call_count == 2
     call = get.call_args_list[0]
     assert call.kwargs["params"]["updatedafter"] == "2026-10-22T00:00:00Z"
     assert call.kwargs["params"]["format"] == "text"
+    assert call.kwargs["params"]["minmagnitude"] == "4.0"
     assert "nz-hazard-exposure-monitor" in call.kwargs["headers"]["User-Agent"]
     assert response.raise_for_status.call_count == 2
 

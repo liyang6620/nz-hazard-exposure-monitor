@@ -5,6 +5,7 @@ from nzhem.adapters.local.geonet import GeoNetFdsnEventSource, NullEventSource
 from nzhem.adapters.local.openai import OpenAILlmClient
 from nzhem.adapters.local.reference import LocalReferenceDataRefresher
 from nzhem.adapters.local.secrets import EnvironmentSecretStore
+from nzhem.adapters.local.site_data import LocalSiteDataPublisher
 from nzhem.adapters.local.smtp import SmtpMailer
 from nzhem.adapters.local.sqlite import SqliteQueueStore, SqliteTableStore
 
@@ -15,6 +16,7 @@ __all__ = [
     "GeoNetFdsnEventSource",
     "LocalObjectStore",
     "LocalStaticSitePublisher",
+    "LocalSiteDataPublisher",
     "NullEventSource",
     "OpenAILlmClient",
     "LocalReferenceDataRefresher",

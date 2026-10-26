@@ -9,6 +9,41 @@ permissions:
   contents: read
 
 jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.19.0"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run lint
+      - run: npm run typecheck
+      - name: Enforce the browser key boundary
+        working-directory: .
+        run: python scripts/check_frontend_secrets.py
+      - run: npm test
+      - run: npm run build
+      - name: Enforce home-page JavaScript and CSS budget
+        run: node scripts/check-home-budget.mjs
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-playwright-${{ github.sha }}
+          path: |
+            frontend/playwright-report
+            frontend/test-results
+          if-no-files-found: ignore
+          retention-days: 7
+
   python-and-dbt:
     runs-on: ubuntu-latest
     steps:
@@ -38,14 +73,15 @@ jobs:
         env:
           GEONET_POLL_ENABLED: "false"
         run: docker compose up --build --detach --wait
-      - name: Verify API, startup housekeeping, website and Mailpit
+      - name: Verify API, startup housekeeping, product website and Mailpit
         run: |
           curl --fail --silent http://127.0.0.1:8000/health | tee local-health.json
           curl --fail --silent http://127.0.0.1:8000/runs | tee local-runs.json
           python -c "import json; d=json.load(open('local-runs.json')); assert any(r['PartitionKey'] == 'housekeeping' and r['status'] == 'success' for r in d)"
           curl --fail --silent http://127.0.0.1:8080/ | grep 'NZ Hazard Exposure Monitor'
-          curl --fail --silent http://127.0.0.1:8080/map/ | grep 'NZHEM event map'
-          curl --fail --silent http://127.0.0.1:8080/map/data/events.json | grep '2016p858000'
+          curl --fail --silent http://127.0.0.1:8080/events/2016p858000 | grep 'NZ Hazard Exposure Monitor'
+          curl --fail --silent http://127.0.0.1:8080/data/manifest.json | grep 'generation_id'
+          curl --fail --silent http://127.0.0.1:8080/data/generations/20261025T230000000000Z/events.json | grep '2016p858000'
           curl --fail --silent http://127.0.0.1:8025/api/v1/info
       - if: always()
         run: docker compose down --volumes

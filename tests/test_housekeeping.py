@@ -41,6 +41,9 @@ def test_first_run_uses_48_hour_catchup_and_records_success(tmp_path: Path) -> N
     assert result.events_enqueued == 1
     assert tables.get_entity("runs", "housekeeping", result.run_id)["status"] == "success"
     assert queues.receive("events").payload["event_id"] == "event-1"
+    recent = tables.get_entity("eventsstate", "recent", "event-1")
+    assert recent["event_id"] == "event-1"
+    assert recent["updated_at"] == now.isoformat()
 
 
 def test_next_run_catches_up_from_last_success(tmp_path: Path) -> None:
