@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  displayEventName,
   formatDecimal,
   formatInteger,
   formatNzDateTime,
@@ -9,6 +10,12 @@ import {
 } from "./format";
 
 describe("New Zealand display formatting", () => {
+  it("uses natural display names without changing data identifiers", () => {
+    expect(displayEventName("Christchurch Feb 2011")).toBe(
+      "Christchurch, Feb 2011",
+    );
+    expect(displayEventName("Kaikōura 2016")).toBe("Kaikōura 2016");
+  });
   it("displays dates in Pacific/Auckland with the local time-zone abbreviation", () => {
     expect(formatNzDateTime("2026-10-25T23:00:00Z")).toBe(
       "26 Oct 2026, 12:00 NZDT",

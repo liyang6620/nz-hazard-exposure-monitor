@@ -42,6 +42,15 @@ export function AppShell({ children }: { children: ReactNode }) {
             <NavLink to="/" onClick={() => setMenuOpen(false)}>
               Latest
             </NavLink>
+            <NavLink to="/history" onClick={() => setMenuOpen(false)}>
+              Historical replays
+            </NavLink>
+            <NavLink to="/method" onClick={() => setMenuOpen(false)}>
+              Method
+            </NavLink>
+            <NavLink to="/about" onClick={() => setMenuOpen(false)}>
+              About
+            </NavLink>
           </nav>
         </div>
       </header>
@@ -55,12 +64,16 @@ export function AppShell({ children }: { children: ReactNode }) {
               shaking.
             </p>
           </div>
-          <a
-            href="https://github.com/liyang6620/nz-hazard-exposure-monitor"
-            rel="noreferrer"
-          >
-            <GitBranch size={17} aria-hidden="true" /> GitHub
-          </a>
+          <div className="footer-links">
+            <Link to="/method">Method</Link>
+            <Link to="/about">About</Link>
+            <a
+              href="https://github.com/liyang6620/nz-hazard-exposure-monitor"
+              rel="noreferrer"
+            >
+              <GitBranch size={17} aria-hidden="true" /> GitHub
+            </a>
+          </div>
         </div>
       </footer>
     </div>

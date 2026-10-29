@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 
 import type { EventListItem } from "../data/types";
 import {
+  displayEventName,
   formatDecimal,
   formatInteger,
   formatNzDateTime,
@@ -18,7 +19,7 @@ export function LatestEventPanel({ event }: { event: EventListItem }) {
         <time>{formatNzDateTime(event.origin_time)}</time>
       </div>
       <p className="latest-magnitude">M{formatDecimal(event.magnitude)}</p>
-      <h2 id="latest-heading">{event.name}</h2>
+      <h2 id="latest-heading">{displayEventName(event.name)}</h2>
       <p className="latest-depth">{formatDecimal(event.depth_km)} km depth</p>
       <dl className="latest-readings">
         <div>

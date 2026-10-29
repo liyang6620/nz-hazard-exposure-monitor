@@ -2,7 +2,12 @@ import { ArrowUpRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import type { EventListItem } from "../data/types";
-import { formatDecimal, formatInteger, formatNzDateTime } from "../lib/format";
+import {
+  displayEventName,
+  formatDecimal,
+  formatInteger,
+  formatNzDateTime,
+} from "../lib/format";
 import { StatusBadge } from "./StatusBadge";
 
 export function RecentEventsTable({ events }: { events: EventListItem[] }) {
@@ -35,7 +40,9 @@ export function RecentEventsTable({ events }: { events: EventListItem[] }) {
                 {index === 0 ? (
                   <span className="latest-marker">Latest</span>
                 ) : null}
-                <Link to={`/events/${event.event_id}`}>{event.name}</Link>
+                <Link to={`/events/${event.event_id}`}>
+                  {displayEventName(event.name)}
+                </Link>
               </th>
               <td>{formatNzDateTime(event.origin_time)}</td>
               <td>{formatDecimal(event.magnitude)}</td>
@@ -52,7 +59,7 @@ export function RecentEventsTable({ events }: { events: EventListItem[] }) {
                 <Link
                   className="row-link"
                   to={`/events/${event.event_id}`}
-                  aria-label={`View ${event.name}`}
+                  aria-label={`View ${displayEventName(event.name)}`}
                 >
                   <ArrowUpRight size={17} />
                 </Link>

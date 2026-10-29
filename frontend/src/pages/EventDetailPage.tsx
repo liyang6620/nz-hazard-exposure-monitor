@@ -11,6 +11,7 @@ import { StatusBadge } from "../components/StatusBadge";
 import { eventExposureUrl, loadEventSummary } from "../data/client";
 import type { EventSummary } from "../data/types";
 import {
+  displayEventName,
   formatDecimal,
   formatInteger,
   formatNzDateTime,
@@ -80,7 +81,7 @@ export default function EventDetailPage() {
                 <p className="replay-label">Historical replay · as-if-today</p>
               ) : null}
               <div className="event-name-line">
-                <h1>{event.name}</h1>
+                <h1>{displayEventName(event.name)}</h1>
                 {event.as_if_today ? (
                   <span className="as-if-note">As-if-today</span>
                 ) : null}

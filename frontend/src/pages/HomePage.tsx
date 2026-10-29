@@ -5,7 +5,12 @@ import { LatestEventPanel } from "../components/LatestEventPanel";
 import { EventWaveform } from "../components/EventWaveform";
 import { RecentEventsTable } from "../components/RecentEventsTable";
 import { useSiteData } from "../app/SiteDataContext";
-import { formatDecimal, formatInteger, formatNzDateTime } from "../lib/format";
+import {
+  displayEventName,
+  formatDecimal,
+  formatInteger,
+  formatNzDateTime,
+} from "../lib/format";
 
 export default function HomePage() {
   const { data, error, loading, reload } = useSiteData();
@@ -44,7 +49,7 @@ export default function HomePage() {
               <p className="replay-label">Historical replay · as-if-today</p>
               <h1>
                 M{formatDecimal(featured.magnitude)}{" "}
-                {featured.name.replace(/\s+2016$/, "")} —{" "}
+                {displayEventName(featured.name).replace(/\s+2016$/, "")} —{" "}
                 <span>
                   {formatInteger(featured.buildings_mmi_ge_6)} buildings
                 </span>{" "}
@@ -114,11 +119,12 @@ export default function HomePage() {
         </section>
         {featured ? (
           <p className="history-link">
-            Explore the{" "}
+            Compare Kaikōura with nine other fixed events in the{" "}
+            <Link to="/history">historical replay catalogue</Link>, or open the{" "}
             <Link to={`/events/${featured.event_id}`}>
-              Kaikōura exposure record
+              full Kaikōura record
             </Link>
-            ; the full historical replay catalogue follows in PR 2.
+            .
           </p>
         ) : null}
       </div>
