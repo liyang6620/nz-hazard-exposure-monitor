@@ -161,7 +161,11 @@ class ApprovalService:
         marker = "MANUAL REVIEW REQUIRED\n\n" if needs_manual_review else ""
         self._mailer.send(
             recipient,
-            f"NZHEM briefing review: {title}",
+            (
+                f"NZHEM briefing review (revision {revision}): {title}"
+                if revision > 1
+                else f"NZHEM briefing review: {title}"
+            ),
             marker
             + markdown
             + "\n"
@@ -199,6 +203,23 @@ class ApprovalService:
 
     def expire_pending(self, now: datetime) -> int:
         return expire_pending_briefings(self._tables, now)
+
+    def supersede_older_revisions(self, event_id: str, *, keep_revision: int, now: datetime) -> int:
+        count = 0
+        for entity in self._tables.list_entities(self.TABLE, self.PARTITION):
+            if (
+                entity.get("event_id") != event_id
+                or entity.get("status") != "pending"
+                or int(entity.get("revision", 1)) >= keep_revision
+            ):
+                continue
+            entity["status"] = "superseded"
+            entity["superseded_at"] = now.astimezone(UTC).isoformat()
+            entity["superseded_by_revision"] = keep_revision
+            entity["token_used"] = True
+            self._tables.upsert_entity(self.TABLE, entity)
+            count += 1
+        return count
 
     def _verified_pending(self, token: str, now: datetime) -> tuple[dict[str, str], dict[str, Any]]:
         claims = self._signer.verify(token, now)

@@ -12,6 +12,12 @@ class BriefingUsage:
     output_tokens: int
 
 
+def monthly_event_usage(rows: list[dict[str, object]], event_id: str, month: str) -> int:
+    """Count other events that have consumed a monthly briefing slot."""
+    events = {str(row["event_id"]) for row in rows if str(row["created_at"]).startswith(month)}
+    return len(events) - int(event_id in events)
+
+
 def enforce_limits(
     usage: BriefingUsage,
     *,

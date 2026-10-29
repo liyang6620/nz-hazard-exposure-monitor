@@ -27,7 +27,7 @@ class HousekeepingService:
         tables: TableStore,
         queues: QueueStore,
         event_source: EventSource,
-        default_lookback: timedelta = timedelta(hours=48),
+        default_lookback: timedelta = timedelta(days=30),
     ) -> None:
         self._clock = clock
         self._runlog = RunLog(tables)
@@ -45,6 +45,15 @@ class HousekeepingService:
             events = self._event_source.fetch_updated_after(updated_after)
             for event in events:
                 self._queues.send("events", dict(event))
+                self._tables.upsert_entity(
+                    "eventsstate",
+                    {
+                        "PartitionKey": "recent",
+                        "RowKey": str(event["event_id"]),
+                        **dict(event),
+                        "updated_at": now.isoformat(),
+                    },
+                )
             briefings_expired = expire_pending_briefings(self._tables, now)
             details = {
                 "catchup_from": updated_after.isoformat(),

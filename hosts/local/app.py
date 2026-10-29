@@ -14,7 +14,7 @@ from fastapi.responses import HTMLResponse
 from nzhem.container import ServiceContainer, build_container
 from nzhem.core.agent.approval import ApprovalRejected
 from nzhem.core.agent.briefing import should_draft_briefing
-from nzhem.core.agent.limits import BriefingUsage, enforce_limits
+from nzhem.core.agent.limits import BriefingUsage, enforce_limits, monthly_event_usage
 
 
 def _configure_logging() -> None:
@@ -31,11 +31,15 @@ scheduler = BackgroundScheduler(timezone="UTC")
 
 def run_housekeeping() -> dict[str, object]:
     result = container.housekeeping().run()
+    site_publication = container.publish_site_data()
     payload = {
         "run_id": result.run_id,
         "catchup_from": result.catchup_from,
         "events_enqueued": result.events_enqueued,
         "briefings_expired": result.briefings_expired,
+        "site_generation": (
+            site_publication.get("generation_id") if site_publication is not None else None
+        ),
     }
     logging.info(json.dumps({"operation": "housekeeping", **payload}))
     return payload
@@ -65,6 +69,15 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(title="NZ Hazard Exposure Monitor", version="0.1.0", lifespan=lifespan)
+
+INVALID_REVIEW_HTML = (
+    "<!doctype html><html lang='en'><meta charset='utf-8'>"
+    "<meta name='viewport' content='width=device-width,initial-scale=1'>"
+    "<title>Review link unavailable</title><main>"
+    "<h1>Review link unavailable</h1>"
+    "<p>This link has already been used, has expired, or has been replaced by a newer draft.</p>"
+    "<p>Return to the latest review email to continue.</p></main></html>"
+)
 
 
 @app.get("/health")
@@ -113,7 +126,7 @@ def runs() -> list[dict[str, object]]:
 
 
 @app.post("/draft-briefing/{event_id}")
-def draft_briefing(event_id: str) -> dict[str, object]:
+def draft_briefing(event_id: str, revision: bool = False) -> dict[str, object]:
     try:
         if container.briefing_tools is None:
             raise RuntimeError("M6 briefing data is not available")
@@ -129,13 +142,20 @@ def draft_briefing(event_id: str) -> dict[str, object]:
             if event_briefings and event_briefings[0].get("source_magnitude") is not None
             else None
         )
-        if not should_draft_briefing(event, previous_magnitude=previous_magnitude):
+        is_pending_revision = bool(
+            revision and event_briefings and event_briefings[0].get("status") == "pending"
+        )
+        if not is_pending_revision and not should_draft_briefing(
+            event, previous_magnitude=previous_magnitude
+        ):
             raise ValueError("Event does not meet the briefing trigger")
         now = container.clock.now().astimezone(UTC)
-        monthly = sum(
-            1
-            for row in container.tables.list_entities("briefings", "briefing")
-            if str(row["created_at"]).startswith(now.strftime("%Y-%m"))
+        # A correction for an already-counted event does not consume another
+        # event slot, while a new event still obeys the ten-event monthly cap.
+        monthly = monthly_event_usage(
+            list(container.tables.list_entities("briefings", "briefing")),
+            event_id,
+            now.strftime("%Y-%m"),
         )
         enforce_limits(
             BriefingUsage(monthly, 0, 0),
@@ -166,6 +186,7 @@ def draft_briefing(event_id: str) -> dict[str, object]:
             "attempts": draft.attempts,
             "static_map": draft.map_status,
             "expires_at": pending.expires_at.isoformat(),
+            "revision": len(event_briefings) + 1,
         }
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
@@ -175,14 +196,12 @@ def draft_briefing(event_id: str) -> dict[str, object]:
 
 
 @app.get("/review-briefing", response_class=HTMLResponse)
-def review_briefing_get(token: str) -> str:
+def review_briefing_get(token: str) -> HTMLResponse:
     try:
         preview = container.approval().preview(token, container.clock.now())
     except (ApprovalRejected, KeyError, ValueError):
-        raise HTTPException(
-            status_code=400, detail="Review link is invalid or unavailable"
-        ) from None
-    return (
+        return HTMLResponse(INVALID_REVIEW_HTML, status_code=400)
+    return HTMLResponse(
         "<!doctype html><html lang='en'><meta charset='utf-8'><main>"
         f"<h1>{escape(preview.title)}</h1><p>Confirm {escape(preview.action)}.</p>"
         f"<form method='post' action='/review-briefing?token={escape(token)}'>"
@@ -191,7 +210,7 @@ def review_briefing_get(token: str) -> str:
 
 
 @app.post("/review-briefing", response_class=HTMLResponse)
-def review_briefing_post(token: str, request: Request) -> str:
+def review_briefing_post(token: str, request: Request) -> HTMLResponse:
     try:
         status = container.approval().decide(
             token,
@@ -199,10 +218,10 @@ def review_briefing_post(token: str, request: Request) -> str:
             request.client.host if request.client else "unknown",
         )
     except (ApprovalRejected, KeyError, ValueError):
-        raise HTTPException(
-            status_code=400, detail="Review link is invalid or unavailable"
-        ) from None
-    return f"<!doctype html><html lang='en'><main><h1>Briefing {escape(status)}</h1></main></html>"
+        return HTMLResponse(INVALID_REVIEW_HTML, status_code=400)
+    return HTMLResponse(
+        f"<!doctype html><html lang='en'><main><h1>Briefing {escape(status)}</h1></main></html>"
+    )
 
 
 @app.get("/briefings")

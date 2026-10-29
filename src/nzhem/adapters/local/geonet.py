@@ -27,7 +27,7 @@ class GeoNetFdsnEventSource:
         common_parameters = {
             "format": "text",
             "updatedafter": updated_after.isoformat().replace("+00:00", "Z"),
-            "minmagnitude": "3.5",
+            "minmagnitude": "4.0",
             "minlatitude": "-50",
             "maxlatitude": "-25",
         }
@@ -78,6 +78,10 @@ class GeoNetFdsnEventSource:
                     "revision": updated_after.isoformat(),
                     "event_time": row["Time"],
                     "magnitude": float(row["Magnitude"]),
+                    "depth_km": float(row.get("Depth/km") or row["Depth"]),
+                    "latitude": float(row["Latitude"]),
+                    "longitude": float(row["Longitude"]),
+                    "event_name": row.get("EventLocationName", "New Zealand earthquake"),
                     "action": "upsert",
                 }
             )

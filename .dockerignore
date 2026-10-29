@@ -12,5 +12,9 @@
 **/.terraform/**
 **/vendor/duckdb_extensions/*.duckdb_extension
 dist
+frontend/node_modules
+frontend/dist
+frontend/playwright-report
+frontend/test-results
 tmp
 

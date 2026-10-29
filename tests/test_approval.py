@@ -112,6 +112,33 @@ def test_reject_does_not_publish(tmp_path: Path) -> None:
     assert not (tmp_path / "data/web" / entity["published_map_path"]).exists()
 
 
+def test_superseded_revision_invalidates_both_review_links(tmp_path: Path) -> None:
+    approval, tables, _ = service(tmp_path)
+    now = datetime(2026, 10, 26, tzinfo=UTC)
+    first = create_pending(approval, now)
+    tables.upsert_entity(
+        "briefings",
+        {
+            "PartitionKey": "briefing",
+            "RowKey": "briefing-3",
+            "briefing_id": "briefing-3",
+            "event_id": "event-1",
+            "revision": 3,
+            "status": "approved",
+            "created_at": now.isoformat(),
+        },
+    )
+
+    assert approval.supersede_older_revisions("event-1", keep_revision=3, now=now) == 1
+    entity = tables.get_entity("briefings", "briefing", "briefing-1")
+    assert entity["status"] == "superseded"
+    assert entity["superseded_by_revision"] == 3
+    with pytest.raises(ApprovalRejected, match="invalid or unavailable"):
+        approval.preview(first.approve_token, now)
+    with pytest.raises(ApprovalRejected, match="invalid or unavailable"):
+        approval.preview(first.reject_token, now)
+
+
 def test_http_get_only_previews_and_post_executes(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -139,3 +166,14 @@ def test_http_get_only_previews_and_post_executes(
     assert response.status_code == 200
     assert "Briefing approved" in response.text
     assert tables.get_entity("briefings", "briefing", "briefing-1")["status"] == "approved"
+
+    replay = client.get("/review-briefing", params={"token": pending.approve_token})
+    assert replay.status_code == 400
+    assert replay.headers["content-type"].startswith("text/html")
+    assert "Review link unavailable" in replay.text
+    assert "detail" not in replay.text
+
+    tampered = client.post("/review-briefing", params={"token": pending.approve_token + "x"})
+    assert tampered.status_code == 400
+    assert tampered.headers["content-type"].startswith("text/html")
+    assert "Review link unavailable" in tampered.text

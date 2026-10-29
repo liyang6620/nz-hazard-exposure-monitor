@@ -1,0 +1,30 @@
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+
+import { RegionExposureTable } from "./RegionExposureTable";
+
+describe("RegionExposureTable", () => {
+  it("omits regions whose building and population totals are both zero", () => {
+    render(
+      <RegionExposureTable
+        regions={[
+          {
+            region_code: "MBH",
+            region_name: "Marlborough Region",
+            buildings: 12,
+            population: 20,
+          },
+          {
+            region_code: "unknown",
+            region_name: "Unknown region",
+            buildings: 0,
+            population: 0,
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getByText("Marlborough Region")).toBeInTheDocument();
+    expect(screen.queryByText("Unknown region")).not.toBeInTheDocument();
+  });
+});

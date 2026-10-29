@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import duckdb
@@ -7,7 +8,7 @@ import duckdb
 from nzhem.adapters.local.briefing_tools import DuckDbBriefingTools
 
 
-def _write_fixture(root: Path) -> tuple[Path, Path]:
+def _write_fixture(root: Path) -> tuple[Path, Path, Path]:
     event_root = root / "events"
     reference_root = root / "reference"
     building_root = reference_root / "int_buildings_h3" / "region=01"
@@ -61,16 +62,26 @@ def _write_fixture(root: Path) -> tuple[Path, Path]:
     for table, path in outputs.items():
         connection.execute(f"copy {table} to '{path.as_posix()}' (format parquet)")
     connection.close()
-    return event_root, reference_root
+    site_root = root / "site"
+    generation_root = site_root / "data/generations/test/events/event-1"
+    generation_root.mkdir(parents=True)
+    (site_root / "data/manifest.json").write_text(
+        json.dumps({"base_path": "/data/generations/test"}), encoding="utf-8"
+    )
+    (generation_root / "summary.json").write_text(
+        json.dumps({"event_id": "event-1", "name": "Test event"}), encoding="utf-8"
+    )
+    return event_root, reference_root, site_root
 
 
 def test_duckdb_tools_return_event_exposure_comparison_and_context(tmp_path: Path) -> None:
-    event_root, reference_root = _write_fixture(tmp_path)
-    tools = DuckDbBriefingTools(event_root, reference_root)
+    event_root, reference_root, site_root = _write_fixture(tmp_path)
+    tools = DuckDbBriefingTools(event_root, reference_root, site_root=site_root)
     try:
         assert tools.get_event("event-1")["magnitude"] == 6.0
         assert tools.get_event("event-1")["origin_time_utc"].endswith("+00:00")
         assert tools.get_event("event-1")["origin_time_nzt"].endswith("+13:00")
+        assert tools.get_published_summary("event-1")["name"] == "Test event"
         exposure = tools.get_exposure_summary("event-1", 6.0)
         assert exposure[0]["buildings"] == 2
         assert exposure[0]["population_2023"] == 20.0

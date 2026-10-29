@@ -46,6 +46,7 @@ class Settings:
     environment: Literal["local", "azure"] = "local"
     data_root: Path = Path(".local/data")
     sqlite_path: Path = Path(".local/state/nzhem.sqlite3")
+    site_assets_root: Path | None = None
     poll_interval_minutes: int = 60
     queue_visibility_timeout_seconds: int = 30
     queue_max_dequeue_count: int = 3
@@ -95,6 +96,9 @@ class Settings:
             environment=environment,
             data_root=Path(os.getenv("NZHEM_DATA_ROOT", ".local/data")),
             sqlite_path=Path(os.getenv("NZHEM_SQLITE_PATH", ".local/state/nzhem.sqlite3")),
+            site_assets_root=(
+                Path(value) if (value := os.getenv("NZHEM_SITE_ASSETS_ROOT", "").strip()) else None
+            ),
             poll_interval_minutes=_positive_int("POLL_INTERVAL_MINUTES", 60),
             queue_visibility_timeout_seconds=_positive_int("QUEUE_VISIBILITY_TIMEOUT_SECONDS", 30),
             queue_max_dequeue_count=_positive_int("QUEUE_MAX_DEQUEUE_COUNT", 3),
