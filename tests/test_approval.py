@@ -129,9 +129,7 @@ def test_superseded_revision_invalidates_both_review_links(tmp_path: Path) -> No
         },
     )
 
-    assert approval.supersede_older_revisions(
-        "event-1", keep_revision=3, now=now
-    ) == 1
+    assert approval.supersede_older_revisions("event-1", keep_revision=3, now=now) == 1
     entity = tables.get_entity("briefings", "briefing", "briefing-1")
     assert entity["status"] == "superseded"
     assert entity["superseded_by_revision"] == 3

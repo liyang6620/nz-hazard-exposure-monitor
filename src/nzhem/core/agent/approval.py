@@ -204,9 +204,7 @@ class ApprovalService:
     def expire_pending(self, now: datetime) -> int:
         return expire_pending_briefings(self._tables, now)
 
-    def supersede_older_revisions(
-        self, event_id: str, *, keep_revision: int, now: datetime
-    ) -> int:
+    def supersede_older_revisions(self, event_id: str, *, keep_revision: int, now: datetime) -> int:
         count = 0
         for entity in self._tables.list_entities(self.TABLE, self.PARTITION):
             if (

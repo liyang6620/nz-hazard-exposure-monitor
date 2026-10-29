@@ -120,8 +120,7 @@ def test_deterministic_template_uses_only_published_summary() -> None:
     facts = build_briefing_facts(kaikoura_summary())
 
     assert facts["headline"] == (
-        "M7.8 Kaikōura, 14 Nov 2016 — 78,564 buildings in MMI 6+ shaking "
-        "(as-if-today)"
+        "M7.8 Kaikōura, 14 Nov 2016 — 78,564 buildings in MMI 6+ shaking (as-if-today)"
     )
     displays = {item["label"]: item["display"] for item in facts["key_figures"]}
     assert displays["Depth"] == "15.1 km"
@@ -148,8 +147,7 @@ def test_no_damage_headline_is_explicit() -> None:
         }
     )
     assert build_briefing_facts(summary)["headline"] == (
-        "M5.5 Taumarunui Deep, 15 Oct 2026 — No damaging shaking "
-        "(max MMI 2.8) (as-if-today)"
+        "M5.5 Taumarunui Deep, 15 Oct 2026 — No damaging shaking (max MMI 2.8) (as-if-today)"
     )
 
 
@@ -218,9 +216,7 @@ def test_draft_attaches_server_side_static_map_when_enabled() -> None:
 
     assert result.map_status == "attached"
     assert result.map_image == b"\x89PNG\r\n\x1a\nmap"
-    assert maps.calls == [
-        {"briefing_id": "briefing-1", "longitude": 173.022, "latitude": -42.693}
-    ]
+    assert maps.calls == [{"briefing_id": "briefing-1", "longitude": 173.022, "latitude": -42.693}]
 
 
 def test_static_map_failure_does_not_block_briefing() -> None:

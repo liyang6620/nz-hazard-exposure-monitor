@@ -80,8 +80,9 @@ jobs:
           python -c "import json; d=json.load(open('local-runs.json')); assert any(r['PartitionKey'] == 'housekeeping' and r['status'] == 'success' for r in d)"
           curl --fail --silent http://127.0.0.1:8080/ | grep 'NZ Hazard Exposure Monitor'
           curl --fail --silent http://127.0.0.1:8080/events/2016p858000 | grep 'NZ Hazard Exposure Monitor'
-          curl --fail --silent http://127.0.0.1:8080/data/manifest.json | grep 'generation_id'
-          curl --fail --silent http://127.0.0.1:8080/data/generations/20261025T230000000000Z/events.json | grep '2016p858000'
+          curl --fail --silent http://127.0.0.1:8080/data/manifest.json | tee site-manifest.json | grep 'generation_id'
+          events_path=$(python -c "import json; print(json.load(open('site-manifest.json'))['base_path'] + '/events.json')")
+          curl --fail --silent "http://127.0.0.1:8080${events_path}" | grep '2016p858000'
           curl --fail --silent http://127.0.0.1:8025/api/v1/info
       - if: always()
         run: docker compose down --volumes

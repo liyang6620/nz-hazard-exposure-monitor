@@ -86,15 +86,9 @@ def build_briefing_facts(summary: Mapping[str, Any]) -> dict[str, Any]:
 
     place = _event_place(str(summary["name"]))
     event_date, event_time = _event_time(str(summary["origin_time"]))
-    magnitude = Decimal(str(summary["magnitude"])).quantize(
-        Decimal("0.1"), rounding=ROUND_HALF_UP
-    )
-    depth = Decimal(str(summary["depth_km"])).quantize(
-        Decimal("0.1"), rounding=ROUND_HALF_UP
-    )
-    max_mmi = Decimal(str(summary["max_mmi"])).quantize(
-        Decimal("0.1"), rounding=ROUND_HALF_UP
-    )
+    magnitude = Decimal(str(summary["magnitude"])).quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
+    depth = Decimal(str(summary["depth_km"])).quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
+    max_mmi = Decimal(str(summary["max_mmi"])).quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
     buildings = int(summary["buildings_mmi_ge_6"])
     population = _whole_number(summary["population_mmi_ge_6"])
     regions = [
@@ -234,9 +228,7 @@ def validate_narrative_fidelity(
             if event_id and event_id in text:
                 invalid.add(f"{path}:event_id")
             allowed_text = set(
-                facts["allowed_situation"]
-                if section == "situation"
-                else facts["allowed_checks"]
+                facts["allowed_situation"] if section == "situation" else facts["allowed_checks"]
             )
             if text not in allowed_text:
                 invalid.add(f"{path}:unsupported_text")

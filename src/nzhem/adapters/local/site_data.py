@@ -108,8 +108,7 @@ class LocalSiteDataPublisher:
                 (
                     event["event_id"]
                     for event in merged_events
-                    if event["assessment_status"] == "ready"
-                    and not event["no_damaging_shaking"]
+                    if event["assessment_status"] == "ready" and not event["no_damaging_shaking"]
                 ),
                 latest_event_id,
             )
