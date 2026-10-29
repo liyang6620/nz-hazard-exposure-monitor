@@ -15,6 +15,8 @@ describe("HistoryComparisonChart", () => {
               name: "Kaikōura 2016",
               origin_time: "2016-11-13T11:02:56Z",
               magnitude: 7.8,
+              magnitude_type: "Mw",
+              magnitude_revision_time: "2016-11-13T12:00:00Z",
               depth_km: 15.1,
               latitude: -42.693,
               longitude: 173.022,

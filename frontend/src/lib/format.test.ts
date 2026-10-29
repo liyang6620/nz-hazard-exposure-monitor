@@ -4,6 +4,7 @@ import {
   displayEventName,
   formatDecimal,
   formatInteger,
+  formatMagnitudeRevision,
   formatNzDateTime,
   formatSourceVersion,
   statusMessage,
@@ -36,6 +37,15 @@ describe("New Zealand display formatting", () => {
     expect(
       formatSourceVersion("2025-09-22T21:53:33-reviewed", "reviewed"),
     ).toBe("Reviewed · 22 Sep 2025");
+  });
+
+  it("shows the GeoNet magnitude type and revision time", () => {
+    expect(formatMagnitudeRevision("M", "2026-10-15T05:53:42Z")).toBe(
+      "M · revised 15 Oct 2026, 18:53 NZDT",
+    );
+    expect(formatMagnitudeRevision(null, null)).toBe(
+      "Type unavailable · revision time unavailable",
+    );
   });
 
   it("uses the required pending and non-damaging wording", () => {

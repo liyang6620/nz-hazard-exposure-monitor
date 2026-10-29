@@ -23,6 +23,10 @@ def _sql_path(path: Path) -> str:
     return path.resolve().as_posix().replace("'", "''")
 
 
+def _published_mmi(value: float) -> float:
+    return round(float(value), 1)
+
+
 class LocalRealtimeEventAssessor:
     """Assess current GeoNet events against event-time buildings and 2023 population."""
 
@@ -346,12 +350,14 @@ class LocalRealtimeEventAssessor:
             "name": str(event.get("event_name") or "New Zealand earthquake"),
             "origin_time": origin.astimezone(UTC).isoformat(),
             "magnitude": float(event["magnitude"]),
+            "magnitude_type": event.get("magnitude_type"),
+            "magnitude_revision_time": event.get("magnitude_revision_time"),
             "depth_km": float(event["depth_km"]),
             "latitude": float(event["latitude"]),
             "longitude": float(event["longitude"]),
             "assessment_status": "ready",
             "assessment_reason": "Exposure assessment completed.",
-            "max_mmi": max_mmi,
+            "max_mmi": _published_mmi(max_mmi),
             "buildings_mmi_ge_6": int(buildings),
             "population_mmi_ge_6": float(population),
             "no_damaging_shaking": no_damage,
@@ -391,7 +397,7 @@ class LocalRealtimeEventAssessor:
                 "type": "Feature",
                 "properties": {
                     "h3_res6": str(row[0]),
-                    "mmi": float(row[1]),
+                    "mmi": _published_mmi(float(row[1])),
                     "mmi_band": "8+" if float(row[1]) >= 8 else str(int(float(row[1]))),
                     "mmi_source": source["mmi_source"],
                     "source_version": source["source_version"],

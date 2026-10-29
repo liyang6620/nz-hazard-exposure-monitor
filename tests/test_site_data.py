@@ -1,3 +1,4 @@
+from copy import deepcopy
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -122,6 +123,83 @@ def test_merges_recent_geonet_events_and_preserves_ready_results(tmp_path: Path)
     assert pending["buildings_mmi_ge_6"] is None
     assert pending["is_recent_monitoring"] is True
     assert merged[1]["is_historical_replay"] is False
+
+
+def test_latest_geonet_revision_updates_event_and_replay_magnitude(tmp_path: Path) -> None:
+    publisher, tables = _publisher(tmp_path)
+    summary = {
+        "event_id": "2026p776286",
+        "origin_time": "2026-10-15T05:25:34Z",
+        "magnitude": 5.5,
+        "magnitude_type": None,
+        "magnitude_revision_time": None,
+        "depth_km": 268.7,
+        "latitude": -38.623,
+        "longitude": 175.452,
+        "as_if_today": False,
+    }
+    payloads = {
+        "2026p776286": {
+            "summary": summary,
+            "features": {"type": "FeatureCollection", "features": []},
+        }
+    }
+    replay_payloads = {
+        "2026p776286": {
+            "summary": {**deepcopy(summary), "as_if_today": True},
+            "features": {"type": "FeatureCollection", "features": []},
+        }
+    }
+    tables.upsert_entity(
+        "eventsstate",
+        {
+            "PartitionKey": "recent",
+            "RowKey": "2026p776286",
+            "event_id": "2026p776286",
+            "event_time": "2026-10-15T05:25:34Z",
+            "magnitude": 5.65806,
+            "magnitude_type": "M",
+            "magnitude_revision_time": "2026-10-15T05:53:42Z",
+            "depth_km": 268.7,
+            "latitude": -38.623,
+            "longitude": 175.452,
+        },
+    )
+
+    merged = publisher._merge_recent_events(  # noqa: SLF001
+        payloads,
+        datetime(2026, 10, 30, tzinfo=UTC),
+        replay_payloads=replay_payloads,
+    )
+
+    assert merged[0]["magnitude"] == 5.65806
+    assert payloads["2026p776286"]["summary"]["magnitude"] == 5.65806
+    replay = replay_payloads["2026p776286"]["summary"]
+    assert replay["magnitude"] == 5.65806
+    assert replay["magnitude_type"] == "M"
+    assert replay["magnitude_revision_time"] == "2026-10-15T05:53:42Z"
+    assert replay["as_if_today"] is True
+
+
+def test_realtime_payload_rounds_all_published_mmi_values(tmp_path: Path) -> None:
+    publisher, _ = _publisher(tmp_path)
+    realtime = tmp_path / "realtime"
+    event_root = realtime / "event-1"
+    event_root.mkdir(parents=True)
+    (event_root / "summary.json").write_text(
+        '{"event_id":"event-1","max_mmi":1.6429645130874582}', encoding="utf-8"
+    )
+    (event_root / "exposure.geojson").write_text(
+        '{"type":"FeatureCollection","features":[{"type":"Feature",'
+        '"properties":{"mmi":5.678},"geometry":null}]}',
+        encoding="utf-8",
+    )
+    publisher._realtime_root = realtime  # noqa: SLF001
+
+    payload = publisher._realtime_payloads({})["event-1"]  # noqa: SLF001
+
+    assert payload["summary"]["max_mmi"] == 1.6
+    assert payload["features"]["features"][0]["properties"]["mmi"] == 5.7
 
 
 def test_only_approved_briefing_paths_are_published_and_generations_are_bounded(

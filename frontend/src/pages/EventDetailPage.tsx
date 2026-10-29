@@ -1,6 +1,6 @@
 import { ArrowLeft, Info, MapPin } from "lucide-react";
 import { lazy, Suspense, useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 
 import { useSiteData } from "../app/SiteDataContext";
 import { ErrorState, LoadingState } from "../components/AsyncState";
@@ -9,12 +9,18 @@ import { ExposureCharts } from "../components/ExposureCharts";
 import { MetricCard } from "../components/MetricCard";
 import { RegionExposureTable } from "../components/RegionExposureTable";
 import { StatusBadge } from "../components/StatusBadge";
-import { eventExposureUrl, loadEventSummary } from "../data/client";
+import {
+  eventExposureUrl,
+  loadEventSummary,
+  loadReplaySummary,
+  replayExposureUrl,
+} from "../data/client";
 import type { EventSummary } from "../data/types";
 import {
   displayEventName,
   formatDecimal,
   formatInteger,
+  formatMagnitudeRevision,
   formatNzDateTime,
   formatSourceVersion,
   statusMessage,
@@ -24,23 +30,27 @@ const EventMap = lazy(() => import("../map/EventMap"));
 
 export default function EventDetailPage() {
   const { eventId = "" } = useParams();
+  const [searchParams] = useSearchParams();
+  const isReplay = searchParams.get("view") === "replay";
+  const requestKey = `${eventId}:${isReplay ? "replay" : "event"}`;
   const { data, error: siteError, loading: siteLoading } = useSiteData();
   const [state, setState] = useState<{
-    eventId: string;
+    requestKey: string;
     event: EventSummary | null;
     error: string | null;
-  }>({ eventId: "", event: null, error: null });
+  }>({ requestKey: "", event: null, error: null });
 
   useEffect(() => {
     if (!data || !eventId) return;
     const controller = new AbortController();
-    loadEventSummary(data.manifest.base_path, eventId, controller.signal)
-      .then((event) => setState({ eventId, event, error: null }))
+    const loadSummary = isReplay ? loadReplaySummary : loadEventSummary;
+    loadSummary(data.manifest.base_path, eventId, controller.signal)
+      .then((event) => setState({ requestKey, event, error: null }))
       .catch((reason: unknown) => {
         if (reason instanceof DOMException && reason.name === "AbortError")
           return;
         setState({
-          eventId,
+          requestKey,
           event: null,
           error:
             reason instanceof Error
@@ -49,10 +59,10 @@ export default function EventDetailPage() {
         });
       });
     return () => controller.abort();
-  }, [data, eventId]);
+  }, [data, eventId, isReplay, requestKey]);
 
-  const event = state.eventId === eventId ? state.event : null;
-  const error = state.eventId === eventId ? state.error : null;
+  const event = state.requestKey === requestKey ? state.event : null;
+  const error = state.requestKey === requestKey ? state.error : null;
 
   if (siteLoading || (data && !event && !error))
     return (
@@ -140,7 +150,7 @@ export default function EventDetailPage() {
             >
               <EventMap
                 event={event}
-                exposureUrl={eventExposureUrl(
+                exposureUrl={(isReplay ? replayExposureUrl : eventExposureUrl)(
                   data.manifest.base_path,
                   event.event_id,
                 )}
@@ -235,6 +245,15 @@ export default function EventDetailPage() {
               : " Building exposure uses the event-time stock; population uses the 2023 Census allocation."}
           </p>
           <dl>
+            <div>
+              <dt>Magnitude revision</dt>
+              <dd>
+                {formatMagnitudeRevision(
+                  event.magnitude_type,
+                  event.magnitude_revision_time,
+                )}
+              </dd>
+            </div>
             <div>
               <dt>Shaking version</dt>
               <dd title={event.source_version ?? undefined}>

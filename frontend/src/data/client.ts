@@ -27,6 +27,21 @@ export async function loadEventSummary(
   );
 }
 
+export async function loadReplaySummary(
+  basePath: string,
+  eventId: string,
+  signal?: AbortSignal,
+): Promise<EventSummary> {
+  return readJson<EventSummary>(
+    `${basePath}/replays/${encodeURIComponent(eventId)}/summary.json`,
+    signal,
+  );
+}
+
 export function eventExposureUrl(basePath: string, eventId: string): string {
   return `${basePath}/events/${encodeURIComponent(eventId)}/exposure.geojson`;
+}
+
+export function replayExposureUrl(basePath: string, eventId: string): string {
+  return `${basePath}/replays/${encodeURIComponent(eventId)}/exposure.geojson`;
 }

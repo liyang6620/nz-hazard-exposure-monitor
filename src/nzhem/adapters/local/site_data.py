@@ -38,6 +38,10 @@ def _mmi_band(value: float) -> str:
     return str(int(value))
 
 
+def _published_mmi(value: float) -> float:
+    return round(float(value), 1)
+
+
 def _event_label(value: str) -> str:
     label = value.replace("_", " ").strip().title()
     official_names = {
@@ -96,8 +100,18 @@ class LocalSiteDataPublisher:
             )
             realtime_payloads = self._realtime_payloads(briefings)
             payloads = {**historical_payloads, **realtime_payloads}
-            merged_events = self._merge_recent_events(payloads, generated_at)
-            self._write_generation(connection, generation_root, merged_events, payloads)
+            merged_events = self._merge_recent_events(
+                payloads,
+                generated_at,
+                replay_payloads=historical_payloads,
+            )
+            self._write_generation(
+                connection,
+                generation_root,
+                merged_events,
+                payloads,
+                replay_payloads=historical_payloads,
+            )
         except Exception:
             shutil.rmtree(generation_root, ignore_errors=True)
             raise
@@ -151,13 +165,20 @@ class LocalSiteDataPublisher:
             if not summary_path.is_file() or not exposure_path.is_file():
                 continue
             summary = json.loads(summary_path.read_text(encoding="utf-8"))
+            if summary.get("max_mmi") is not None:
+                summary["max_mmi"] = _published_mmi(float(summary["max_mmi"]))
             event_id = str(summary["event_id"])
             summary["briefing"] = briefings.get(
                 event_id, {"status": "pending", "title": None, "public_path": None}
             )
+            features = json.loads(exposure_path.read_text(encoding="utf-8"))
+            for feature in features.get("features", []):
+                properties = feature.get("properties", {})
+                if properties.get("mmi") is not None:
+                    properties["mmi"] = _published_mmi(float(properties["mmi"]))
             payloads[event_id] = {
                 "summary": summary,
-                "features": json.loads(exposure_path.read_text(encoding="utf-8")),
+                "features": features,
             }
         return payloads
 
@@ -330,7 +351,7 @@ class LocalSiteDataPublisher:
                             "type": "Feature",
                             "properties": {
                                 "h3_res6": str(row["h3_res6"]),
-                                "mmi": float(row["mmi"]),
+                                "mmi": _published_mmi(float(row["mmi"])),
                                 "mmi_band": _mmi_band(float(row["mmi"])),
                                 "mmi_source": row["mmi_source"],
                                 "source_version": row["source_version"],
@@ -364,11 +385,13 @@ class LocalSiteDataPublisher:
                 "name": _event_label(str(event["event_name"])),
                 "origin_time": _json_value(event["origin_time"]),
                 "magnitude": float(event["magnitude"]),
+                "magnitude_type": None,
+                "magnitude_revision_time": None,
                 "depth_km": float(event["depth_km"]),
                 "latitude": float(event["latitude"]),
                 "longitude": float(event["longitude"]),
                 "assessment_status": "ready",
-                "max_mmi": float(event["max_mmi"] or 0),
+                "max_mmi": _published_mmi(float(event["max_mmi"] or 0)),
                 "buildings_mmi_ge_6": int(event["buildings_mmi_ge_6"] or 0),
                 "population_mmi_ge_6": float(event["population_mmi_ge_6"] or 0),
                 "no_damaging_shaking": no_damage,
@@ -397,6 +420,8 @@ class LocalSiteDataPublisher:
         self,
         payloads: dict[str, dict[str, Any]],
         generated_at: datetime,
+        *,
+        replay_payloads: dict[str, dict[str, Any]] | None = None,
     ) -> list[dict[str, Any]]:
         events = {event_id: dict(payload["summary"]) for event_id, payload in payloads.items()}
         cutoff = generated_at - timedelta(days=30)
@@ -417,23 +442,33 @@ class LocalSiteDataPublisher:
                 continue
             event_id = str(row["event_id"])
             if event_id in events:
+                revision = {
+                    "origin_time": event_time.astimezone(UTC).isoformat(),
+                    "magnitude": float(row["magnitude"]),
+                    "magnitude_type": row.get("magnitude_type"),
+                    "magnitude_revision_time": row.get("magnitude_revision_time"),
+                    "depth_km": float(row.get("depth_km", events[event_id]["depth_km"])),
+                    "latitude": float(row.get("latitude", events[event_id]["latitude"])),
+                    "longitude": float(row.get("longitude", events[event_id]["longitude"])),
+                }
                 events[event_id].update(
                     {
-                        "origin_time": event_time.astimezone(UTC).isoformat(),
-                        "magnitude": float(row["magnitude"]),
-                        "depth_km": float(row.get("depth_km", events[event_id]["depth_km"])),
-                        "latitude": float(row.get("latitude", events[event_id]["latitude"])),
-                        "longitude": float(row.get("longitude", events[event_id]["longitude"])),
+                        **revision,
                         "is_recent_monitoring": True,
                         "is_historical_replay": False,
                     }
                 )
+                payloads[event_id]["summary"].update(revision)
+                if replay_payloads is not None and event_id in replay_payloads:
+                    replay_payloads[event_id]["summary"].update(revision)
                 continue
             events[event_id] = {
                 "event_id": event_id,
                 "name": str(row.get("event_name") or "New Zealand earthquake"),
                 "origin_time": event_time.astimezone(UTC).isoformat(),
                 "magnitude": float(row["magnitude"]),
+                "magnitude_type": row.get("magnitude_type"),
+                "magnitude_revision_time": row.get("magnitude_revision_time"),
                 "depth_km": float(row.get("depth_km", 0)),
                 "latitude": float(row.get("latitude", 0)),
                 "longitude": float(row.get("longitude", 0)),
@@ -474,6 +509,8 @@ class LocalSiteDataPublisher:
         generation_root: Path,
         events: list[dict[str, Any]],
         payloads: dict[str, dict[str, Any]],
+        *,
+        replay_payloads: dict[str, dict[str, Any]],
     ) -> None:
         index_rows = [
             {key: value for key, value in event.items() if key not in {"mmi_bands", "regions"}}
@@ -486,6 +523,14 @@ class LocalSiteDataPublisher:
             if event_id in payloads:
                 summary = {
                     **payloads[event_id]["summary"],
+                    "magnitude": float(event["magnitude"]),
+                    "magnitude_type": event.get("magnitude_type"),
+                    "magnitude_revision_time": event.get("magnitude_revision_time"),
+                    "max_mmi": (
+                        _published_mmi(float(event["max_mmi"]))
+                        if event.get("max_mmi") is not None
+                        else None
+                    ),
                     "is_recent_monitoring": bool(event["is_recent_monitoring"]),
                     "is_historical_replay": bool(event["is_historical_replay"]),
                 }
@@ -497,6 +542,16 @@ class LocalSiteDataPublisher:
                     event_root / "exposure.geojson",
                     {"type": "FeatureCollection", "features": []},
                 )
+        for event_id, payload in replay_payloads.items():
+            replay_root = generation_root / "replays" / event_id
+            summary = {
+                **payload["summary"],
+                "max_mmi": _published_mmi(float(payload["summary"]["max_mmi"])),
+                "is_recent_monitoring": False,
+                "is_historical_replay": True,
+            }
+            self._write_json(replay_root / "summary.json", summary)
+            self._write_json(replay_root / "exposure.geojson", payload["features"])
         cells = _sql_path(self._reference_root / "dim_h3_cell.parquet")
         rows = connection.execute(
             f"select distinct h3_cell_to_boundary_wkt(h3_res6) from read_parquet('{cells}') "

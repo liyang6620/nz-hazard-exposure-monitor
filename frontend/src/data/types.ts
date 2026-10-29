@@ -34,6 +34,8 @@ export interface EventListItem {
   name: string;
   origin_time: string;
   magnitude: number;
+  magnitude_type: string | null;
+  magnitude_revision_time: string | null;
   depth_km: number;
   latitude: number;
   longitude: number;

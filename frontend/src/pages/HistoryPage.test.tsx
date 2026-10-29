@@ -7,11 +7,11 @@ import { FIXED_REPLAY_IDS } from "../data/history";
 import HistoryPage from "./HistoryPage";
 
 const useSiteData = vi.fn();
-const loadEventSummary = vi.fn();
+const loadReplaySummary = vi.fn();
 
 vi.mock("../app/SiteDataContext", () => ({ useSiteData: () => useSiteData() }));
 vi.mock("../data/client", () => ({
-  loadEventSummary: (...args: unknown[]) => loadEventSummary(...args),
+  loadReplaySummary: (...args: unknown[]) => loadReplaySummary(...args),
 }));
 vi.mock("../components/HistoryComparisonChart", () => ({
   HistoryComparisonChart: ({ events }: { events: EventSummary[] }) => (
@@ -38,6 +38,8 @@ function summary(eventId: string): EventSummary {
     name: isChristchurch ? "Christchurch Feb 2011" : `Replay ${eventId}`,
     origin_time: "2011-02-22T12:51:42+13:00",
     magnitude: 6.2,
+    magnitude_type: "Mw",
+    magnitude_revision_time: "2011-02-22T02:00:00Z",
     depth_km: 5.4,
     latitude: -43.582,
     longitude: 172.678,
@@ -74,7 +76,7 @@ describe("HistoryPage", () => {
       loading: false,
       reload: vi.fn(),
     });
-    loadEventSummary.mockImplementation((_basePath: string, eventId: string) =>
+    loadReplaySummary.mockImplementation((_basePath: string, eventId: string) =>
       Promise.resolve(summary(eventId)),
     );
   });
@@ -89,9 +91,12 @@ describe("HistoryPage", () => {
     await waitFor(() =>
       expect(screen.getByTestId("comparison")).toHaveTextContent("10 events"),
     );
-    expect(loadEventSummary).toHaveBeenCalledTimes(FIXED_REPLAY_IDS.length);
+    expect(loadReplaySummary).toHaveBeenCalledTimes(FIXED_REPLAY_IDS.length);
     expect(screen.getByText(/Christchurch, Feb 2011/)).toBeInTheDocument();
     expect(screen.getAllByRole("article")).toHaveLength(10);
+    expect(
+      screen.getAllByRole("link", { name: /Open .* replay/i })[0],
+    ).toHaveAttribute("href", expect.stringContaining("view=replay"));
     expect(
       screen.getByText(/today’s 3,219,311 mapped buildings/i),
     ).toBeInTheDocument();
