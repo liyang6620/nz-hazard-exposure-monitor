@@ -2,8 +2,8 @@ import type { EventListItem } from "../data/types";
 
 export function StatusBadge({ event }: { event: EventListItem }) {
   if (event.assessment_status !== "ready")
-    return <span className="badge pending">Assessment pending</span>;
+    return <span className="event-status pending">Assessment pending</span>;
   if (event.no_damaging_shaking)
-    return <span className="badge quiet">MMI below 6</span>;
-  return <span className="badge damaging">Damaging shaking</span>;
+    return <span className="event-status quiet">MMI below 6</span>;
+  return <span className="event-status damaging">Damaging shaking</span>;
 }

@@ -2,42 +2,79 @@ import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { SiteData } from "../data/types";
+import type { EventListItem, SiteData } from "../data/types";
 import HomePage from "./HomePage";
 
 const useSiteData = vi.fn();
 vi.mock("../app/SiteDataContext", () => ({ useSiteData: () => useSiteData() }));
 
+const baseEvent: EventListItem = {
+  event_id: "recent-event",
+  name: "20 km east of Tauranga",
+  origin_time: "2026-10-27T03:59:50Z",
+  magnitude: 4.2,
+  depth_km: 20,
+  latitude: -37.6,
+  longitude: 176.4,
+  assessment_status: "processing",
+  max_mmi: null,
+  buildings_mmi_ge_6: null,
+  population_mmi_ge_6: null,
+  no_damaging_shaking: false,
+  mmi_source: null,
+  source_kind: "preliminary",
+  source_version: null,
+  shaking_type: "preliminary",
+  event_time_status: "pending",
+  as_if_today: true,
+  is_recent_monitoring: true,
+  is_historical_replay: false,
+  most_affected_region: null,
+  map_summary: "Exposure assessment pending.",
+  briefing: { status: "pending", title: null, public_path: null },
+};
+
 const siteData: SiteData = {
   manifest: {
     schema_version: 1,
     generation_id: "test",
-    generated_at: "2026-10-25T23:00:00Z",
-    latest_event_id: "event-1",
+    generated_at: "2026-10-28T11:00:00Z",
+    latest_event_id: "recent-event",
+    featured_event_id: "replay-event",
     base_path: "/data/generations/test",
   },
   events: [
+    baseEvent,
     {
-      event_id: "event-1",
-      name: "Test earthquake",
-      origin_time: "2026-10-25T23:00:00Z",
-      magnitude: 5.5,
-      depth_km: 20,
-      latitude: -41,
-      longitude: 174,
+      ...baseEvent,
+      event_id: "replay-event",
+      name: "Kaikōura 2016",
+      origin_time: "2016-11-13T11:02:56Z",
+      magnitude: 7.8,
+      depth_km: 15.1,
+      latitude: -42.693,
+      longitude: 173.022,
       assessment_status: "ready",
-      max_mmi: 5.2,
-      buildings_mmi_ge_6: 0,
-      population_mmi_ge_6: 0,
-      no_damaging_shaking: true,
+      max_mmi: 8.4,
+      buildings_mmi_ge_6: 78564,
+      population_mmi_ge_6: 83276,
       mmi_source: "official",
       source_kind: "official",
-      source_version: "test",
+      source_version: "2025-09-22T21:53:33-reviewed",
       shaking_type: "reviewed",
-      event_time_status: "supported",
-      as_if_today: true,
-      map_summary: "No damaging shaking.",
-      briefing: { status: "pending", title: null, public_path: null },
+      event_time_status: "not_supported",
+      is_recent_monitoring: false,
+      is_historical_replay: true,
+      most_affected_region: "Marlborough Region",
+      map_summary: "Marlborough Region was most affected.",
+    },
+    {
+      ...baseEvent,
+      event_id: "old-event",
+      name: "Darfield 2010",
+      origin_time: "2010-09-03T16:35:41Z",
+      is_recent_monitoring: false,
+      is_historical_replay: true,
     },
   ],
 };
@@ -52,24 +89,26 @@ describe("HomePage", () => {
     }),
   );
 
-  it("explains the product and shows the latest event without an empty zero chart", () => {
+  it("separates the featured historical replay from current monitoring", () => {
     render(
       <MemoryRouter>
         <HomePage />
       </MemoryRouter>,
     );
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+      /M7\.8 Kaikōura/i,
+    );
     expect(
-      screen.getByRole("heading", { name: "NZ Hazard Exposure Monitor" }),
+      screen.getByText("Historical replay · as-if-today"),
     ).toBeInTheDocument();
+    expect(screen.getByText("Latest event")).toBeInTheDocument();
     expect(
-      screen.getByText(/within an hour of a New Zealand earthquake/i),
-    ).toBeInTheDocument();
-    expect(
-      screen.getAllByText("No damaging shaking (MMI < 6)").length,
+      screen.getAllByText("20 km east of Tauranga").length,
     ).toBeGreaterThan(0);
-    expect(
-      screen.getByRole("link", { name: /View exposure assessment/i }),
-    ).toHaveAttribute("href", "/events/event-1");
+    expect(screen.getByText("Latest")).toBeInTheDocument();
+    expect(screen.queryByText("Darfield 2010")).not.toBeInTheDocument();
+    expect(screen.queryByText(/No numbered steps/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/one-hour target view/i)).toBeInTheDocument();
   });
 
   it("renders a retryable error state", () => {

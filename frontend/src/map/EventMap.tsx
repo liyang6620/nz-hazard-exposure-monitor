@@ -32,6 +32,8 @@ export default function EventMap({ event, exposureUrl }: EventMapProps) {
         { default: WebTileLayer },
         { default: VectorTileLayer },
         { default: Basemap },
+        { default: GraphicsLayer },
+        { default: Graphic },
       ] = await Promise.all([
         import("@arcgis/core/Map.js"),
         import("@arcgis/core/views/MapView.js"),
@@ -39,6 +41,8 @@ export default function EventMap({ event, exposureUrl }: EventMapProps) {
         import("@arcgis/core/layers/WebTileLayer.js"),
         import("@arcgis/core/layers/VectorTileLayer.js"),
         import("@arcgis/core/Basemap.js"),
+        import("@arcgis/core/layers/GraphicsLayer.js"),
+        import("@arcgis/core/Graphic.js"),
       ]);
       if (cancelled || !mapElement.current) return;
 
@@ -68,10 +72,10 @@ export default function EventMap({ event, exposureUrl }: EventMapProps) {
           type: "class-breaks",
           field: "mmi",
           classBreakInfos: [
-            mapClass(5, 5.99, "#f5cc59", "MMI 5"),
-            mapClass(6, 6.99, "#ee8a3b", "MMI 6"),
-            mapClass(7, 7.99, "#d9583b", "MMI 7"),
-            mapClass(8, 20, "#8e2c45", "MMI 8+"),
+            mapClass(5, 5.99, "#fff200", "MMI 5"),
+            mapClass(6, 6.99, "#ffb300", "MMI 6"),
+            mapClass(7, 7.99, "#ff6800", "MMI 7"),
+            mapClass(8, 20, "#d7191c", "MMI 8+"),
           ],
         },
         popupTemplate: {
@@ -100,10 +104,31 @@ export default function EventMap({ event, exposureUrl }: EventMapProps) {
           ],
         },
       });
+      const epicentre = new GraphicsLayer({ title: "Earthquake epicentre" });
+      epicentre.add(
+        new Graphic({
+          geometry: {
+            type: "point",
+            longitude: event.longitude,
+            latitude: event.latitude,
+          },
+          symbol: {
+            type: "simple-marker",
+            style: "diamond",
+            size: 16,
+            color: "#171815",
+            outline: { color: "#f2eddf", width: 2 },
+          },
+          popupTemplate: {
+            title: `${event.name} epicentre`,
+            content: `M${event.magnitude.toFixed(1)} · ${event.depth_km.toFixed(1)} km depth`,
+          },
+        }),
+      );
 
       const map = new ArcGISMap({
         basemap: new Basemap({ baseLayers: [baseLayer] }),
-        layers: [exposure],
+        layers: [exposure, epicentre],
       });
       view = new MapView({
         container: mapElement.current,
@@ -161,7 +186,7 @@ export default function EventMap({ event, exposureUrl }: EventMapProps) {
         <span>
           {provider === "LINZ"
             ? "Basemap © Toitū Te Whenua LINZ, CC BY 4.0"
-            : "© OpenStreetMap contributors"}
+            : "LINZ browser key not configured · © OpenStreetMap contributors"}
         </span>
       </div>
     </div>

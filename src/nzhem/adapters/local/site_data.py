@@ -38,7 +38,15 @@ def _mmi_band(value: float) -> str:
 
 
 def _event_label(value: str) -> str:
-    return value.replace("_", " ").strip().title()
+    label = value.replace("_", " ").strip().title()
+    official_names = {
+        "Kaikoura": "Kaikōura",
+        "Eketahuna": "Eketāhuna",
+        "Hawkes Bay": "Hawke's Bay",
+    }
+    for plain, official in official_names.items():
+        label = label.replace(plain, official)
+    return label
 
 
 class LocalSiteDataPublisher:
@@ -91,12 +99,27 @@ class LocalSiteDataPublisher:
         finally:
             connection.close()
 
-        latest_event_id = merged_events[0]["event_id"] if merged_events else None
+        recent_events = [event for event in merged_events if event["is_recent_monitoring"]]
+        latest_event_id = recent_events[0]["event_id"] if recent_events else None
+        featured_event_id = (
+            "2016p858000"
+            if "2016p858000" in payloads
+            else next(
+                (
+                    event["event_id"]
+                    for event in merged_events
+                    if event["assessment_status"] == "ready"
+                    and not event["no_damaging_shaking"]
+                ),
+                latest_event_id,
+            )
+        )
         manifest = {
             "schema_version": 1,
             "generation_id": generation_id,
             "generated_at": generated_at.isoformat().replace("+00:00", "Z"),
             "latest_event_id": latest_event_id,
+            "featured_event_id": featured_event_id,
             "base_path": f"/data/generations/{generation_id}",
         }
         self._write_json(data_root / f"manifest-{generation_id}.json", manifest)
@@ -291,6 +314,7 @@ class LocalSiteDataPublisher:
                 "event_time_status": str(event["event_time_status"]),
                 "as_if_today": True,
                 "map_summary": map_summary,
+                "most_affected_region": top_region,
                 "mmi_bands": list(bands.values()),
                 "regions": region_rows,
                 "briefing": briefings.get(
@@ -311,6 +335,12 @@ class LocalSiteDataPublisher:
     ) -> list[dict[str, Any]]:
         events = {event_id: dict(payload["summary"]) for event_id, payload in payloads.items()}
         cutoff = generated_at - timedelta(days=30)
+        for event in events.values():
+            event_time = datetime.fromisoformat(
+                str(event["origin_time"]).replace("Z", "+00:00")
+            ).astimezone(UTC)
+            event["is_recent_monitoring"] = event_time >= cutoff
+            event["is_historical_replay"] = event_time < cutoff
         for row in self._tables.list_entities("eventsstate", "recent"):
             if float(row.get("magnitude", 0)) < 4:
                 continue
@@ -329,6 +359,8 @@ class LocalSiteDataPublisher:
                         "depth_km": float(row.get("depth_km", events[event_id]["depth_km"])),
                         "latitude": float(row.get("latitude", events[event_id]["latitude"])),
                         "longitude": float(row.get("longitude", events[event_id]["longitude"])),
+                        "is_recent_monitoring": True,
+                        "is_historical_replay": False,
                     }
                 )
                 continue
@@ -355,6 +387,8 @@ class LocalSiteDataPublisher:
                 "mmi_bands": [],
                 "regions": [],
                 "briefing": {"status": "pending", "title": None, "public_path": None},
+                "is_recent_monitoring": True,
+                "is_historical_replay": False,
             }
         return sorted(events.values(), key=lambda event: str(event["origin_time"]), reverse=True)
 
@@ -374,7 +408,12 @@ class LocalSiteDataPublisher:
             event_id = str(event["event_id"])
             event_root = generation_root / "events" / event_id
             if event_id in payloads:
-                self._write_json(event_root / "summary.json", payloads[event_id]["summary"])
+                summary = {
+                    **payloads[event_id]["summary"],
+                    "is_recent_monitoring": bool(event["is_recent_monitoring"]),
+                    "is_historical_replay": bool(event["is_historical_replay"]),
+                }
+                self._write_json(event_root / "summary.json", summary)
                 self._write_json(event_root / "exposure.geojson", payloads[event_id]["features"])
             else:
                 self._write_json(event_root / "summary.json", event)

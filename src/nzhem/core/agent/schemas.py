@@ -40,56 +40,49 @@ TOOL_SCHEMAS = {
     },
 }
 
-KEY_FIGURE_SCHEMA = {
+BRIEFING_METRICS = (
+    "magnitude",
+    "depth_km",
+    "max_mmi",
+    "buildings_mmi_ge_6",
+    "population_mmi_ge_6",
+    "top_region_buildings_mmi_ge_6",
+    "top_region_population_mmi_ge_6",
+)
+
+NARRATIVE_ITEM_SCHEMA = {
     "type": "object",
     "properties": {
-        "label": {"type": "string"},
-        "value": {"type": "number"},
-        "unit": {"type": "string"},
-        "source_tool": {"type": "string", "enum": list(TOOL_SCHEMAS)},
-        "source_field": {"type": "string"},
+        "text": {"type": "string"},
+        "metric_refs": {
+            "type": "array",
+            "items": {"type": "string", "enum": list(BRIEFING_METRICS)},
+        },
+        "region_refs": {
+            "type": "array",
+            "items": {"type": "string"},
+        },
     },
-    "required": ["label", "value", "unit", "source_tool", "source_field"],
+    "required": ["text", "metric_refs", "region_refs"],
     "additionalProperties": False,
 }
 
 BRIEFING_OUTPUT_SCHEMA = {
     "type": "object",
     "properties": {
-        "headline": {"type": "string"},
-        "key_figures": {
+        "situation": {
             "type": "array",
-            "items": KEY_FIGURE_SCHEMA,
-            "minItems": 3,
-            "maxItems": 5,
-        },
-        "regions_most_affected": {
-            "type": "array",
-            "items": {"type": "string"},
-            "maxItems": 3,
-        },
-        "then_vs_now": {"type": "string"},
-        "limitations": {
-            "type": "array",
-            "items": {"type": "string", "enum": list(LIMITATIONS)},
-            "minItems": 3,
-            "maxItems": 3,
+            "items": NARRATIVE_ITEM_SCHEMA,
+            "minItems": 2,
+            "maxItems": 4,
         },
         "recommended_checks": {
             "type": "array",
-            "items": {"type": "string"},
+            "items": NARRATIVE_ITEM_SCHEMA,
+            "minItems": 1,
             "maxItems": 3,
         },
-        "generated_at": {"type": "string", "format": "date-time"},
     },
-    "required": [
-        "headline",
-        "key_figures",
-        "regions_most_affected",
-        "then_vs_now",
-        "limitations",
-        "recommended_checks",
-        "generated_at",
-    ],
+    "required": ["situation", "recommended_checks"],
     "additionalProperties": False,
 }

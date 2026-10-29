@@ -1,12 +1,11 @@
-import { ArrowRight, Database, ShieldCheck, TimerReset } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { ErrorState, LoadingState } from "../components/AsyncState";
 import { LatestEventPanel } from "../components/LatestEventPanel";
-import { ProcessFlow } from "../components/ProcessFlow";
+import { EventWaveform } from "../components/EventWaveform";
 import { RecentEventsTable } from "../components/RecentEventsTable";
 import { useSiteData } from "../app/SiteDataContext";
-import { formatNzDateTime } from "../lib/format";
+import { formatDecimal, formatInteger, formatNzDateTime } from "../lib/format";
 
 export default function HomePage() {
   const { data, error, loading, reload } = useSiteData();
@@ -26,95 +25,101 @@ export default function HomePage() {
       </div>
     );
 
-  const latest =
+  const latest = data.events.find(
+    (event) => event.event_id === data.manifest.latest_event_id,
+  );
+  const featured =
     data.events.find(
-      (event) => event.event_id === data.manifest.latest_event_id,
-    ) ?? data.events[0];
+      (event) => event.event_id === data.manifest.featured_event_id,
+    ) ?? data.events.find((event) => !event.no_damaging_shaking);
+  const recentEvents = data.events.filter(
+    (event) => event.is_recent_monitoring,
+  );
   return (
     <>
-      <section className="home-intro">
-        <div className="page-container intro-grid">
-          <div className="intro-copy">
-            <span className="eyebrow">Earthquake exposure intelligence</span>
-            <h1>NZ Hazard Exposure Monitor</h1>
-            <p className="lede">
-              See how many buildings and people are exposed to damaging shaking
-              within an hour of a New Zealand earthquake.
-            </p>
-            <div className="audience-note">
-              <ShieldCheck size={19} aria-hidden="true" />
-              <span>Built for catastrophe and exposure analysts</span>
+      <section className="home-hero">
+        <div className="page-container home-hero-grid">
+          {featured ? (
+            <div className="featured-replay">
+              <p className="replay-label">Historical replay · as-if-today</p>
+              <h1>
+                M{formatDecimal(featured.magnitude)}{" "}
+                {featured.name.replace(/\s+2016$/, "")} —{" "}
+                <span>
+                  {formatInteger(featured.buildings_mmi_ge_6)} buildings
+                </span>{" "}
+                in damaging shaking
+              </h1>
+              <p className="hero-summary">
+                A one-hour target view of how many buildings and people are
+                exposed to damaging shaking after a New Zealand earthquake. This
+                replay uses today’s building stock and 2023 population.
+              </p>
+              <EventWaveform />
             </div>
-          </div>
-          <div
-            className="operational-strip"
-            aria-label="Service characteristics"
-          >
-            <div>
-              <TimerReset size={19} />
-              <strong>Within one hour</strong>
-              <span>Target assessment window</span>
+          ) : (
+            <div className="featured-replay">
+              <h1>NZ Hazard Exposure Monitor</h1>
+              <p className="hero-summary">
+                Buildings and people exposed to damaging New Zealand earthquake
+                shaking.
+              </p>
             </div>
-            <div>
-              <Database size={19} />
-              <strong>Evidence linked</strong>
-              <span>GeoNet, LINZ and Stats NZ</span>
-            </div>
-          </div>
+          )}
+          {latest ? (
+            <LatestEventPanel event={latest} />
+          ) : (
+            <aside className="latest-event state-panel">
+              No GeoNet M4.0+ events were recorded in the past 30 days.
+            </aside>
+          )}
         </div>
       </section>
-      <div className="page-container home-content">
-        {latest ? (
-          <LatestEventPanel event={latest} />
-        ) : (
-          <div className="state-panel">
-            No recent earthquakes are available.
+      {featured ? (
+        <div
+          className="page-container replay-metrics"
+          aria-label="Featured replay summary"
+        >
+          <div>
+            <strong>{formatInteger(featured.population_mmi_ge_6)}</strong>
+            <span>people at MMI 6+</span>
           </div>
-        )}
+          <div>
+            <strong>{formatDecimal(featured.max_mmi)}</strong>
+            <span>maximum populated MMI</span>
+          </div>
+          <div>
+            <strong>
+              {featured.most_affected_region ?? "Marlborough Region"}
+            </strong>
+            <span>most affected region</span>
+          </div>
+        </div>
+      ) : null}
+      <div className="page-container home-content">
         <section className="content-section" aria-labelledby="recent-heading">
           <div className="section-heading">
-            <div>
-              <span className="eyebrow">Monitored events</span>
-              <h2 id="recent-heading">Recent earthquakes</h2>
-            </div>
+            <h2 id="recent-heading">Latest monitored events</h2>
             <span className="updated">
               Data generated {formatNzDateTime(data.manifest.generated_at)}
             </span>
           </div>
-          {data.events.length ? (
-            <RecentEventsTable events={data.events.slice(0, 8)} />
+          {recentEvents.length ? (
+            <RecentEventsTable events={recentEvents.slice(0, 8)} />
           ) : (
             <div className="state-panel">
-              No M4.0+ earthquakes were returned by GeoNet.
+              No GeoNet M4.0+ events were recorded in the past 30 days.
             </div>
           )}
         </section>
-        <section
-          className="content-section how-it-works"
-          aria-labelledby="process-heading"
-        >
-          <div className="section-heading">
-            <div>
-              <span className="eyebrow">From event to decision</span>
-              <h2 id="process-heading">How it works</h2>
-            </div>
-          </div>
-          <ProcessFlow />
-        </section>
-        {latest ? (
-          <aside className="analysis-cta">
-            <div>
-              <span className="eyebrow">Latest assessment</span>
-              <h2>Inspect the exposure footprint</h2>
-              <p>
-                Review intensity cells, exposure bands, regional totals and the
-                analyst-approved briefing.
-              </p>
-            </div>
-            <Link className="button light" to={`/events/${latest.event_id}`}>
-              Open event detail <ArrowRight size={17} />
+        {featured ? (
+          <p className="history-link">
+            Explore the{" "}
+            <Link to={`/events/${featured.event_id}`}>
+              Kaikōura exposure record
             </Link>
-          </aside>
+            ; the full historical replay catalogue follows in PR 2.
+          </p>
         ) : null}
       </div>
     </>

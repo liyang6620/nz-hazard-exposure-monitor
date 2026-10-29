@@ -10,7 +10,10 @@ const dateTime = new Intl.DateTimeFormat("en-NZ", {
 });
 
 const integer = new Intl.NumberFormat("en-NZ", { maximumFractionDigits: 0 });
-const decimal = new Intl.NumberFormat("en-NZ", { maximumFractionDigits: 1 });
+const decimal = new Intl.NumberFormat("en-NZ", {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+});
 
 export function formatNzDateTime(value: string): string {
   return dateTime.format(new Date(value)).replace("24:", "00:");
@@ -22,6 +25,33 @@ export function formatInteger(value: number | null): string {
 
 export function formatDecimal(value: number | null): string {
   return value === null ? "Pending" : decimal.format(value);
+}
+
+const versionMonths = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
+export function formatSourceVersion(
+  version: string | null,
+  shakingType: string,
+): string {
+  if (!version) return "Pending";
+  const match = version.match(/^(\d{4}-\d{2}-\d{2})(?:T[^-]+)?-(\w+)$/);
+  const label = shakingType === "reviewed" ? "Reviewed" : "Automatic";
+  if (!match) return label;
+  const [year, month, day] = match[1].split("-").map(Number);
+  return `${label} · ${day} ${versionMonths[month - 1]} ${year}`;
 }
 
 export function statusMessage(event: {

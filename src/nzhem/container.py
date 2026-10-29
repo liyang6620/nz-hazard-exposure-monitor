@@ -161,6 +161,7 @@ def _build_local_container(settings: Settings) -> ServiceContainer:
         DuckDbBriefingTools(
             event_root,
             reference_generations[-1],
+            site_root=settings.data_root / "web",
             memory_limit_mb=settings.duckdb_memory_limit_mb,
         )
         if (event_root / "dim_event.parquet").is_file() and reference_generations

@@ -1,6 +1,11 @@
 import pytest
 
-from nzhem.core.agent.limits import BriefingLimitExceeded, BriefingUsage, enforce_limits
+from nzhem.core.agent.limits import (
+    BriefingLimitExceeded,
+    BriefingUsage,
+    enforce_limits,
+    monthly_event_usage,
+)
 
 
 def test_usage_below_limits_is_allowed() -> None:
@@ -28,3 +33,13 @@ def test_hard_limits_reject_calls(usage: BriefingUsage, message: str) -> None:
             total_token_limit=12000,
             max_output_tokens=1200,
         )
+
+
+def test_revision_does_not_consume_another_monthly_event_slot() -> None:
+    rows = [
+        {"event_id": f"event-{index}", "created_at": "2026-10-28T00:00:00+00:00"}
+        for index in range(10)
+    ]
+
+    assert monthly_event_usage(rows, "event-0", "2026-10") == 9
+    assert monthly_event_usage(rows, "new-event", "2026-10") == 10

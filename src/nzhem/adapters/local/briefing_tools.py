@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from datetime import UTC, date, datetime
 from decimal import Decimal
 from pathlib import Path
@@ -29,6 +30,7 @@ class DuckDbBriefingTools:
         event_root: Path,
         reference_root: Path,
         *,
+        site_root: Path | None = None,
         memory_limit_mb: int = 512,
     ) -> None:
         self._connection = duckdb.connect()
@@ -36,6 +38,7 @@ class DuckDbBriefingTools:
         self._connection.execute("set threads = 1")
         self._event_root = event_root.resolve()
         self._reference_root = reference_root.resolve()
+        self._site_root = site_root.resolve() if site_root is not None else None
         self._create_views()
         self._events: dict[str, dict[str, Any]] = {}
         for row in self._rows(
@@ -148,6 +151,18 @@ class DuckDbBriefingTools:
         if event_id not in self._events:
             raise KeyError(f"Unknown event: {event_id}")
         return dict(self._events[event_id])
+
+    def get_published_summary(self, event_id: str) -> dict[str, Any]:
+        if self._site_root is None:
+            raise RuntimeError("Published site data root is required for briefing generation")
+        manifest_path = self._site_root / "data" / "manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        base_path = str(manifest["base_path"]).lstrip("/")
+        summary_path = self._site_root / base_path / "events" / event_id / "summary.json"
+        summary = json.loads(summary_path.read_text(encoding="utf-8"))
+        if str(summary.get("event_id")) != event_id:
+            raise ValueError("Published event summary does not match the requested event")
+        return summary
 
     def get_exposure_summary(self, event_id: str, mmi_threshold: float) -> list[dict[str, Any]]:
         grouped: dict[tuple[str, str], dict[str, Any]] = {}

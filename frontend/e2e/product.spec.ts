@@ -22,15 +22,17 @@ test("home communicates the product and shows recent exposure data", async ({
   page,
 }) => {
   await expect(
-    page.getByRole("heading", { name: "NZ Hazard Exposure Monitor" }),
+    page.getByRole("heading", {
+      name: /M7\.8 Kaikōura.*78,564 buildings in damaging shaking/i,
+    }),
   ).toBeVisible();
+  await expect(page.getByText("Historical replay · as-if-today")).toBeVisible();
   await expect(
-    page.getByText(/within an hour of a New Zealand earthquake/i),
+    page.getByRole("heading", { name: "Latest monitored events" }),
   ).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "Recent earthquakes" }),
-  ).toBeVisible();
+  await expect(page.getByText("Latest event")).toBeVisible();
   await expect(page.getByRole("table")).toBeVisible();
+  await expect(page.getByRole("table")).not.toContainText("Darfield 2010");
 });
 
 test("earthquake detail displays the map alternative, chart and regional table", async ({
@@ -48,7 +50,13 @@ test("earthquake detail displays the map alternative, chart and regional table",
     page.getByText(/Official shaking layer|Preliminary estimate/).first(),
   ).toBeVisible();
   await expect(
-    page.getByText(/Pending approval|Approved event briefing/).first(),
+    page.getByRole("heading", { name: "Approved event briefing" }),
+  ).toBeVisible();
+  const briefing = page.frameLocator('iframe[title="Approved event briefing"]');
+  await expect(
+    briefing.getByRole("heading", {
+      name: /M7\.8 Kaikōura.*78,564 buildings in MMI 6\+ shaking/i,
+    }),
   ).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Exposure by MMI band" }),
@@ -71,9 +79,19 @@ test("mobile navigation and primary content remain usable", async ({
   await expect(menu).toBeVisible();
   await menu.click();
   await expect(
-    page.getByRole("navigation").getByRole("link", { name: "Overview" }),
+    page.getByRole("navigation").getByRole("link", { name: "Latest" }),
   ).toBeVisible();
   await expect(
     page.getByRole("link", { name: /View exposure assessment/i }),
   ).toBeVisible();
+
+  await page.goto("/events/2016p858000");
+  await page.waitForLoadState("networkidle");
+  const metrics = page.locator(".event-metrics");
+  await expect(metrics).toHaveCSS("grid-template-columns", /.+ .+/);
+  const first = metrics.locator(".metric-card").first();
+  const third = metrics.locator(".metric-card").nth(2);
+  expect((await third.boundingBox())?.y).toBeGreaterThan(
+    (await first.boundingBox())?.y ?? 0,
+  );
 });

@@ -152,7 +152,12 @@ def run_evaluation(
 ) -> dict[str, Any]:
     if len(EVENT_IDS) > 10:
         raise RuntimeError("M6 monthly briefing limit exceeded")
-    tools = DuckDbBriefingTools(event_root, reference_root, memory_limit_mb=512)
+    tools = DuckDbBriefingTools(
+        event_root,
+        reference_root,
+        site_root=ROOT / "frontend" / "public",
+        memory_limit_mb=512,
+    )
     raw_client = OpenAILlmClient(
         MappingSecretStore({"OPENAI_API_KEY": api_key}),
         api_key_name="OPENAI_API_KEY",

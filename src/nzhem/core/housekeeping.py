@@ -27,7 +27,7 @@ class HousekeepingService:
         tables: TableStore,
         queues: QueueStore,
         event_source: EventSource,
-        default_lookback: timedelta = timedelta(hours=48),
+        default_lookback: timedelta = timedelta(days=30),
     ) -> None:
         self._clock = clock
         self._runlog = RunLog(tables)

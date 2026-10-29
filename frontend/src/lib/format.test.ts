@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { formatInteger, formatNzDateTime, statusMessage } from "./format";
+import {
+  formatDecimal,
+  formatInteger,
+  formatNzDateTime,
+  formatSourceVersion,
+  statusMessage,
+} from "./format";
 
 describe("New Zealand display formatting", () => {
   it("displays dates in Pacific/Auckland with the local time-zone abbreviation", () => {
@@ -15,6 +21,14 @@ describe("New Zealand display formatting", () => {
   it("formats exposure counts and pending values", () => {
     expect(formatInteger(78564)).toBe("78,564");
     expect(formatInteger(null)).toBe("Pending");
+    expect(formatDecimal(6)).toBe("6.0");
+    expect(formatDecimal(8.04)).toBe("8.0");
+  });
+
+  it("turns shaking versions into a readable label", () => {
+    expect(
+      formatSourceVersion("2025-09-22T21:53:33-reviewed", "reviewed"),
+    ).toBe("Reviewed · 22 Sep 2025");
   });
 
   it("uses the required pending and non-damaging wording", () => {

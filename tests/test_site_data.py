@@ -27,7 +27,8 @@ def test_mmi_bands_and_event_labels_are_stable() -> None:
         "7",
         "8+",
     ]
-    assert _event_label("kaikoura_2016") == "Kaikoura 2016"
+    assert _event_label("kaikoura_2016") == "Kaikōura 2016"
+    assert _event_label("eketahuna_2014") == "Eketāhuna 2014"
 
 
 def test_builds_summary_map_alternative_and_regional_exposure(tmp_path: Path) -> None:
@@ -70,6 +71,7 @@ def test_builds_summary_map_alternative_and_regional_exposure(tmp_path: Path) ->
     summary = payload["summary"]
     assert summary["name"] == "Test Event"
     assert summary["regions"][0]["buildings"] == 12
+    assert summary["most_affected_region"] == "Wellington Region"
     assert sum(row["buildings"] for row in summary["regions"]) == summary["buildings_mmi_ge_6"]
     assert "Wellington Region was most affected" in summary["map_summary"]
     assert "12 buildings and 21 people" in summary["map_summary"]
@@ -117,6 +119,8 @@ def test_merges_recent_geonet_events_and_preserves_ready_results(tmp_path: Path)
     assert pending["assessment_status"] == "processing"
     assert pending["map_summary"] == "Exposure assessment pending."
     assert pending["buildings_mmi_ge_6"] is None
+    assert pending["is_recent_monitoring"] is True
+    assert merged[1]["is_historical_replay"] is False
 
 
 def test_only_approved_briefing_paths_are_published_and_generations_are_bounded(

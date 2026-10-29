@@ -2,12 +2,7 @@ import { ArrowUpRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import type { EventListItem } from "../data/types";
-import {
-  formatDecimal,
-  formatInteger,
-  formatNzDateTime,
-  statusMessage,
-} from "../lib/format";
+import { formatDecimal, formatInteger, formatNzDateTime } from "../lib/format";
 import { StatusBadge } from "./StatusBadge";
 
 export function RecentEventsTable({ events }: { events: EventListItem[] }) {
@@ -31,9 +26,15 @@ export function RecentEventsTable({ events }: { events: EventListItem[] }) {
           </tr>
         </thead>
         <tbody>
-          {events.map((event) => (
-            <tr key={event.event_id}>
+          {events.map((event, index) => (
+            <tr
+              className={index === 0 ? "latest-row" : undefined}
+              key={event.event_id}
+            >
               <th scope="row">
+                {index === 0 ? (
+                  <span className="latest-marker">Latest</span>
+                ) : null}
                 <Link to={`/events/${event.event_id}`}>{event.name}</Link>
               </th>
               <td>{formatNzDateTime(event.origin_time)}</td>
@@ -43,10 +44,7 @@ export function RecentEventsTable({ events }: { events: EventListItem[] }) {
                   ? formatDecimal(event.max_mmi)
                   : "Pending"}
               </td>
-              <td>
-                {statusMessage(event) ??
-                  formatInteger(event.buildings_mmi_ge_6)}
-              </td>
+              <td>{formatInteger(event.buildings_mmi_ge_6)}</td>
               <td>
                 <StatusBadge event={event} />
               </td>

@@ -5,6 +5,7 @@ export interface Manifest {
   generation_id: string;
   generated_at: string;
   latest_event_id: string | null;
+  featured_event_id: string | null;
   base_path: string;
 }
 
@@ -33,6 +34,9 @@ export interface EventListItem {
   shaking_type: string;
   event_time_status: string;
   as_if_today: boolean;
+  is_recent_monitoring: boolean;
+  is_historical_replay: boolean;
+  most_affected_region?: string | null;
   map_summary: string;
   briefing: BriefingState;
 }

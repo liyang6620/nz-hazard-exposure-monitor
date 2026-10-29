@@ -49,6 +49,11 @@ evidence/              sanitized milestone evidence
 
 ## Run the local deployment
 
+The event map uses LINZ Basemaps when a public browser key is configured and falls
+back to OpenStreetMap otherwise. See [docs/linz-basemaps.md](docs/linz-basemaps.md)
+for the key type and setup steps; never use the server-only ArcGIS or OpenAI keys in
+the browser.
+
 Requirements: Docker Desktop with Docker Compose v2. No Microsoft account is
 needed.
 

@@ -1,11 +1,19 @@
-import { Activity, GitBranch, Menu, X } from "lucide-react";
+import { GitBranch, Menu, X } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { Link, NavLink } from "react-router-dom";
 
+import { EarthquakeTicker } from "../components/EarthquakeTicker";
+import { useSiteData } from "./SiteDataContext";
+
 export function AppShell({ children }: { children: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { data } = useSiteData();
+  const recentEvents =
+    data?.events.filter((event) => event.is_recent_monitoring).slice(0, 8) ??
+    [];
   return (
     <div className="app-shell">
+      <EarthquakeTicker events={recentEvents} />
       <header className="site-header">
         <div className="header-inner">
           <Link
@@ -13,12 +21,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             to="/"
             aria-label="NZ Hazard Exposure Monitor home"
           >
-            <span className="brand-mark" aria-hidden="true">
-              <Activity size={20} />
-            </span>
             <span>
-              <strong>NZ Hazard</strong>
-              <small>Exposure Monitor</small>
+              <strong>NZ Hazard Exposure Monitor</strong>
+              <small>Earthquake exposure record</small>
             </span>
           </Link>
           <button
@@ -35,7 +40,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             aria-label="Primary navigation"
           >
             <NavLink to="/" onClick={() => setMenuOpen(false)}>
-              Overview
+              Latest
             </NavLink>
           </nav>
         </div>
@@ -45,7 +50,10 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="footer-inner">
           <div>
             <strong>NZ Hazard Exposure Monitor</strong>
-            <p>Decision support for earthquake exposure analysis.</p>
+            <p>
+              Buildings and population exposed to New Zealand earthquake
+              shaking.
+            </p>
           </div>
           <a
             href="https://github.com/liyang6620/nz-hazard-exposure-monitor"

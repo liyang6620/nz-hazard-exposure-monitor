@@ -6,7 +6,10 @@ export function RegionExposureTable({
 }: {
   regions: RegionExposure[];
 }) {
-  if (!regions.length)
+  const visibleRegions = regions.filter(
+    (region) => region.buildings > 0 || region.population > 0,
+  );
+  if (!visibleRegions.length)
     return (
       <div className="state-panel">
         No regions experienced populated shaking at MMI 6 or above.
@@ -27,8 +30,11 @@ export function RegionExposureTable({
           </tr>
         </thead>
         <tbody>
-          {regions.map((region) => {
-            const total = regions.reduce((sum, row) => sum + row.buildings, 0);
+          {visibleRegions.map((region) => {
+            const total = visibleRegions.reduce(
+              (sum, row) => sum + row.buildings,
+              0,
+            );
             const share = total ? (region.buildings / total) * 100 : 0;
             return (
               <tr key={region.region_code}>

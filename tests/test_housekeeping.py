@@ -26,7 +26,7 @@ class RecordingSource:
         return self.events
 
 
-def test_first_run_uses_48_hour_catchup_and_records_success(tmp_path: Path) -> None:
+def test_first_run_uses_30_day_catchup_and_records_success(tmp_path: Path) -> None:
     now = datetime(2026, 10, 23, 12, tzinfo=UTC)
     source = RecordingSource([{"event_id": "event-1", "action": "upsert"}])
     tables = SqliteTableStore(tmp_path / "state.db")
@@ -37,7 +37,7 @@ def test_first_run_uses_48_hour_catchup_and_records_success(tmp_path: Path) -> N
 
     result = service.run()
 
-    assert source.updated_after == now - timedelta(hours=48)
+    assert source.updated_after == now - timedelta(days=30)
     assert result.events_enqueued == 1
     assert tables.get_entity("runs", "housekeeping", result.run_id)["status"] == "success"
     assert queues.receive("events").payload["event_id"] == "event-1"

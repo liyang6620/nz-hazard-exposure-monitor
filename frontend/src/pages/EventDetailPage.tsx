@@ -1,4 +1,4 @@
-import { ArrowLeft, Building2, Gauge, Info, MapPin, Users } from "lucide-react";
+import { ArrowLeft, Info, MapPin } from "lucide-react";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
@@ -14,6 +14,7 @@ import {
   formatDecimal,
   formatInteger,
   formatNzDateTime,
+  formatSourceVersion,
   statusMessage,
 } from "../lib/format";
 
@@ -75,13 +76,26 @@ export default function EventDetailPage() {
           </Link>
           <div className="event-title-row">
             <div>
-              <span className="eyebrow">Earthquake exposure assessment</span>
-              <h1>{event.name}</h1>
+              {event.is_historical_replay ? (
+                <p className="replay-label">Historical replay · as-if-today</p>
+              ) : null}
+              <div className="event-name-line">
+                <h1>{event.name}</h1>
+                {event.as_if_today ? (
+                  <span className="as-if-note">As-if-today</span>
+                ) : null}
+              </div>
               <p>
                 <MapPin size={16} />
                 {event.latitude.toFixed(3)}, {event.longitude.toFixed(3)} ·{" "}
                 {formatNzDateTime(event.origin_time)}
               </p>
+              {event.as_if_today ? (
+                <p className="as-if-explanation">
+                  Exposure is recalculated using today’s building stock and 2023
+                  population, not the assets present on the event date.
+                </p>
+              ) : null}
             </div>
             <StatusBadge event={event} />
           </div>
@@ -90,23 +104,19 @@ export default function EventDetailPage() {
               label="Magnitude"
               value={formatDecimal(event.magnitude)}
               detail={`${formatDecimal(event.depth_km)} km deep`}
-              icon={<Gauge size={17} />}
             />
             <MetricCard
               label="Maximum MMI"
               value={formatDecimal(event.max_mmi)}
               detail="Highest populated intensity"
-              icon={<span className="mmi-icon">VI</span>}
             />
             <MetricCard
               label="Buildings at MMI 6+"
               value={formatInteger(event.buildings_mmi_ge_6)}
-              icon={<Building2 size={17} />}
             />
             <MetricCard
               label="People at MMI 6+"
               value={formatInteger(event.population_mmi_ge_6)}
-              icon={<Users size={17} />}
             />
           </div>
           {status ? <p className="event-callout">{status}</p> : null}
@@ -115,10 +125,7 @@ export default function EventDetailPage() {
       <div className="page-container event-content">
         <section className="map-section" aria-labelledby="map-heading">
           <div className="section-heading">
-            <div>
-              <span className="eyebrow">Spatial footprint</span>
-              <h2 id="map-heading">Shaking and exposure map</h2>
-            </div>
+            <h2 id="map-heading">Shaking and exposure map</h2>
             <span className={`source-chip ${event.source_kind}`}>
               {event.source_kind === "official"
                 ? "Official shaking layer"
@@ -147,6 +154,10 @@ export default function EventDetailPage() {
                 <p>{event.map_summary}</p>
                 <div className="mmi-legend" aria-label="MMI colour legend">
                   <span>
+                    <i className="epicentre-symbol" />
+                    Epicentre
+                  </span>
+                  <span>
                     <i className="mmi5" />
                     MMI 5
                   </span>
@@ -174,10 +185,7 @@ export default function EventDetailPage() {
               aria-labelledby="bands-heading"
             >
               <div className="section-heading">
-                <div>
-                  <span className="eyebrow">Intensity profile</span>
-                  <h2 id="bands-heading">Exposure by MMI band</h2>
-                </div>
+                <h2 id="bands-heading">Exposure by MMI band</h2>
               </div>
               <ExposureCharts bands={event.mmi_bands} />
             </section>
@@ -186,10 +194,7 @@ export default function EventDetailPage() {
               aria-labelledby="regions-heading"
             >
               <div className="section-heading">
-                <div>
-                  <span className="eyebrow">Geographic concentration</span>
-                  <h2 id="regions-heading">Regional exposure at MMI 6+</h2>
-                </div>
+                <h2 id="regions-heading">Regional exposure at MMI 6+</h2>
               </div>
               <RegionExposureTable regions={event.regions} />
             </section>
@@ -200,7 +205,6 @@ export default function EventDetailPage() {
           aria-labelledby="briefing-heading"
         >
           <div>
-            <span className="eyebrow">Analyst briefing</span>
             <h2 id="briefing-heading">Approved event briefing</h2>
           </div>
           {event.briefing.status === "approved" &&
@@ -232,7 +236,9 @@ export default function EventDetailPage() {
           <dl>
             <div>
               <dt>Shaking version</dt>
-              <dd>{event.source_version ?? "Pending"}</dd>
+              <dd title={event.source_version ?? undefined}>
+                {formatSourceVersion(event.source_version, event.shaking_type)}
+              </dd>
             </div>
             <div>
               <dt>Assessment basis</dt>

@@ -16,7 +16,6 @@ from nzhem.adapters.local.smtp import SmtpMailer
 from nzhem.adapters.local.sqlite import SqliteTableStore
 from nzhem.core.agent.approval import ApprovalRejected, ApprovalService, ApprovalTokenSigner
 from nzhem.core.agent.briefing import DraftBriefingService
-from nzhem.core.agent.schemas import LIMITATIONS
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -54,41 +53,29 @@ def render_kaikoura_draft() -> tuple[str, str, bool]:
     tools = DuckDbBriefingTools(
         ROOT / ".local/data/curated/events/m3",
         ROOT / ".local/data/curated/reference-export/dee5b263952e",
+        site_root=ROOT / "frontend/public",
     )
     try:
-        event = tools.get_event("2016p858000")
-        exposure = tools.get_exposure_summary("2016p858000", 6.0)
-        top = exposure[0]
         payload = {
-            "headline": "Kaikoura earthquake exposure briefing",
-            "key_figures": [
+            "situation": [
                 {
-                    "label": "Magnitude",
-                    "value": event["magnitude"],
-                    "unit": "M",
-                    "source_tool": "get_event",
-                    "source_field": "magnitude",
+                    "text": "The exposure footprint is concentrated near populated areas.",
+                    "metric_refs": [],
+                    "region_refs": [],
                 },
                 {
-                    "label": "Buildings in the most affected region",
-                    "value": top["buildings"],
-                    "unit": "buildings",
-                    "source_tool": "get_exposure_summary",
-                    "source_field": "buildings",
-                },
-                {
-                    "label": "Population in the most affected region",
-                    "value": top["population_2023"],
-                    "unit": "people",
-                    "source_tool": "get_exposure_summary",
-                    "source_field": "population_2023",
+                    "text": "This assessment describes exposure rather than damage or loss.",
+                    "metric_refs": [],
+                    "region_refs": [],
                 },
             ],
-            "regions_most_affected": [top["region_name"]],
-            "then_vs_now": "Event-time building exposure is not supported for this event.",
-            "limitations": list(LIMITATIONS),
-            "recommended_checks": ["Review official emergency information."],
-            "generated_at": datetime.now(UTC).isoformat(),
+            "recommended_checks": [
+                {
+                    "text": "Review official updates and inspect the mapped exposure footprint.",
+                    "metric_refs": [],
+                    "region_refs": [],
+                },
+            ],
         }
         draft = DraftBriefingService(
             tools,
