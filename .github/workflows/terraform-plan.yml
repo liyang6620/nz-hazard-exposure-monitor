@@ -84,7 +84,7 @@ jobs:
       - name: Remove the unsanitized plan before artifact handling
         if: always() && env.ARM_CLIENT_ID != ''
         run: rm -f infra/terraform/full-plan.txt infra/terraform/plan-command.txt infra/terraform/production.tfplan
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: env.ARM_CLIENT_ID != ''
         with:
           name: sanitized-terraform-plan-${{ github.sha }}
