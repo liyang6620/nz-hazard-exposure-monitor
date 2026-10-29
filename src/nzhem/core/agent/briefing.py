@@ -174,6 +174,14 @@ def build_briefing_facts(summary: Mapping[str, Any]) -> dict[str, Any]:
         if summary.get("as_if_today")
         else "It applies the supported event-time exposure basis."
     )
+    if no_damage:
+        event_characteristic = "No populated exposure cell reached damaging-shaking intensity."
+    elif top_region is not None:
+        event_characteristic = (
+            f"{top_region['region_name']} has the largest mapped damaging-shaking exposure."
+        )
+    else:
+        event_characteristic = "Mapped populated exposure cells reached damaging-shaking intensity."
     return {
         "event_id": str(summary["event_id"]),
         "place": place,
@@ -184,9 +192,11 @@ def build_briefing_facts(summary: Mapping[str, Any]) -> dict[str, Any]:
         "no_damaging_shaking": no_damage,
         "source_label": source_label,
         "as_if_today": bool(summary.get("as_if_today")),
+        "required_situation": event_characteristic,
         "allowed_situation": (
             source_sentence,
             shaking_sentence,
+            event_characteristic,
             basis_sentence,
             "The results describe exposure and do not estimate damage or loss.",
         ),
@@ -217,6 +227,9 @@ def validate_narrative_fidelity(
     allowed_metrics: Mapping[str, Decimal] = facts["metric_values"]
     allowed_regions = set(facts["allowed_regions"])
     event_id = str(facts["event_id"])
+    situation_text = {str(item.get("text", "")) for item in payload.get("situation", [])}
+    if facts["required_situation"] not in situation_text:
+        invalid.add("situation:missing_event_characteristic")
     for section in ("situation", "recommended_checks"):
         for index, item in enumerate(payload.get(section, [])):
             path = f"{section}[{index}]"
@@ -369,12 +382,15 @@ class DraftBriefingService:
             "Write two to four short situation sentences and one to three recommended checks. "
             "The deterministic template already presents every figure, date, location and source. "
             "Select and copy sentences exactly from ALLOWED_SITUATION_SENTENCES and checks exactly "
-            "from ALLOWED_RECOMMENDED_CHECKS. Do not add or paraphrase text. Use metric_refs and "
-            "region_refs as empty arrays. "
+            "from ALLOWED_RECOMMENDED_CHECKS. The situation must include "
+            "REQUIRED_SITUATION_SENTENCE exactly. Do not add or paraphrase text. Use metric_refs "
+            "and region_refs as empty arrays. "
             "TEMPLATE_CONTEXT="
             + json.dumps(prompt_facts, ensure_ascii=False, separators=(",", ":"))
             + "\nALLOWED_SITUATION_SENTENCES="
             + json.dumps(facts["allowed_situation"], ensure_ascii=False)
+            + "\nREQUIRED_SITUATION_SENTENCE="
+            + json.dumps(facts["required_situation"], ensure_ascii=False)
             + "\nALLOWED_RECOMMENDED_CHECKS="
             + json.dumps(facts["allowed_checks"], ensure_ascii=False)
         )
@@ -412,11 +428,12 @@ class DraftBriefingService:
         if not valid_payload_received:
             raise ValueError("Model did not return a complete briefing payload")
 
+        limitations = list(LIMITATIONS[:2] if facts["as_if_today"] else LIMITATIONS)
         payload = {
             "headline": facts["headline"],
             "key_figures": facts["key_figures"],
             "situation": narrative["situation"],
-            "limitations": list(LIMITATIONS),
+            "limitations": limitations,
             "recommended_checks": narrative["recommended_checks"],
         }
         status = "pending" if not invalid else "needs_manual_review"

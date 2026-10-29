@@ -1,20 +1,29 @@
 # NZ Hazard Exposure Monitor
 
-A dual-deployment demonstration system for estimating New Zealand earthquake
-exposure using building count, building footprint and 2023 Census population.
-The primary target is Azure; the second, fully supported target runs locally
-with Docker Compose and requires no Azure or Microsoft account.
+NZ Hazard Exposure Monitor shows how many New Zealand buildings and people are
+inside damaging earthquake shaking, with a target of publishing the first
+exposure view within one hour of a GeoNet event. It is built for catastrophe and
+exposure analysts who need a traceable screening view before detailed portfolio
+or loss analysis begins.
+
+The product combines GeoNet shaking, LINZ building outlines and 2023 Census
+population in an H3 grid. It publishes a current-event overview, event maps,
+regional and MMI-band comparisons, ten as-if-today historical replays and
+analyst-approved briefings. The same cloud-independent core supports two formal
+deployment targets: a complete local Docker Compose product and the primary
+Azure architecture.
 
 ## Status
 
-M1-L, M2, M3, MG, M5 and M6 are complete. The private hosted ArcGIS layer has
+M1-L, M2, M3, MG, M5, M6 and both product-frontend increments are complete. The
+private hosted ArcGIS layer has
 4,011 features, incremental editing is verified, and approved briefings can use
 server-side Esri MCP static maps within the enforced quotas. The shared core,
 local Docker host and Azure Functions host remain separate. Outstanding work is
 the owner's two-minute Power BI walkthrough, M7 Snowflake work when scheduled by
-the project manager, and Azure deployment after the Microsoft account is
-restored. No Azure infrastructure is created until M1-A plans are approved.
-Evidence is under [`evidence/`](evidence/).
+the project manager, and the Azure for Students deployment. The reviewed Azure
+plan remains isolated in unmerged PR #31; no provider registration or Terraform
+apply has run. Evidence is under [`evidence/`](evidence/).
 
 ## Important limitations
 
@@ -22,8 +31,9 @@ Evidence is under [`evidence/`](evidence/).
   building footprint and population.
 - Estimated Modified Mercalli Intensity is illustrative, not an actuarial,
   engineering or emergency-management conclusion.
-- Building appearance and disappearance dates are approximate inferences from
-  aerial imagery and source lifecycle metadata.
+- Event-time building appearance and disappearance dates are approximate
+  inferences from aerial imagery and source lifecycle metadata. As-if-today
+  replays do not make an event-time building-stock claim.
 - Population is published 2023 SA1 population distributed within each SA1 by
   current building footprint. SA1 is coarser than meshblock and Stats NZ applies
   confidentiality treatment to small-area counts.

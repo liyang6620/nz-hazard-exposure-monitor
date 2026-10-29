@@ -27,6 +27,15 @@ export function formatDecimal(value: number | null): string {
   return value === null ? "Pending" : decimal.format(value);
 }
 
+const eventDisplayNames: Record<string, string> = {
+  "Christchurch Feb 2011": "Christchurch, Feb 2011",
+  "Christchurch Jun 2011": "Christchurch, Jun 2011",
+};
+
+export function displayEventName(name: string): string {
+  return eventDisplayNames[name] ?? name;
+}
+
 const versionMonths = [
   "Jan",
   "Feb",

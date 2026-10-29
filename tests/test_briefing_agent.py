@@ -58,6 +58,11 @@ def narrative(text: str = "This assessment uses the official shaking layer.") ->
         "situation": [
             {"text": text, "metric_refs": [], "region_refs": []},
             {
+                "text": ("Marlborough Region has the largest mapped damaging-shaking exposure."),
+                "metric_refs": [],
+                "region_refs": ["Marlborough Region"],
+            },
+            {
                 "text": "The results describe exposure and do not estimate damage or loss.",
                 "metric_refs": [],
                 "region_refs": [],
@@ -130,6 +135,9 @@ def test_deterministic_template_uses_only_published_summary() -> None:
     )
     assert displays["Shaking source"] == "Official shaking layer"
     assert displays["Assessment basis"] == "As-if-today"
+    assert facts["required_situation"] == (
+        "Marlborough Region has the largest mapped damaging-shaking exposure."
+    )
 
 
 def test_no_damage_headline_is_explicit() -> None:
@@ -164,7 +172,23 @@ def test_draft_retries_fact_boundary_violation_and_removes_then_and_now() -> Non
     assert "## Situation" in result.markdown
     assert "Then and now" not in result.markdown
     assert "get_region_context" not in result.markdown
+    assert "appearance and disappearance" not in result.markdown
+    assert "Marlborough Region has the largest" in result.markdown
     assert llm.schemas == [BRIEFING_OUTPUT_SCHEMA, BRIEFING_OUTPUT_SCHEMA]
+
+
+def test_event_time_draft_keeps_lifecycle_limitation() -> None:
+    class EventTimeTools(FixedTools):
+        def get_published_summary(self, event_id: str) -> dict:
+            summary = super().get_published_summary(event_id)
+            summary["as_if_today"] = False
+            return summary
+
+    result = DraftBriefingService(
+        EventTimeTools(), RetryingLlm(), max_output_tokens=450, total_token_limit=12000
+    ).draft("2016p858000")
+
+    assert "appearance and disappearance" in result.markdown
 
 
 @pytest.mark.parametrize(

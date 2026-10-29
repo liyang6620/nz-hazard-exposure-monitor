@@ -7,6 +7,9 @@ import { LoadingState } from "./components/AsyncState";
 
 const HomePage = lazy(() => import("./pages/HomePage"));
 const EventDetailPage = lazy(() => import("./pages/EventDetailPage"));
+const HistoryPage = lazy(() => import("./pages/HistoryPage"));
+const MethodologyPage = lazy(() => import("./pages/MethodologyPage"));
+const AboutPage = lazy(() => import("./pages/AboutPage"));
 
 export default function App() {
   return (
@@ -22,6 +25,9 @@ export default function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/events/:eventId" element={<EventDetailPage />} />
+            <Route path="/history" element={<HistoryPage />} />
+            <Route path="/method" element={<MethodologyPage />} />
+            <Route path="/about" element={<AboutPage />} />
             <Route
               path="*"
               element={

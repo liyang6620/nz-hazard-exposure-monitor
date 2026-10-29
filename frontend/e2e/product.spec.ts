@@ -10,7 +10,7 @@ test.beforeEach(async ({ page }) => {
   });
   page.on("pageerror", (error) => consoleErrors.push(error.message));
   await page.goto("/");
-  await page.waitForLoadState("networkidle");
+  await page.waitForLoadState("domcontentloaded");
 });
 
 test.afterEach(async ({ page }) => {
@@ -39,7 +39,7 @@ test("earthquake detail displays the map alternative, chart and regional table",
   page,
 }) => {
   await page.goto("/events/2016p858000");
-  await page.waitForLoadState("networkidle");
+  await page.waitForLoadState("domcontentloaded");
   await expect(
     page.getByRole("heading", { name: "Shaking and exposure map" }),
   ).toBeVisible();
@@ -82,11 +82,16 @@ test("mobile navigation and primary content remain usable", async ({
     page.getByRole("navigation").getByRole("link", { name: "Latest" }),
   ).toBeVisible();
   await expect(
+    page
+      .getByRole("navigation")
+      .getByRole("link", { name: "Historical replays" }),
+  ).toBeVisible();
+  await expect(
     page.getByRole("link", { name: /View exposure assessment/i }),
   ).toBeVisible();
 
   await page.goto("/events/2016p858000");
-  await page.waitForLoadState("networkidle");
+  await page.waitForLoadState("domcontentloaded");
   const metrics = page.locator(".event-metrics");
   await expect(metrics).toHaveCSS("grid-template-columns", /.+ .+/);
   const first = metrics.locator(".metric-card").first();
@@ -94,4 +99,42 @@ test("mobile navigation and primary content remain usable", async ({
   expect((await third.boundingBox())?.y).toBeGreaterThan(
     (await first.boundingBox())?.y ?? 0,
   );
+});
+
+test("historical replay catalogue compares ten fixed event summaries", async ({
+  page,
+}) => {
+  await page.goto("/history");
+  await page.waitForLoadState("domcontentloaded");
+  await expect(
+    page.getByRole("heading", {
+      name: "Ten earthquakes, one current exposure baseline",
+    }),
+  ).toBeVisible();
+  await expect(page.getByRole("article")).toHaveCount(10);
+  await expect(page.getByText(/Christchurch, Feb 2011/)).toBeVisible();
+  await expect(page.getByText(/3,219,311 mapped buildings/i)).toBeVisible();
+});
+
+test("method and about pages expose evidence and deployment status", async ({
+  page,
+}) => {
+  await page.goto("/method");
+  await expect(
+    page.getByRole("heading", { name: "Method and data" }),
+  ).toBeVisible();
+  await expect(page.getByText(/MAE is 1\.049 MMI/i)).toBeVisible();
+  await expect(page.getByText(/21,483 building outlines/i)).toBeVisible();
+
+  await page.goto("/about");
+  await expect(
+    page.getByRole("heading", {
+      name: "One exposure engine, two deployment targets",
+    }),
+  ).toBeVisible();
+  await expect(page.getByText("Local · operational")).toBeVisible();
+  await expect(page.getByText("Azure · planned")).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: /Power BI report/i }),
+  ).toBeVisible();
 });

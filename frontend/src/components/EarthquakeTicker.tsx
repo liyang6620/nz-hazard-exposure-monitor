@@ -1,5 +1,5 @@
 import type { EventListItem } from "../data/types";
-import { formatDecimal, formatInteger } from "../lib/format";
+import { displayEventName, formatDecimal, formatInteger } from "../lib/format";
 
 export function EarthquakeTicker({ events }: { events: EventListItem[] }) {
   if (!events.length) return null;
@@ -14,7 +14,7 @@ export function EarthquakeTicker({ events }: { events: EventListItem[] }) {
         {repeated.map((event, index) => (
           <span className="ticker-event" key={`${event.event_id}-${index}`}>
             <strong>M{formatDecimal(event.magnitude)}</strong>
-            <span>{event.name}</span>
+            <span>{displayEventName(event.name)}</span>
             <span>
               {event.max_mmi === null
                 ? "MMI pending"
