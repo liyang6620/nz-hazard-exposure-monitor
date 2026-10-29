@@ -117,7 +117,8 @@ def test_merges_recent_geonet_events_and_preserves_ready_results(tmp_path: Path)
     assert [event["event_id"] for event in merged] == ["new-event", "ready-event"]
     pending = merged[0]
     assert pending["assessment_status"] == "processing"
-    assert pending["map_summary"] == "Exposure assessment pending."
+    assert pending["map_summary"] == "Exposure assessment is pending."
+    assert pending["as_if_today"] is False
     assert pending["buildings_mmi_ge_6"] is None
     assert pending["is_recent_monitoring"] is True
     assert merged[1]["is_historical_replay"] is False
@@ -150,3 +151,46 @@ def test_only_approved_briefing_paths_are_published_and_generations_are_bounded(
         (root / name).mkdir(parents=True)
     publisher._remove_old_generations(root, keep=2)  # noqa: SLF001
     assert sorted(path.name for path in root.iterdir()) == ["002", "003"]
+
+
+def test_loads_realtime_payload_and_records_only_post_start_event(tmp_path: Path) -> None:
+    publisher, tables = _publisher(tmp_path)
+    realtime = tmp_path / "realtime"
+    event_root = realtime / "new-event"
+    event_root.mkdir(parents=True)
+    (event_root / "summary.json").write_text(
+        '{"event_id":"new-event","briefing":{"status":"pending"}}', encoding="utf-8"
+    )
+    (event_root / "exposure.geojson").write_text(
+        '{"type":"FeatureCollection","features":[]}', encoding="utf-8"
+    )
+    publisher._realtime_root = realtime  # noqa: SLF001
+    tables.upsert_entity(
+        "runtime",
+        {
+            "PartitionKey": "monitor",
+            "RowKey": "event-processing",
+            "started_at": "2026-10-29T00:00:00+00:00",
+        },
+    )
+    tables.upsert_entity(
+        "eventsstate",
+        {
+            "PartitionKey": "recent",
+            "RowKey": "new-event",
+            "event_id": "new-event",
+            "event_time": "2026-10-29T00:10:00+00:00",
+            "assessment_status": "ready",
+        },
+    )
+
+    payloads = publisher._realtime_payloads({})  # noqa: SLF001
+    record = publisher._processing_record(datetime(2026, 10, 29, 0, 25, tzinfo=UTC))  # noqa: SLF001
+
+    assert payloads["new-event"]["features"]["features"] == []
+    assert record == {
+        "event_id": "new-event",
+        "earthquake_at": "2026-10-29T00:10:00+00:00",
+        "published_at": "2026-10-29T00:25:00+00:00",
+        "elapsed_seconds": 900,
+    }

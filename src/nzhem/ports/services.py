@@ -93,6 +93,12 @@ class EventSource(Protocol):
     def fetch_updated_after(self, updated_after: datetime) -> Sequence[Mapping[str, Any]]: ...
 
 
+class EventAssessor(Protocol):
+    """Turn one catalogue event into a terminal exposure assessment."""
+
+    def assess(self, event: Mapping[str, Any], assessed_at: datetime) -> Mapping[str, Any]: ...
+
+
 @dataclass(frozen=True)
 class ReferenceRefreshResult:
     source_buildings: int

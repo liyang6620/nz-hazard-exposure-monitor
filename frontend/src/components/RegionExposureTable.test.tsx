@@ -27,4 +27,24 @@ describe("RegionExposureTable", () => {
     expect(screen.getByText("Marlborough Region")).toBeInTheDocument();
     expect(screen.queryByText("Unknown region")).not.toBeInTheDocument();
   });
+
+  it("renames populated unmapped exposure and explains it", () => {
+    render(
+      <RegionExposureTable
+        regions={[
+          {
+            region_code: "outside",
+            region_name: "Unknown region",
+            buildings: 7,
+            population: 11,
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getByText("Outside mapped regions")).toBeInTheDocument();
+    expect(
+      screen.getByText(/has no matching regional boundary/i),
+    ).toBeInTheDocument();
+  });
 });

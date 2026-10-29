@@ -45,12 +45,21 @@ class HousekeepingService:
             events = self._event_source.fetch_updated_after(updated_after)
             for event in events:
                 self._queues.send("events", dict(event))
+                existing = (
+                    self._tables.get_entity("eventsstate", "recent", str(event["event_id"])) or {}
+                )
                 self._tables.upsert_entity(
                     "eventsstate",
                     {
+                        **existing,
                         "PartitionKey": "recent",
                         "RowKey": str(event["event_id"]),
                         **dict(event),
+                        "first_seen_at": existing.get("first_seen_at") or now.isoformat(),
+                        "assessment_status": existing.get("assessment_status", "queued"),
+                        "assessment_reason": existing.get(
+                            "assessment_reason", "Waiting for exposure assessment."
+                        ),
                         "updated_at": now.isoformat(),
                     },
                 )

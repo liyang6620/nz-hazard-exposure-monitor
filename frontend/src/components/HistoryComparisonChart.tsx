@@ -24,6 +24,16 @@ export function HistoryComparisonChart({ events }: { events: EventSummary[] }) {
   return (
     <figure className="history-chart">
       <figcaption>Buildings and people exposed to MMI 6+ shaking</figcaption>
+      <div className="history-legend" aria-label="Comparison chart legend">
+        <span>
+          <i className="buildings" />
+          Buildings
+        </span>
+        <span>
+          <i className="people" />
+          People
+        </span>
+      </div>
       <div className="history-chart-canvas">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
@@ -42,7 +52,7 @@ export function HistoryComparisonChart({ events }: { events: EventSummary[] }) {
               tickFormatter={(value: number) => `${Math.round(value / 1000)}k`}
             />
             <Tooltip formatter={(value) => formatInteger(Number(value))} />
-            <Legend verticalAlign="top" align="right" />
+            <Legend content={() => null} />
             <Bar dataKey="Buildings" fill="#171815" />
             <Bar
               dataKey="People"

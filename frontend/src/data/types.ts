@@ -1,4 +1,17 @@
-export type AssessmentStatus = "ready" | "processing";
+export type AssessmentStatus =
+  | "ready"
+  | "processing"
+  | "outside_model_range"
+  | "expired"
+  | "timed_out"
+  | "failed";
+
+export interface ProcessingRecord {
+  event_id: string;
+  earthquake_at: string;
+  published_at: string;
+  elapsed_seconds: number;
+}
 
 export interface Manifest {
   schema_version: number;
@@ -7,6 +20,7 @@ export interface Manifest {
   latest_event_id: string | null;
   featured_event_id: string | null;
   base_path: string;
+  processing_record?: ProcessingRecord | null;
 }
 
 export interface BriefingState {
@@ -24,6 +38,7 @@ export interface EventListItem {
   latitude: number;
   longitude: number;
   assessment_status: AssessmentStatus;
+  assessment_reason?: string;
   max_mmi: number | null;
   buildings_mmi_ge_6: number | null;
   population_mmi_ge_6: number | null;

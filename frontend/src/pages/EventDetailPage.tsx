@@ -4,6 +4,7 @@ import { Link, useParams } from "react-router-dom";
 
 import { useSiteData } from "../app/SiteDataContext";
 import { ErrorState, LoadingState } from "../components/AsyncState";
+import { ApprovedBriefing } from "../components/ApprovedBriefing";
 import { ExposureCharts } from "../components/ExposureCharts";
 import { MetricCard } from "../components/MetricCard";
 import { RegionExposureTable } from "../components/RegionExposureTable";
@@ -210,10 +211,7 @@ export default function EventDetailPage() {
           </div>
           {event.briefing.status === "approved" &&
           event.briefing.public_path ? (
-            <iframe
-              title="Approved event briefing"
-              src={event.briefing.public_path}
-            />
+            <ApprovedBriefing path={event.briefing.public_path} />
           ) : (
             <div className="pending-briefing">
               <Info size={20} />
@@ -232,7 +230,9 @@ export default function EventDetailPage() {
           <p>
             Earthquake and shaking data: GeoNet / Earth Sciences New Zealand.
             Buildings: Toitū Te Whenua LINZ. Population: 2023 Census, Stats NZ.
-            Exposure uses today’s building stock and 2023 population.
+            {event.as_if_today
+              ? " Exposure uses today’s building stock and 2023 population."
+              : " Building exposure uses the event-time stock; population uses the 2023 Census allocation."}
           </p>
           <dl>
             <div>

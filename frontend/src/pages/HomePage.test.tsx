@@ -26,7 +26,7 @@ const baseEvent: EventListItem = {
   source_version: null,
   shaking_type: "preliminary",
   event_time_status: "pending",
-  as_if_today: true,
+  as_if_today: false,
   is_recent_monitoring: true,
   is_historical_replay: false,
   most_affected_region: null,
@@ -109,6 +109,38 @@ describe("HomePage", () => {
     expect(screen.queryByText("Darfield 2010")).not.toBeInTheDocument();
     expect(screen.queryByText(/No numbered steps/i)).not.toBeInTheDocument();
     expect(screen.getByText(/one-hour target view/i)).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Observed processing time" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows processing time only when the publisher supplies a real record", () => {
+    useSiteData.mockReturnValue({
+      data: {
+        ...siteData,
+        manifest: {
+          ...siteData.manifest,
+          processing_record: {
+            event_id: "recent-event",
+            earthquake_at: "2026-10-29T00:00:00Z",
+            published_at: "2026-10-29T00:18:00Z",
+            elapsed_seconds: 1080,
+          },
+        },
+      },
+      error: null,
+      loading: false,
+      reload: vi.fn(),
+    });
+    render(
+      <MemoryRouter>
+        <HomePage />
+      </MemoryRouter>,
+    );
+    expect(
+      screen.getByRole("heading", { name: "Observed processing time" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("18m 0s")).toBeInTheDocument();
   });
 
   it("renders a retryable error state", () => {

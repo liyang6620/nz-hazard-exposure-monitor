@@ -1,5 +1,6 @@
 import type { EventListItem } from "../data/types";
 import { displayEventName, formatDecimal, formatInteger } from "../lib/format";
+import { statusMessage } from "../lib/format";
 
 export function EarthquakeTicker({ events }: { events: EventListItem[] }) {
   if (!events.length) return null;
@@ -17,13 +18,15 @@ export function EarthquakeTicker({ events }: { events: EventListItem[] }) {
             <span>{displayEventName(event.name)}</span>
             <span>
               {event.max_mmi === null
-                ? "MMI pending"
+                ? event.assessment_status === "processing"
+                  ? "MMI pending"
+                  : "MMI unavailable"
                 : `MMI ${formatDecimal(event.max_mmi)}`}
             </span>
             <span>
               {event.assessment_status === "ready"
                 ? `${formatInteger(event.buildings_mmi_ge_6)} buildings at MMI 6+`
-                : "Exposure processing"}
+                : statusMessage(event)}
             </span>
           </span>
         ))}

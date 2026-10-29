@@ -21,7 +21,7 @@ describe("New Zealand display formatting", () => {
       "26 Oct 2026, 12:00 NZDT",
     );
     expect(formatNzDateTime("2026-06-01T00:00:00Z")).toBe(
-      "01 Jun 2026, 12:00 NZST",
+      "1 Jun 2026, 12:00 NZST",
     );
   });
 

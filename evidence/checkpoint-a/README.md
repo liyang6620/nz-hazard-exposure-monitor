@@ -48,6 +48,17 @@ Full event results are in `evidence/m3/README.md`.
 - Synthetic M1 replay fixtures were replaced by locked real GeoNet summaries
   for Christchurch 2011 and Kaikoura 2016.
 
+### D22 revision impact
+
+ADR 0002 records the accepted removal of the unimplemented TVZ branch because
+no authoritative, licence-compatible deterministic boundary was identified.
+Nine validation events use the shallow main-region model and the 268.7 km
+Taumarunui event uses the deep model. All ten published exposure replays use
+official shaking surfaces, so no exposure total changed. The reported MAE 1.049
+is the result under this selection. A TVZ-versus-main MAE delta is not reported
+because calculating one without the missing boundary would require inventing
+event classifications.
+
 ## Resource and consistency checks
 
 - DuckDB memory limit: 512 MB; process RSS guard: 768 MB.
