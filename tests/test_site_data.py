@@ -268,7 +268,40 @@ def test_loads_realtime_payload_and_records_only_post_start_event(tmp_path: Path
     assert payloads["new-event"]["features"]["features"] == []
     assert record == {
         "event_id": "new-event",
+        "assessment_status": "ready",
         "earthquake_at": "2026-10-29T00:10:00+00:00",
         "published_at": "2026-10-29T00:25:00+00:00",
         "elapsed_seconds": 900,
+    }
+
+
+def test_outside_model_range_event_records_publication_latency(tmp_path: Path) -> None:
+    publisher, tables = _publisher(tmp_path)
+    tables.upsert_entity(
+        "runtime",
+        {
+            "PartitionKey": "monitor",
+            "RowKey": "event-processing",
+            "started_at": "2026-10-29T00:00:00+00:00",
+        },
+    )
+    tables.upsert_entity(
+        "eventsstate",
+        {
+            "PartitionKey": "recent",
+            "RowKey": "offshore-event",
+            "event_id": "offshore-event",
+            "event_time": "2026-10-29T00:10:00+00:00",
+            "assessment_status": "outside_model_range",
+        },
+    )
+
+    record = publisher._processing_record(datetime(2026, 10, 29, 0, 35, tzinfo=UTC))  # noqa: SLF001
+
+    assert record == {
+        "event_id": "offshore-event",
+        "assessment_status": "outside_model_range",
+        "earthquake_at": "2026-10-29T00:10:00+00:00",
+        "published_at": "2026-10-29T00:35:00+00:00",
+        "elapsed_seconds": 1500,
     }

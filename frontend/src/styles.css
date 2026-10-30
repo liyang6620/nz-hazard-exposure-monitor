@@ -445,6 +445,7 @@ td:nth-child(n + 2),
 
 .table-wrap {
   overflow-x: auto;
+  contain: layout paint;
   border-block: 1px solid var(--ink);
 }
 table {

@@ -34,6 +34,11 @@ test("home communicates the product and shows recent exposure data", async ({
   await expect(page.getByRole("table")).toBeVisible();
   await expect(page.getByRole("table")).not.toContainText("Darfield 2010");
   await expect(page.getByRole("table")).not.toContainText("Pending");
+  await expect(
+    page.getByRole("heading", { name: "Observed processing time" }),
+  ).toBeVisible();
+  await expect(page.getByText("26m 10s")).toBeVisible();
+  await expect(page.getByRole("table")).toContainText("Outside model range");
 });
 
 test("completed realtime assessment uses the event-time basis", async ({
@@ -92,6 +97,13 @@ test("mobile navigation and primary content remain usable", async ({
   page,
 }, testInfo) => {
   test.skip(!testInfo.project.name.startsWith("mobile"));
+  expect(
+    await page.evaluate(
+      () =>
+        document.documentElement.scrollWidth <=
+        document.documentElement.clientWidth,
+    ),
+  ).toBe(true);
   const menu = page.getByRole("button", { name: "Open navigation" });
   await expect(menu).toBeVisible();
   await menu.click();

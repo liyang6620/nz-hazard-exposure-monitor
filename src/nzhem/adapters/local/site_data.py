@@ -192,7 +192,7 @@ class LocalSiteDataPublisher:
             return None
         candidates: list[tuple[datetime, dict[str, Any]]] = []
         for row in self._tables.list_entities("eventsstate", "recent"):
-            if row.get("assessment_status") != "ready":
+            if row.get("assessment_status") not in {"ready", "outside_model_range"}:
                 continue
             try:
                 origin = datetime.fromisoformat(
@@ -215,6 +215,7 @@ class LocalSiteDataPublisher:
         published = datetime.fromisoformat(str(published_at).replace("Z", "+00:00")).astimezone(UTC)
         return {
             "event_id": str(row["event_id"]),
+            "assessment_status": str(row["assessment_status"]),
             "earthquake_at": origin.isoformat(),
             "published_at": published.isoformat(),
             "elapsed_seconds": max(0, round((published - origin).total_seconds())),

@@ -1,6 +1,6 @@
 # Realtime event processing evidence
 
-Date: 29 Oct 2026 (Pacific/Auckland)
+Date: 30 Oct 2026 (Pacific/Auckland)
 
 ## Root cause and correction
 
@@ -58,12 +58,42 @@ records after the run.
 
 ## End-to-end latency observation
 
-The monitor activation timestamp is `2026-10-29T09:57:24Z`. No M4.0+ GeoNet
-event has occurred after that timestamp yet. The site therefore does not show a
-processing timeline and this evidence does not claim an artificial elapsed
-time. The local scheduler remains active hourly. The first genuinely new event
-must be assessed and published before this section can record the observed
-earthquake-to-publication duration.
+The monitor activation timestamp is `2026-10-29T09:57:24Z` (22:57:24 NZDT).
+GeoNet's [FDSN event record](https://service.geonet.org.nz/fdsnws/event/1/query?eventid=2026p817279&format=text)
+identifies the first later M4.0+ event as `2026p817279`, 565 km north-east of
+Te Araroa. Its latest preferred magnitude is M4.1617 (`Mw(mB)`), displayed as
+M4.2. The magnitude revision was at 22:32:38 NZDT on 30 Oct.
+
+| Observed step | Pacific/Auckland time |
+|---|---|
+| Earthquake origin | 30 Oct 2026, 22:25:09 NZDT |
+| Assessment completed | 30 Oct 2026, 22:51:18 NZDT |
+| First site publication, generation `20261030T095119126499Z` | 30 Oct 2026, 22:51:19 NZDT |
+| Earthquake to first publication | **26m 10s** (1,570 seconds) |
+
+The observed elapsed time is below the one-hour target. This event is an
+`outside_model_range` conclusion: M4.2 is below the published M4.9-M8.2 model
+range and no official shaking layer was available. Maximum MMI and exposure
+counts are unavailable, not zero. The local Docker stack was stopped at the
+event time and its startup catch-up produced the assessment and first
+publication. This observation verifies catch-up latency, **not continuously
+online hourly operation**. The homepage timeline names the terminal conclusion.
+The first-published timestamp was restored from the retained first-generation
+manifest after the timeline logic was extended to include this terminal state;
+the later regeneration was not used as the publication time.
+
+## Data consistency
+
+The current public generation is `20261030T101921807437Z`. Its Taumarunui
+realtime detail and historical replay both use the latest GeoNet preferred
+magnitude 5.65806, displayed as M5.7, with type `M` and magnitude revision at
+15 Oct 2026, 18:53 NZDT. Exposure bases remain separate: event-time for the
+realtime record and as-if-today for the replay. The approved briefing is an
+immutable earlier snapshot and retains its original title.
+
+All 8,164 non-null MMI values in 132 published JSON and GeoJSON files were
+checked for one-decimal precision; there were no violations. The public bundle
+contains only the current numbered generation and its matching manifest.
 
 ## Method decision
 
@@ -76,13 +106,13 @@ approved authoritative boundary with suitable reuse terms.
 
 ## Verification
 
-- Python: 118 passed; total coverage 80.29%.
-- Frontend unit tests: 17 passed.
+- Python: 121 passed; total coverage 80.29%.
+- Frontend unit tests: 20 passed.
 - Playwright: 11 passed and one desktop-only mobile-navigation case skipped by
   design; desktop and mobile product routes, realtime result and approved
   briefing produced no console errors.
 - Frontend lint, type check, production build, key-boundary scan and home asset
-  budget passed. Initial assets totalled 93,659 gzip bytes against the 256,000
+  budget passed. Initial assets totalled 94,063 gzip bytes against the 256,000
   byte limit.
 
 ## Screenshots

@@ -8,6 +8,7 @@ export type AssessmentStatus =
 
 export interface ProcessingRecord {
   event_id: string;
+  assessment_status: "ready" | "outside_model_range";
   earthquake_at: string;
   published_at: string;
   elapsed_seconds: number;

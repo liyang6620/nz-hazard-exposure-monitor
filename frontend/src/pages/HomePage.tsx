@@ -111,8 +111,7 @@ export default function HomePage() {
             <div>
               <h2 id="processing-record-heading">Observed processing time</h2>
               <p>
-                A real GeoNet event processed by the continuously running local
-                monitor.
+                A real GeoNet event assessed and published by the local monitor.
               </p>
             </div>
             <dl>
@@ -138,6 +137,14 @@ export default function HomePage() {
                   {formatElapsed(
                     data.manifest.processing_record.elapsed_seconds,
                   )}
+                </dd>
+              </div>
+              <div>
+                <dt>Assessment</dt>
+                <dd>
+                  {data.manifest.processing_record.assessment_status === "ready"
+                    ? "Exposure assessed"
+                    : "Outside model range"}
                 </dd>
               </div>
             </dl>
