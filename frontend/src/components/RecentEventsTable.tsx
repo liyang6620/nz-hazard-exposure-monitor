@@ -49,9 +49,17 @@ export function RecentEventsTable({ events }: { events: EventListItem[] }) {
               <td>
                 {event.assessment_status === "ready"
                   ? formatDecimal(event.max_mmi)
-                  : "Pending"}
+                  : event.assessment_status === "processing"
+                    ? "Pending"
+                    : "Not available"}
               </td>
-              <td>{formatInteger(event.buildings_mmi_ge_6)}</td>
+              <td>
+                {event.assessment_status === "processing"
+                  ? "Pending"
+                  : event.buildings_mmi_ge_6 === null
+                    ? "Not available"
+                    : formatInteger(event.buildings_mmi_ge_6)}
+              </td>
               <td>
                 <StatusBadge event={event} />
               </td>

@@ -186,7 +186,7 @@ export default function EventMap({ event, exposureUrl }: EventMapProps) {
         <span>
           {provider === "LINZ"
             ? "Basemap © Toitū Te Whenua LINZ, CC BY 4.0"
-            : "LINZ browser key not configured · © OpenStreetMap contributors"}
+            : "Basemap © OpenStreetMap contributors"}
         </span>
       </div>
     </div>

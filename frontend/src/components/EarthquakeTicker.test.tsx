@@ -9,6 +9,8 @@ const event: EventListItem = {
   name: "20 km east of Tauranga",
   origin_time: "2026-10-27T03:59:50Z",
   magnitude: 4.2,
+  magnitude_type: "M",
+  magnitude_revision_time: "2026-10-27T04:05:00Z",
   depth_km: 20,
   latitude: -37.6,
   longitude: 176.4,

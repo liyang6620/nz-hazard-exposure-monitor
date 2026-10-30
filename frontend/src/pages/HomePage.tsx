@@ -10,6 +10,7 @@ import {
   formatDecimal,
   formatInteger,
   formatNzDateTime,
+  formatElapsed,
 } from "../lib/format";
 
 export default function HomePage() {
@@ -102,6 +103,53 @@ export default function HomePage() {
         </div>
       ) : null}
       <div className="page-container home-content">
+        {data.manifest.processing_record ? (
+          <section
+            className="processing-record"
+            aria-labelledby="processing-record-heading"
+          >
+            <div>
+              <h2 id="processing-record-heading">Observed processing time</h2>
+              <p>
+                A real GeoNet event assessed and published by the local monitor.
+              </p>
+            </div>
+            <dl>
+              <div>
+                <dt>Earthquake</dt>
+                <dd>
+                  {formatNzDateTime(
+                    data.manifest.processing_record.earthquake_at,
+                  )}
+                </dd>
+              </div>
+              <div>
+                <dt>Site published</dt>
+                <dd>
+                  {formatNzDateTime(
+                    data.manifest.processing_record.published_at,
+                  )}
+                </dd>
+              </div>
+              <div>
+                <dt>Total elapsed</dt>
+                <dd>
+                  {formatElapsed(
+                    data.manifest.processing_record.elapsed_seconds,
+                  )}
+                </dd>
+              </div>
+              <div>
+                <dt>Assessment</dt>
+                <dd>
+                  {data.manifest.processing_record.assessment_status === "ready"
+                    ? "Exposure assessed"
+                    : "Outside model range"}
+                </dd>
+              </div>
+            </dl>
+          </section>
+        ) : null}
         <section className="content-section" aria-labelledby="recent-heading">
           <div className="section-heading">
             <h2 id="recent-heading">Latest monitored events</h2>

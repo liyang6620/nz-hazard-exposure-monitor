@@ -9,6 +9,10 @@ export function RegionExposureTable({
   const visibleRegions = regions.filter(
     (region) => region.buildings > 0 || region.population > 0,
   );
+  const hasOutsideMapped = visibleRegions.some(
+    (region) =>
+      region.region_code === "unknown" || region.region_code === "outside",
+  );
   if (!visibleRegions.length)
     return (
       <div className="state-panel">
@@ -38,7 +42,11 @@ export function RegionExposureTable({
             const share = total ? (region.buildings / total) * 100 : 0;
             return (
               <tr key={region.region_code}>
-                <th scope="row">{region.region_name}</th>
+                <th scope="row">
+                  {region.region_name === "Unknown region"
+                    ? "Outside mapped regions"
+                    : region.region_name}
+                </th>
                 <td>{formatInteger(region.buildings)}</td>
                 <td>{formatInteger(region.population)}</td>
                 <td>
@@ -52,6 +60,13 @@ export function RegionExposureTable({
           })}
         </tbody>
       </table>
+      {hasOutsideMapped ? (
+        <p className="region-footnote">
+          “Outside mapped regions” contains exposed buildings or allocated
+          population whose H3 cell has no matching regional boundary in the
+          reference layer.
+        </p>
+      ) : null}
     </div>
   );
 }

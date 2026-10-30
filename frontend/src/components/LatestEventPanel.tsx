@@ -12,6 +12,8 @@ import {
 
 export function LatestEventPanel({ event }: { event: EventListItem }) {
   const status = statusMessage(event);
+  const unavailable =
+    event.assessment_status === "processing" ? "Pending" : "Not available";
   return (
     <aside className="latest-event" aria-labelledby="latest-heading">
       <div className="latest-panel-heading">
@@ -24,15 +26,27 @@ export function LatestEventPanel({ event }: { event: EventListItem }) {
       <dl className="latest-readings">
         <div>
           <dt>Maximum MMI</dt>
-          <dd>{formatDecimal(event.max_mmi)}</dd>
+          <dd>
+            {event.max_mmi === null
+              ? unavailable
+              : formatDecimal(event.max_mmi)}
+          </dd>
         </div>
         <div>
           <dt>Buildings at MMI 6+</dt>
-          <dd>{formatInteger(event.buildings_mmi_ge_6)}</dd>
+          <dd>
+            {event.buildings_mmi_ge_6 === null
+              ? unavailable
+              : formatInteger(event.buildings_mmi_ge_6)}
+          </dd>
         </div>
         <div>
           <dt>People at MMI 6+</dt>
-          <dd>{formatInteger(event.population_mmi_ge_6)}</dd>
+          <dd>
+            {event.population_mmi_ge_6 === null
+              ? unavailable
+              : formatInteger(event.population_mmi_ge_6)}
+          </dd>
         </div>
       </dl>
       {status ? (

@@ -81,7 +81,14 @@ The services are then available at:
 The application runs `housekeeping` once at startup and then every 60 minutes.
 It reads the last successful poll from SQLite and sends GeoNet FDSN an
 `updatedafter` query so events published while the computer was off are caught
-up. Persistent data lives in the `nzhem-data` and `nzhem-state` Docker volumes.
+up. The same run consumes the event queue, prefers an official GeoNet Shaking
+Layer, and falls back to the licensed point-source model when no official layer
+is ready and the magnitude is within its published range. Every event reaches a
+terminal result: ready, outside model range, outside the monitoring window,
+timed out or failed after three attempts. Realtime results use event-time
+building validity; only the ten fixed historical replays use the as-if-today
+baseline. Persistent data lives in the `nzhem-data` and `nzhem-state` Docker
+volumes.
 
 Optional local secrets and overrides belong in `.env`:
 

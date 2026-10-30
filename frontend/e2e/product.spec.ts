@@ -33,6 +33,29 @@ test("home communicates the product and shows recent exposure data", async ({
   await expect(page.getByText("Latest event")).toBeVisible();
   await expect(page.getByRole("table")).toBeVisible();
   await expect(page.getByRole("table")).not.toContainText("Darfield 2010");
+  await expect(page.getByRole("table")).not.toContainText("Pending");
+  await expect(
+    page.getByRole("heading", { name: "Observed processing time" }),
+  ).toBeVisible();
+  await expect(page.getByText("26m 10s")).toBeVisible();
+  await expect(page.getByRole("table")).toContainText("Outside model range");
+});
+
+test("completed realtime assessment uses the event-time basis", async ({
+  page,
+}) => {
+  await page.goto("/events/2026p810022");
+  await page.waitForLoadState("domcontentloaded");
+  await expect(
+    page.getByRole("heading", { name: /20 km east of Tauranga/i }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("No damaging shaking (MMI < 6)", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("Event time", { exact: true })).toBeVisible();
+  await expect(page.getByText(/Historical replay · as-if-today/i)).toHaveCount(
+    0,
+  );
 });
 
 test("earthquake detail displays the map alternative, chart and regional table", async ({
@@ -52,9 +75,8 @@ test("earthquake detail displays the map alternative, chart and regional table",
   await expect(
     page.getByRole("heading", { name: "Approved event briefing" }),
   ).toBeVisible();
-  const briefing = page.frameLocator('iframe[title="Approved event briefing"]');
   await expect(
-    briefing.getByRole("heading", {
+    page.locator(".approved-briefing").getByRole("heading", {
       name: /M7\.8 Kaikōura.*78,564 buildings in MMI 6\+ shaking/i,
     }),
   ).toBeVisible();
@@ -75,6 +97,13 @@ test("mobile navigation and primary content remain usable", async ({
   page,
 }, testInfo) => {
   test.skip(!testInfo.project.name.startsWith("mobile"));
+  expect(
+    await page.evaluate(
+      () =>
+        document.documentElement.scrollWidth <=
+        document.documentElement.clientWidth,
+    ),
+  ).toBe(true);
   const menu = page.getByRole("button", { name: "Open navigation" });
   await expect(menu).toBeVisible();
   await menu.click();
@@ -114,6 +143,9 @@ test("historical replay catalogue compares ten fixed event summaries", async ({
   await expect(page.getByRole("article")).toHaveCount(10);
   await expect(page.getByText(/Christchurch, Feb 2011/)).toBeVisible();
   await expect(page.getByText(/3,219,311 mapped buildings/i)).toBeVisible();
+  await expect(
+    page.getByLabel("Comparison chart legend").getByText("People"),
+  ).toBeVisible();
 });
 
 test("method and about pages expose evidence and deployment status", async ({

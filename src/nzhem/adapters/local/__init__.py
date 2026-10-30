@@ -3,6 +3,7 @@ from nzhem.adapters.local.esri_static_maps import EsriStaticMapsMcpClient
 from nzhem.adapters.local.filesystem import LocalObjectStore, LocalStaticSitePublisher
 from nzhem.adapters.local.geonet import GeoNetFdsnEventSource, NullEventSource
 from nzhem.adapters.local.openai import OpenAILlmClient
+from nzhem.adapters.local.realtime import LocalRealtimeEventAssessor
 from nzhem.adapters.local.reference import LocalReferenceDataRefresher
 from nzhem.adapters.local.secrets import EnvironmentSecretStore
 from nzhem.adapters.local.site_data import LocalSiteDataPublisher
@@ -20,6 +21,7 @@ __all__ = [
     "NullEventSource",
     "OpenAILlmClient",
     "LocalReferenceDataRefresher",
+    "LocalRealtimeEventAssessor",
     "SmtpMailer",
     "SqliteQueueStore",
     "SqliteTableStore",

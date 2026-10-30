@@ -2,15 +2,18 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import dataclass
+from datetime import timedelta
 from pathlib import Path
 
 from nzhem.config import Settings
 from nzhem.core.agent.approval import ApprovalService, ApprovalTokenSigner
 from nzhem.core.agent.briefing import BriefingTools, DraftBriefingService
 from nzhem.core.clock import SystemClock
+from nzhem.core.event_processing import EventProcessingResult, EventProcessingService
 from nzhem.core.housekeeping import HousekeepingService
 from nzhem.ports import (
     Clock,
+    EventAssessor,
     EventSource,
     LlmClient,
     Mailer,
@@ -42,6 +45,7 @@ class ServiceContainer:
     briefing_tools: BriefingTools | None = None
     static_map_provider: StaticMapProvider | None = None
     site_data_publisher: SiteDataPublisher | None = None
+    event_assessor: EventAssessor | None = None
 
     def housekeeping(self) -> HousekeepingService:
         return HousekeepingService(
@@ -84,6 +88,18 @@ class ServiceContainer:
             return None
         return self.site_data_publisher.publish(self.clock.now())
 
+    def process_events(self) -> EventProcessingResult | None:
+        if self.event_assessor is None:
+            return None
+        return EventProcessingService(
+            clock=self.clock,
+            tables=self.tables,
+            queues=self.queues,
+            assessor=self.event_assessor,
+            max_attempts=self.settings.queue_max_dequeue_count,
+            timeout=timedelta(minutes=self.settings.event_processing_timeout_minutes),
+        ).run_pending(limit=self.settings.event_processing_batch_size)
+
 
 def build_container(settings: Settings | None = None) -> ServiceContainer:
     active_settings = settings or Settings.from_env()
@@ -99,6 +115,7 @@ def _build_local_container(settings: Settings) -> ServiceContainer:
         EsriStaticMapsMcpClient,
         GeoNetFdsnEventSource,
         LocalObjectStore,
+        LocalRealtimeEventAssessor,
         LocalReferenceDataRefresher,
         LocalSiteDataPublisher,
         LocalStaticSitePublisher,
@@ -108,6 +125,7 @@ def _build_local_container(settings: Settings) -> ServiceContainer:
         SqliteQueueStore,
         SqliteTableStore,
     )
+    from nzhem.adapters.local.resource_guard import ResourceGuard
 
     objects = LocalObjectStore(settings.data_root)
     repository_root = Path(__file__).resolve().parents[2]
@@ -120,9 +138,7 @@ def _build_local_container(settings: Settings) -> ServiceContainer:
     if site_root is not None:
         for source in sorted(path for path in site_root.rglob("*") if path.is_file()):
             relative = source.relative_to(site_root).as_posix()
-            if relative.startswith("briefings/"):
-                continue
-            if relative.startswith("data/"):
+            if relative.startswith(("briefings/", "data/")):
                 try:
                     objects.get_bytes("web", relative)
                     continue
@@ -174,9 +190,25 @@ def _build_local_container(settings: Settings) -> ServiceContainer:
             reference_root=reference_generations[-1],
             web_root=settings.data_root / "web",
             tables=tables,
+            realtime_root=settings.data_root / "curated" / "events" / "realtime",
             memory_limit_mb=settings.duckdb_memory_limit_mb,
         )
         if (event_root / "mart_event_summary.parquet").is_file() and reference_generations
+        else None
+    )
+    event_assessor = (
+        LocalRealtimeEventAssessor(
+            reference_root=reference_generations[-1],
+            raw_root=settings.data_root / "raw" / "events" / "realtime",
+            output_root=settings.data_root / "curated" / "events" / "realtime",
+            guard=ResourceGuard(
+                settings.data_root,
+                min_free_disk_gb=settings.reference_min_free_disk_gb,
+                max_rss_mb=settings.reference_max_rss_mb,
+            ),
+            memory_limit_mb=settings.duckdb_memory_limit_mb,
+        )
+        if reference_generations
         else None
     )
     return ServiceContainer(
@@ -212,6 +244,7 @@ def _build_local_container(settings: Settings) -> ServiceContainer:
             else None
         ),
         site_data_publisher=site_data_publisher,
+        event_assessor=event_assessor,
     )
 
 

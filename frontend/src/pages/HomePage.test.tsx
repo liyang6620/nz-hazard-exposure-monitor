@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -13,6 +13,8 @@ const baseEvent: EventListItem = {
   name: "20 km east of Tauranga",
   origin_time: "2026-10-27T03:59:50Z",
   magnitude: 4.2,
+  magnitude_type: "M",
+  magnitude_revision_time: "2026-10-27T04:05:00Z",
   depth_km: 20,
   latitude: -37.6,
   longitude: 176.4,
@@ -26,7 +28,7 @@ const baseEvent: EventListItem = {
   source_version: null,
   shaking_type: "preliminary",
   event_time_status: "pending",
-  as_if_today: true,
+  as_if_today: false,
   is_recent_monitoring: true,
   is_historical_replay: false,
   most_affected_region: null,
@@ -51,6 +53,8 @@ const siteData: SiteData = {
       name: "Kaikōura 2016",
       origin_time: "2016-11-13T11:02:56Z",
       magnitude: 7.8,
+      magnitude_type: "Mw",
+      magnitude_revision_time: "2016-11-13T12:00:00Z",
       depth_km: 15.1,
       latitude: -42.693,
       longitude: 173.022,
@@ -109,6 +113,68 @@ describe("HomePage", () => {
     expect(screen.queryByText("Darfield 2010")).not.toBeInTheDocument();
     expect(screen.queryByText(/No numbered steps/i)).not.toBeInTheDocument();
     expect(screen.getByText(/one-hour target view/i)).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Observed processing time" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows unavailable metrics for a terminal event outside model range", () => {
+    useSiteData.mockReturnValue({
+      data: {
+        ...siteData,
+        events: [
+          {
+            ...baseEvent,
+            assessment_status: "outside_model_range",
+            assessment_reason: "Magnitude is outside the model range.",
+          },
+          ...siteData.events.slice(1),
+        ],
+      },
+      error: null,
+      loading: false,
+      reload: vi.fn(),
+    });
+    const { container } = render(
+      <MemoryRouter>
+        <HomePage />
+      </MemoryRouter>,
+    );
+
+    const latest = container.querySelector<HTMLElement>("aside.latest-event");
+    expect(latest).not.toBeNull();
+    expect(within(latest!).getAllByText("Not available")).toHaveLength(3);
+    expect(within(latest!).queryByText("Pending")).not.toBeInTheDocument();
+  });
+
+  it("shows processing time only when the publisher supplies a real record", () => {
+    useSiteData.mockReturnValue({
+      data: {
+        ...siteData,
+        manifest: {
+          ...siteData.manifest,
+          processing_record: {
+            event_id: "recent-event",
+            assessment_status: "ready",
+            earthquake_at: "2026-10-29T00:00:00Z",
+            published_at: "2026-10-29T00:18:00Z",
+            elapsed_seconds: 1080,
+          },
+        },
+      },
+      error: null,
+      loading: false,
+      reload: vi.fn(),
+    });
+    render(
+      <MemoryRouter>
+        <HomePage />
+      </MemoryRouter>,
+    );
+    expect(
+      screen.getByRole("heading", { name: "Observed processing time" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("18m 0s")).toBeInTheDocument();
   });
 
   it("renders a retryable error state", () => {

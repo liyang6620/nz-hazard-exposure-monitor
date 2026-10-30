@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import { useSiteData } from "../app/SiteDataContext";
 import { ErrorState, LoadingState } from "../components/AsyncState";
 import { HistoryComparisonChart } from "../components/HistoryComparisonChart";
-import { loadEventSummary } from "../data/client";
+import { loadReplaySummary } from "../data/client";
 import { FIXED_REPLAY_IDS } from "../data/history";
 import type { EventSummary } from "../data/types";
 import {
@@ -30,7 +30,7 @@ export default function HistoryPage() {
     const controller = new AbortController();
     Promise.all(
       FIXED_REPLAY_IDS.map((eventId) =>
-        loadEventSummary(data.manifest.base_path, eventId, controller.signal),
+        loadReplaySummary(data.manifest.base_path, eventId, controller.signal),
       ),
     )
       .then(setEvents)
@@ -110,7 +110,7 @@ export default function HistoryPage() {
               </dl>
               <Link
                 className="record-link"
-                to={`/events/${event.event_id}`}
+                to={`/events/${event.event_id}?view=replay`}
                 aria-label={`Open ${displayEventName(event.name)} replay`}
               >
                 <ArrowUpRight aria-hidden="true" />

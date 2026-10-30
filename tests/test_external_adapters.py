@@ -10,32 +10,52 @@ from nzhem.adapters.local.smtp import SmtpMailer
 
 
 def test_geonet_uses_updatedafter_and_normalises_events(monkeypatch: pytest.MonkeyPatch) -> None:
-    response = Mock()
-    response.text = (
+    text_response = Mock()
+    text_response.text = (
         "#EventID | Time | Latitude | Longitude | Depth/km | Author | Catalog | "
         "Contributor | ContributorID | MagType | Magnitude | MagAuthor | "
         "EventLocationName | EventType\n"
         "event-1|2026-10-23T00:00:00|-41.0|174.0|10|GNS|GNS|GNS|event-1|M|4.2|GNS|NZ|earthquake\n"
     )
-    get = Mock(return_value=response)
+    xml_response = Mock()
+    xml_response.text = """<?xml version="1.0"?>
+    <q:quakeml xmlns:q="http://quakeml.org/xmlns/quakeml/1.2"
+      xmlns="http://quakeml.org/xmlns/bed/1.2">
+      <eventParameters><event publicID="event-1">
+        <preferredOriginID>origin-1</preferredOriginID>
+        <preferredMagnitudeID>magnitude-1</preferredMagnitudeID>
+        <origin publicID="origin-1"><creationInfo>
+          <creationTime>2026-10-23T00:05:00Z</creationTime>
+        </creationInfo></origin>
+        <magnitude publicID="magnitude-1">
+          <mag><value>4.26</value></mag><type>M</type><creationInfo>
+          <creationTime>2026-10-23T00:06:00Z</creationTime>
+        </creationInfo></magnitude>
+      </event></eventParameters>
+    </q:quakeml>"""
+    get = Mock(side_effect=[text_response, text_response, xml_response])
     monkeypatch.setattr("nzhem.adapters.local.geonet.requests.get", get)
     source = GeoNetFdsnEventSource("https://example.invalid/fdsn")
 
     events = source.fetch_updated_after(datetime(2026, 10, 22, tzinfo=UTC))
 
     assert events[0]["event_id"] == "event-1"
-    assert events[0]["magnitude"] == 4.2
+    assert events[0]["magnitude"] == 4.26
+    assert events[0]["magnitude_type"] == "M"
+    assert events[0]["magnitude_revision_time"] == "2026-10-23T00:06:00Z"
+    assert events[0]["revision"] == "2026-10-23T00:06:00Z"
     assert events[0]["depth_km"] == 10
     assert events[0]["latitude"] == -41
     assert events[0]["longitude"] == 174
     assert events[0]["event_name"] == "NZ"
-    assert get.call_count == 2
+    assert get.call_count == 3
     call = get.call_args_list[0]
     assert call.kwargs["params"]["updatedafter"] == "2026-10-22T00:00:00Z"
     assert call.kwargs["params"]["format"] == "text"
     assert call.kwargs["params"]["minmagnitude"] == "4.0"
     assert "nz-hazard-exposure-monitor" in call.kwargs["headers"]["User-Agent"]
-    assert response.raise_for_status.call_count == 2
+    assert text_response.raise_for_status.call_count == 2
+    assert xml_response.raise_for_status.call_count == 1
 
 
 def test_null_event_source_is_deterministic() -> None:

@@ -1,5 +1,6 @@
 from nzhem.ports.services import (
     Clock,
+    EventAssessor,
     EventSource,
     LlmClient,
     Mailer,
@@ -17,6 +18,7 @@ from nzhem.ports.services import (
 
 __all__ = [
     "Clock",
+    "EventAssessor",
     "EventSource",
     "LlmClient",
     "Mailer",

@@ -50,6 +50,8 @@ class Settings:
     poll_interval_minutes: int = 60
     queue_visibility_timeout_seconds: int = 30
     queue_max_dequeue_count: int = 3
+    event_processing_timeout_minutes: int = 60
+    event_processing_batch_size: int = 100
     geonet_poll_enabled: bool = True
     geonet_fdsn_url: str = "https://service.geonet.org.nz/fdsnws/event/1/query"
     smtp_host: str = "mailpit"
@@ -102,6 +104,8 @@ class Settings:
             poll_interval_minutes=_positive_int("POLL_INTERVAL_MINUTES", 60),
             queue_visibility_timeout_seconds=_positive_int("QUEUE_VISIBILITY_TIMEOUT_SECONDS", 30),
             queue_max_dequeue_count=_positive_int("QUEUE_MAX_DEQUEUE_COUNT", 3),
+            event_processing_timeout_minutes=_positive_int("EVENT_PROCESSING_TIMEOUT_MINUTES", 60),
+            event_processing_batch_size=_positive_int("EVENT_PROCESSING_BATCH_SIZE", 100),
             geonet_poll_enabled=_bool("GEONET_POLL_ENABLED", True),
             geonet_fdsn_url=os.getenv(
                 "GEONET_FDSN_URL", "https://service.geonet.org.nz/fdsnws/event/1/query"

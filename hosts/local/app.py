@@ -31,12 +31,14 @@ scheduler = BackgroundScheduler(timezone="UTC")
 
 def run_housekeeping() -> dict[str, object]:
     result = container.housekeeping().run()
+    processing = container.process_events()
     site_publication = container.publish_site_data()
     payload = {
         "run_id": result.run_id,
         "catchup_from": result.catchup_from,
         "events_enqueued": result.events_enqueued,
         "briefings_expired": result.briefings_expired,
+        "event_processing": processing.__dict__ if processing is not None else None,
         "site_generation": (
             site_publication.get("generation_id") if site_publication is not None else None
         ),

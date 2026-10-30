@@ -110,6 +110,12 @@ class ShakingLayersClient:
                 return response
             except requests.RequestException as exc:
                 last_error = exc
+                if (
+                    isinstance(exc, requests.HTTPError)
+                    and exc.response is not None
+                    and exc.response.status_code in {400, 401, 403, 404}
+                ):
+                    raise
                 if attempt < 2:
                     time.sleep(2**attempt)
         assert last_error is not None
