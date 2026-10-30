@@ -1,5 +1,5 @@
 APScheduler==3.11.0
-duckdb==1.4.1
+duckdb==2.0.0
 fastapi==0.119.0
 mcp==1.20.0
 pydantic==2.12.5
