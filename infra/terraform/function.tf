@@ -63,6 +63,7 @@ resource "azurerm_function_app_flex_consumption" "main" {
     "HOUSEKEEPING_SCHEDULE"                 = "0 0 * * * *"
     "POLL_INTERVAL_MINUTES"                 = "60"
     "STORAGE_ACCOUNT_NAME"                  = azurerm_storage_account.data.name
+    "KEY_VAULT_URL"                         = azurerm_key_vault.main.vault_uri
     "NZHEM_ENV"                             = "azure"
     "NZHEM_DATA_ROOT"                       = "/tmp/nzhem-data"
     "NZHEM_DUCKDB_EXTENSIONS_DIR"           = "/home/site/wwwroot/vendor/duckdb_extensions"
