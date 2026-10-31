@@ -6,7 +6,7 @@ resource "azurerm_user_assigned_identity" "package_storage" {
 }
 
 resource "azurerm_role_assignment" "package_storage_blob" {
-  scope                = azurerm_storage_container.data["deployments"].id
+  scope                = azurerm_storage_container.function_deployments.id
   role_definition_name = "Storage Blob Data Contributor"
   principal_id         = azurerm_user_assigned_identity.package_storage.principal_id
 }
@@ -35,7 +35,7 @@ resource "azurerm_function_app_flex_consumption" "main" {
   public_network_access_enabled = true
 
   storage_container_type                         = "blobContainer"
-  storage_container_endpoint                     = "${azurerm_storage_account.data.primary_blob_endpoint}${azurerm_storage_container.data["deployments"].name}"
+  storage_container_endpoint                     = "${azurerm_storage_account.function_host.primary_blob_endpoint}${azurerm_storage_container.function_deployments.name}"
   storage_authentication_type                    = "UserAssignedIdentity"
   storage_user_assigned_identity_id              = azurerm_user_assigned_identity.package_storage.id
   webdeploy_publish_basic_authentication_enabled = false
@@ -55,7 +55,7 @@ resource "azurerm_function_app_flex_consumption" "main" {
 
   app_settings = {
     "APPLICATIONINSIGHTS_CONNECTION_STRING" = azurerm_application_insights.main.connection_string
-    "AzureWebJobsStorage__accountName"      = azurerm_storage_account.data.name
+    "AzureWebJobsStorage__accountName"      = azurerm_storage_account.function_host.name
     "AzureWebJobsStorage__credential"       = "managedidentity"
     "FUNCTIONS_WORKER_RUNTIME"              = "python"
     "HOUSEKEEPING_SCHEDULE"                 = "0 0 * * * *"

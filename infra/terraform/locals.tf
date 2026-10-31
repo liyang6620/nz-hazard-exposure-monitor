@@ -3,6 +3,7 @@ locals {
 
   names = {
     storage       = "stnzhem${local.suffix}"
+    host_storage  = "stnzhemhost${local.suffix}"
     function_app  = "func-nzhem-${local.suffix}"
     service_plan  = "asp-nzhem-${local.suffix}"
     key_vault     = "kv-nzhem-${local.suffix}"
@@ -18,6 +19,5 @@ locals {
     "curated",
     "gold",
     "briefings",
-    "deployments",
   ])
 }

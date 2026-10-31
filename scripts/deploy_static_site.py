@@ -7,6 +7,8 @@ from pathlib import Path
 from azure.identity import DefaultAzureCredential
 from azure.storage.blob import BlobServiceClient, ContentSettings
 
+from nzhem.core.site_routes import static_route_blobs
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Publish the built React site to $web")
@@ -40,6 +42,15 @@ def main() -> None:
                     content_type=content_type, cache_control=cache_control
                 ),
             )
+        count += 1
+    index_html = (root / "index.html").read_bytes()
+    for route in static_route_blobs():
+        web.upload_blob(
+            route,
+            index_html,
+            overwrite=True,
+            content_settings=ContentSettings(content_type="text/html", cache_control="no-cache"),
+        )
         count += 1
     print(f"Published {count} static application files; runtime data was preserved")
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import shutil
 import threading
@@ -13,6 +14,7 @@ from azure.storage.blob import BlobServiceClient
 from nzhem.adapters.local.realtime import LocalRealtimeEventAssessor
 from nzhem.adapters.local.resource_guard import ResourceGuard
 from nzhem.adapters.local.site_data import LocalSiteDataPublisher
+from nzhem.core.site_routes import static_route_blobs
 from nzhem.ports import EventAssessor, ObjectStore, TableStore
 
 _publish_lock = threading.Lock()
@@ -158,6 +160,10 @@ class AzureSiteDataPublisher:
                 if path.is_file():
                     relative = path.relative_to(web).as_posix()
                     self._objects.put_bytes("web", relative, path.read_bytes())
+            index_html = self._objects.get_bytes("web", "index.html")
+            events = json.loads((generation / "events.json").read_text(encoding="utf-8"))
+            for route in static_route_blobs(str(event["event_id"]) for event in events):
+                self._objects.put_bytes("web", route, index_html)
             for name in (f"manifest-{generation_id}.json", "manifest.json"):
                 relative = f"data/{name}"
                 self._objects.put_bytes("web", relative, (web / relative).read_bytes())

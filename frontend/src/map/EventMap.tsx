@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import "@arcgis/core/assets/esri/themes/light/main.css";
 
 import type { EventSummary } from "../data/types";
-import type Layer from "@arcgis/core/layers/Layer.js";
 import type MapView from "@arcgis/core/views/MapView.js";
 
 interface EventMapProps {
@@ -22,6 +21,7 @@ export default function EventMap({ event, exposureUrl }: EventMapProps) {
   useEffect(() => {
     if (!mapElement.current) return;
     let view: MapView | undefined;
+    let zoomWatcher: { remove: () => void } | undefined;
     let cancelled = false;
 
     async function createMap() {
@@ -30,7 +30,7 @@ export default function EventMap({ event, exposureUrl }: EventMapProps) {
         { default: MapView },
         { default: GeoJSONLayer },
         { default: WebTileLayer },
-        { default: VectorTileLayer },
+        reactiveUtils,
         { default: Basemap },
         { default: GraphicsLayer },
         { default: Graphic },
@@ -39,29 +39,32 @@ export default function EventMap({ event, exposureUrl }: EventMapProps) {
         import("@arcgis/core/views/MapView.js"),
         import("@arcgis/core/layers/GeoJSONLayer.js"),
         import("@arcgis/core/layers/WebTileLayer.js"),
-        import("@arcgis/core/layers/VectorTileLayer.js"),
+        import("@arcgis/core/core/reactiveUtils.js"),
         import("@arcgis/core/Basemap.js"),
         import("@arcgis/core/layers/GraphicsLayer.js"),
         import("@arcgis/core/Graphic.js"),
       ]);
       if (cancelled || !mapElement.current) return;
 
-      const linzKey = import.meta.env.VITE_LINZ_BASEMAPS_API_KEY?.trim();
-      let baseLayer: Layer;
+      const linzKey = import.meta.env.VITE_LINZ_LDS_TILES_API_KEY?.trim();
+      let baseLayers: InstanceType<typeof WebTileLayer>[];
+      let topo250: InstanceType<typeof WebTileLayer> | undefined;
+      let topo50: InstanceType<typeof WebTileLayer> | undefined;
       if (linzKey) {
-        const linzLayer = new VectorTileLayer({
-          url: `https://basemaps.linz.govt.nz/v1/tiles/topographic/WebMercatorQuad/style/topographic.json?api=${encodeURIComponent(linzKey)}`,
-          title: "LINZ Topographic",
-        });
+        topo250 = linzLayer(WebTileLayer, linzKey, 50798, "NZ Topo250 Maps");
+        topo50 = linzLayer(WebTileLayer, linzKey, 50767, "NZ Topo50 Maps");
+        topo50.visible = false;
         try {
-          await linzLayer.load();
-          baseLayer = linzLayer;
+          await Promise.all([topo250.load(), topo50.load()]);
+          baseLayers = [topo250, topo50];
           setProvider("LINZ");
         } catch {
-          baseLayer = osmLayer(WebTileLayer);
+          baseLayers = [osmLayer(WebTileLayer)];
+          topo250 = undefined;
+          topo50 = undefined;
         }
       } else {
-        baseLayer = osmLayer(WebTileLayer);
+        baseLayers = [osmLayer(WebTileLayer)];
       }
 
       const exposure = new GeoJSONLayer({
@@ -127,7 +130,7 @@ export default function EventMap({ event, exposureUrl }: EventMapProps) {
       );
 
       const map = new ArcGISMap({
-        basemap: new Basemap({ baseLayers: [baseLayer] }),
+        basemap: new Basemap({ baseLayers }),
         layers: [exposure, epicentre],
       });
       view = new MapView({
@@ -138,6 +141,18 @@ export default function EventMap({ event, exposureUrl }: EventMapProps) {
         constraints: { minZoom: 3, maxZoom: 13 },
       });
       await view.when();
+      if (topo250 && topo50) {
+        const overview = topo250;
+        const detail = topo50;
+        zoomWatcher = reactiveUtils.watch(
+          () => view?.zoom,
+          (zoom) => {
+            overview.visible = (zoom ?? 0) < 10;
+            detail.visible = (zoom ?? 0) >= 10;
+          },
+          { initial: true },
+        );
+      }
       await exposure.load();
       if (exposure.fullExtent && exposure.fullExtent.width > 0) {
         await view.goTo(exposure.fullExtent.expand(1.25), { animate: false });
@@ -154,6 +169,7 @@ export default function EventMap({ event, exposureUrl }: EventMapProps) {
     });
     return () => {
       cancelled = true;
+      zoomWatcher?.remove();
       view?.destroy();
     };
   }, [event, exposureUrl]);
@@ -200,6 +216,20 @@ function osmLayer(
     urlTemplate: "https://tile.openstreetmap.org/{level}/{col}/{row}.png",
     title: "OpenStreetMap",
     copyright: "© OpenStreetMap contributors",
+  });
+}
+
+function linzLayer(
+  WebTileLayer: typeof import("@arcgis/core/layers/WebTileLayer.js").default,
+  key: string,
+  layerId: number,
+  title: string,
+) {
+  return new WebTileLayer({
+    urlTemplate: `https://tiles-{subDomain}.data-cdn.linz.govt.nz/services;key=${encodeURIComponent(key)}/tiles/v4/layer=${layerId}/EPSG:3857/{level}/{col}/{row}.png`,
+    subDomains: ["a", "b", "c", "d"],
+    title,
+    copyright: "© Toitū Te Whenua LINZ, CC BY 4.0",
   });
 }
 

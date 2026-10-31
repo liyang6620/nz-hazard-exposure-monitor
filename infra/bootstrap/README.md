@@ -8,8 +8,8 @@ repository-scoped `pull_request` and `main` federated credentials. It receives
 It receives no subscription-level role. The RBAC administrator assignment uses
 an ABAC condition that permits only the six named runtime data-plane roles and
 the bootstrap-owned `NZHEM Function Stop Operator` role, and only when the
-target principal type is `ServicePrincipal`. The 31 Oct replan adds
-`Storage Blob Data Owner` for the Function host storage identity. Owner,
+target principal type is `ServicePrincipal`. The 31 Oct replan permits
+`Storage Blob Data Owner` only for the separate Function host storage account. Owner,
 User Access Administrator,
 and Role Based Access Control Administrator are outside the allowlist. Both
 role-assignment creation and deletion are constrained.
@@ -21,7 +21,7 @@ role definitions.
 The product frontend replan also requests `Storage Blob Data Contributor` for
 the owner at the production resource-group scope so approved local Parquet can
 be staged without a storage account key. This changes the previously approved
-bootstrap from 12 to 13 resources and requires renewed review.
+bootstrap from 12 to 13 resources; the 13-resource plan was approved.
 
 This root keeps local state because a backend cannot safely own the storage
 that contains its own state. Keep its state encrypted and backed up outside the

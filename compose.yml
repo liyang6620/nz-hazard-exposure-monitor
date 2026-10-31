@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: hosts/local/Dockerfile
       args:
-        VITE_LINZ_BASEMAPS_API_KEY: "${VITE_LINZ_BASEMAPS_API_KEY:-}"
+        VITE_LINZ_LDS_TILES_API_KEY: "${VITE_LINZ_LDS_TILES_API_KEY:-}"
     env_file:
       - path: .env
         required: false

@@ -6,7 +6,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from nzhem.adapters.azure import AzureTableStore
+from nzhem.adapters.azure import AzureObjectStore, AzureTableStore
 from nzhem.adapters.azure.workspace import AzureDataWorkspace, AzureSiteDataPublisher
 from nzhem.adapters.local.duckdb_extensions import load_extension
 
@@ -56,6 +56,26 @@ def test_azure_table_adapter_round_trips_structured_fields() -> None:
     ]
 
 
+def test_azure_object_store_publishes_exact_event_route_as_html() -> None:
+    saved: dict = {}
+
+    class Blob:
+        def upload_blob(self, data: bytes, **kwargs: object) -> None:
+            saved.update(data=data, **kwargs)
+
+    store = AzureObjectStore.__new__(AzureObjectStore)
+    store._service = SimpleNamespace(
+        get_blob_client=lambda container, path: (
+            Blob() if (container, path) == ("$web", "events/2016p858000") else None
+        )
+    )
+    store.put_bytes("web", "events/2016p858000", b"<html>app</html>")
+
+    assert saved["data"] == b"<html>app</html>"
+    assert saved["content_settings"].content_type == "text/html"
+    assert saved["content_settings"].cache_control == "no-cache"
+
+
 def test_workspace_rejects_blob_path_traversal(tmp_path: Path) -> None:
     class Container:
         def list_blobs(self, name_starts_with: str) -> list[SimpleNamespace]:
@@ -96,20 +116,31 @@ def test_site_publisher_uploads_manifest_last(
             root = tmp_path / "web" / "data"
             generation = root / "generations" / "generation"
             generation.mkdir(parents=True)
-            (generation / "events.json").write_text("{}")
+            (generation / "events.json").write_text('[{"event_id":"2026p123456"}]')
             (root / "manifest-generation.json").write_text("{}")
             (root / "manifest.json").write_text("{}")
             return {"generation_id": "generation"}
 
     monkeypatch.setattr("nzhem.adapters.azure.workspace.LocalSiteDataPublisher", Publisher)
     uploads: list[str] = []
-    objects = SimpleNamespace(put_bytes=lambda container, path, data: uploads.append(path))
+    objects = SimpleNamespace(
+        put_bytes=lambda container, path, data: uploads.append(path),
+        get_bytes=lambda container, path: b"<html>app</html>",
+    )
     publisher = AzureSiteDataPublisher(Workspace(), objects, None, memory_limit_mb=512)
 
     publisher.publish(datetime(2026, 10, 31, tzinfo=UTC))
 
     assert uploads == [
         "data/generations/generation/events.json",
+        "history",
+        "history/index.html",
+        "method",
+        "method/index.html",
+        "about",
+        "about/index.html",
+        "events/2026p123456",
+        "events/2026p123456/index.html",
         "data/manifest-generation.json",
         "data/manifest.json",
     ]

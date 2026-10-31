@@ -37,8 +37,20 @@ resource "azurerm_role_assignment" "function_blob" {
 }
 
 resource "azurerm_role_assignment" "function_host_blob" {
-  scope                = azurerm_storage_account.data.id
+  scope                = azurerm_storage_account.function_host.id
   role_definition_name = "Storage Blob Data Owner"
+  principal_id         = azurerm_function_app_flex_consumption.main.identity[0].principal_id
+}
+
+resource "azurerm_role_assignment" "function_host_queue" {
+  scope                = azurerm_storage_account.function_host.id
+  role_definition_name = "Storage Queue Data Contributor"
+  principal_id         = azurerm_function_app_flex_consumption.main.identity[0].principal_id
+}
+
+resource "azurerm_role_assignment" "function_host_table" {
+  scope                = azurerm_storage_account.function_host.id
+  role_definition_name = "Storage Table Data Contributor"
   principal_id         = azurerm_function_app_flex_consumption.main.identity[0].principal_id
 }
 
