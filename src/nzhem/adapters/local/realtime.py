@@ -12,6 +12,7 @@ import requests
 import shapely
 from shapely.geometry import mapping
 
+from nzhem.adapters.local.duckdb_extensions import load_extension
 from nzhem.adapters.local.resource_guard import ResourceGuard
 from nzhem.adapters.local.shaking_layers import CachedShakingEvent, ShakingLayersClient
 from nzhem.core.exposure import PAPER_MAX_MAGNITUDE, PAPER_MIN_MAGNITUDE
@@ -100,10 +101,10 @@ class LocalRealtimeEventAssessor:
         connection.execute(f"set memory_limit='{self._memory_limit_mb}MB'")
         connection.execute("set threads=1")
         connection.execute("set preserve_insertion_order=false")
-        connection.execute("load h3")
+        load_extension(connection, "h3")
         try:
             if official is not None:
-                connection.execute("load spatial")
+                load_extension(connection, "spatial")
             self._prepare_reference(connection, str(event["event_time"]))
             if official is None:
                 source = self._build_preliminary(connection, event)

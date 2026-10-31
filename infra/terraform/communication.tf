@@ -1,13 +1,13 @@
 resource "azurerm_communication_service" "main" {
   name                = local.names.communication
-  resource_group_name = azurerm_resource_group.production.name
+  resource_group_name = var.resource_group_name
   data_location       = "Australia"
   tags                = var.tags
 }
 
 resource "azurerm_email_communication_service" "main" {
   name                = local.names.email
-  resource_group_name = azurerm_resource_group.production.name
+  resource_group_name = var.resource_group_name
   data_location       = "Australia"
   tags                = var.tags
 }

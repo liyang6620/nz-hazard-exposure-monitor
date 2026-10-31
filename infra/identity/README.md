@@ -1,13 +1,13 @@
-# Microsoft Entra identities
+# Retired identity root
 
-This owner-run root bootstraps two secretless identities:
+This root was retired when the production target moved to an Azure for Students
+subscription whose school directory blocks application registration.
 
-- the GitHub Actions workload identity, restricted to this repository's pull
-  requests and protected `main` branch;
-- the audience application used by Azure Monitor's secure webhook and Function
-  App Easy Auth.
+The GitHub workload identity is now an Azure user-assigned managed identity in
+`infra/bootstrap`. Its federated credentials do not require an Entra
+application registration. Keeping the identity in bootstrap also avoids a
+deployment-order cycle: the owner creates the reviewed bootstrap resources,
+then GitHub can authenticate to the remote backend and production resource
+group without a stored secret.
 
-The GitHub identity receives its remote-state container role here and its
-production RBAC assignments in `infra/terraform`. It is not granted Microsoft
-Graph application permissions, so future identity-root plans remain an
-owner-run operation. Apply only an approved saved plan.
+Do not initialize or apply this directory.

@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   deploy:
-    if: ${{ false }} # D31: disabled until the Microsoft account is restored.
+    if: ${{ vars.AZURE_DEPLOYMENT_ENABLED == 'true' }}
     runs-on: ubuntu-latest
     environment: production
     env:
@@ -28,6 +28,14 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: python -m pip install -e . azure-identity==1.25.1 azure-storage-blob==12.27.1
+      - name: Record deployment start time
+        run: echo "DEPLOY_STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
       - run: python -m pip install duckdb==1.4.1
       - run: bash scripts/build_function_package.sh | tee package-size.json
       - name: Enforce package limit
@@ -37,6 +45,17 @@ jobs:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: Build React application
+        working-directory: frontend
+        env:
+          VITE_LINZ_LDS_TILES_API_KEY: ${{ secrets.LINZ_LDS_TILES_API_KEY }}
+        run: |
+          npm ci
+          npm run build
+      - name: Publish static application
+        run: >-
+          python scripts/deploy_static_site.py
+          --account-name "${{ secrets.AZURE_STORAGE_ACCOUNT }}"
       - name: Deploy immutable package
         run: >-
           az functionapp deployment source config-zip
@@ -44,23 +63,25 @@ jobs:
           --name "${{ secrets.AZURE_FUNCTION_APP_NAME }}"
           --src dist/function.zip
           --timeout 1800
-      - name: Verify functions and startup housekeeping run
+      - name: Verify functions and a fresh site-data publication
         shell: bash
         run: |
           az functionapp function list \
             --resource-group "${{ secrets.AZURE_RESOURCE_GROUP }}" \
             --name "${{ secrets.AZURE_FUNCTION_APP_NAME }}" \
             --query '[].name' --output table
+          site_url="$(az storage account show \
+            --resource-group "${{ secrets.AZURE_RESOURCE_GROUP }}" \
+            --name "${{ secrets.AZURE_STORAGE_ACCOUNT }}" \
+            --query 'primaryEndpoints.web' --output tsv)"
           for attempt in {1..15}; do
-            count="$(az storage entity query \
-              --account-name "${{ secrets.AZURE_STORAGE_ACCOUNT }}" \
-              --table-name runs --auth-mode login \
-              --filter "PartitionKey eq 'housekeeping' and status eq 'success'" \
-              --query 'length(items)' --output tsv)"
-            if [ "${count:-0}" -gt 0 ]; then
-              exit 0
+            if curl --fail --silent --show-error \
+              "${site_url%/}/data/manifest.json" -o site-manifest.json; then
+              if python -c "import json,os; from datetime import datetime; d=json.load(open('site-manifest.json')); started=datetime.fromisoformat(os.environ['DEPLOY_STARTED_AT'].replace('Z','+00:00')); published=datetime.fromisoformat(d['generated_at'].replace('Z','+00:00')); assert published >= started"; then
+                exit 0
+              fi
             fi
             sleep 20
           done
-          echo 'No successful startup housekeeping run was recorded.' >&2
+          echo 'No fresh site-data publication appeared after deployment.' >&2
           exit 1

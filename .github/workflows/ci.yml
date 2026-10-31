@@ -95,7 +95,6 @@ jobs:
         root:
           - infra/bootstrap
           - infra/providers
-          - infra/identity
           - infra/guardrails
           - infra/terraform
     steps:
