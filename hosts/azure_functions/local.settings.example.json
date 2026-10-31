@@ -2,6 +2,7 @@
   "IsEncrypted": false,
   "Values": {
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "NZHEM_DATA_STORAGE": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "python",
     "HOUSEKEEPING_SCHEDULE": "0 0 * * * *",
     "NZHEM_ENV": "local",

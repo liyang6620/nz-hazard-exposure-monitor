@@ -57,6 +57,8 @@ resource "azurerm_function_app_flex_consumption" "main" {
     "APPLICATIONINSIGHTS_CONNECTION_STRING" = azurerm_application_insights.main.connection_string
     "AzureWebJobsStorage__accountName"      = azurerm_storage_account.function_host.name
     "AzureWebJobsStorage__credential"       = "managedidentity"
+    "NZHEM_DATA_STORAGE__queueServiceUri"   = azurerm_storage_account.data.primary_queue_endpoint
+    "NZHEM_DATA_STORAGE__credential"        = "managedidentity"
     "FUNCTIONS_WORKER_RUNTIME"              = "python"
     "HOUSEKEEPING_SCHEDULE"                 = "0 0 * * * *"
     "POLL_INTERVAL_MINUTES"                 = "60"

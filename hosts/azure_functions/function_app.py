@@ -94,7 +94,7 @@ def housekeeping(timer: func.TimerRequest) -> None:
     )
 
 
-@app.queue_trigger(arg_name="message", queue_name="events", connection="AzureWebJobsStorage")
+@app.queue_trigger(arg_name="message", queue_name="events", connection="NZHEM_DATA_STORAGE")
 def process_event(message: func.QueueMessage) -> None:
     container = build_container()
     processor = container.event_processor()

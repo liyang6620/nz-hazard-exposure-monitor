@@ -36,8 +36,10 @@ The product frontend replan adds a runtime table, an events poison queue,
 three container-scoped GitHub upload roles and a separate Standard LRS Function
 host storage account. `AzureWebJobsStorage` and deployment packages use that
 account. The Function system identity has `Storage Blob Data Owner` only there;
-its data-account roles remain at Contributor level. Fixed pages and every
-published event route receive an HTML blob so direct links return HTTP 200;
+its data-account roles remain at Contributor level. The `events` queue trigger
+uses `NZHEM_DATA_STORAGE` to reach the data account, while host leases use
+`AzureWebJobsStorage`. Fixed pages and every published event route receive an
+HTML blob so direct links return HTTP 200;
 `index.html` remains the 404 fallback for unknown routes. The conditional
 review plan has 50 creates, up from the 47-create replan; see
 [`evidence/m1-a/replan-2026-10-31.md`](../../evidence/m1-a/replan-2026-10-31.md).
