@@ -89,6 +89,12 @@ class ServiceContainer:
         return self.site_data_publisher.publish(self.clock.now())
 
     def process_events(self) -> EventProcessingResult | None:
+        processor = self.event_processor()
+        if processor is None:
+            return None
+        return processor.run_pending(limit=self.settings.event_processing_batch_size)
+
+    def event_processor(self) -> EventProcessingService | None:
         if self.event_assessor is None:
             return None
         return EventProcessingService(
@@ -98,7 +104,7 @@ class ServiceContainer:
             assessor=self.event_assessor,
             max_attempts=self.settings.queue_max_dequeue_count,
             timeout=timedelta(minutes=self.settings.event_processing_timeout_minutes),
-        ).run_pending(limit=self.settings.event_processing_batch_size)
+        )
 
 
 def build_container(settings: Settings | None = None) -> ServiceContainer:

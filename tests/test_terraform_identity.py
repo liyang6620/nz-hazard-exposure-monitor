@@ -28,7 +28,16 @@ def test_github_oidc_uses_scoped_user_assigned_identity() -> None:
 def test_production_has_no_subscription_role_for_github() -> None:
     roles = Path("infra/terraform/roles.tf").read_text(encoding="utf-8")
 
-    assert "github_principal_id" not in roles
+    github_role = roles.split('resource "azurerm_role_assignment" "github_upload"')[1].split(
+        'resource "', 1
+    )[0]
+    assert "scope                = each.value" in github_role
+    assert 'role_definition_name = "Storage Blob Data Contributor"' in github_role
+    assert "principal_id         = var.github_principal_id" in github_role
+    assert 'scope = "/subscriptions/' not in github_role
+    assert 'curated = azurerm_storage_container.data["curated"].id' in roles
+    assert 'gold    = azurerm_storage_container.data["gold"].id' in roles
+    assert "containers/$web" in roles
     assert "Cost Management Reader" not in roles
     assert 'resource "azurerm_role_definition"' not in roles
     assert "owner_object_id" not in roles

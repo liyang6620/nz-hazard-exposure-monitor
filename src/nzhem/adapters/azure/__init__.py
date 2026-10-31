@@ -1,15 +1,19 @@
 from __future__ import annotations
 
+import json
+import mimetypes
 import os
 from functools import lru_cache
+from pathlib import Path
 from typing import Any
 
 import requests
 from azure.communication.email import EmailClient
+from azure.core.exceptions import ResourceNotFoundError
 from azure.data.tables import TableServiceClient
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
-from azure.storage.blob import BlobServiceClient
+from azure.storage.blob import BlobServiceClient, ContentSettings
 from azure.storage.queue import QueueServiceClient
 
 from nzhem.adapters.local.geonet import GeoNetFdsnEventSource, NullEventSource
@@ -17,6 +21,8 @@ from nzhem.config import Settings
 from nzhem.container import ServiceContainer
 from nzhem.core.clock import SystemClock
 from nzhem.ports import QueueMessage
+
+_JSON_PREFIX = "__nzhem_json__:"
 
 
 @lru_cache(maxsize=1)
@@ -31,11 +37,28 @@ class AzureObjectStore:
 
     def put_bytes(self, container: str, path: str, data: bytes) -> None:
         actual_container = "$web" if container == "web" else container
-        self._service.get_blob_client(actual_container, path).upload_blob(data, overwrite=True)
+        content_type = mimetypes.guess_type(path)[0] or "application/octet-stream"
+        if path.endswith(".geojson"):
+            content_type = "application/geo+json"
+        cache_control = (
+            "no-cache"
+            if path == "data/manifest.json" or path.startswith("briefings/")
+            else "public, max-age=31536000"
+        )
+        self._service.get_blob_client(actual_container, path).upload_blob(
+            data,
+            overwrite=True,
+            content_settings=ContentSettings(
+                content_type=content_type, cache_control=cache_control
+            ),
+        )
 
     def get_bytes(self, container: str, path: str) -> bytes:
         actual_container = "$web" if container == "web" else container
-        return self._service.get_blob_client(actual_container, path).download_blob().readall()
+        try:
+            return self._service.get_blob_client(actual_container, path).download_blob().readall()
+        except ResourceNotFoundError as exc:
+            raise FileNotFoundError(f"{container}/{path}") from exc
 
 
 class AzureStaticSitePublisher:
@@ -52,7 +75,21 @@ class AzureTableStore:
         self._service = TableServiceClient(endpoint, credential=credential())
 
     def upsert_entity(self, table_name: str, entity: dict) -> None:
-        self._service.get_table_client(table_name).upsert_entity(entity, mode="replace")
+        encoded = {
+            key: _JSON_PREFIX + json.dumps(value) if isinstance(value, dict | list) else value
+            for key, value in entity.items()
+            if value is not None
+        }
+        self._service.get_table_client(table_name).upsert_entity(encoded, mode="replace")
+
+    @staticmethod
+    def _decode(entity: dict) -> dict:
+        return {
+            key: json.loads(value.removeprefix(_JSON_PREFIX))
+            if isinstance(value, str) and value.startswith(_JSON_PREFIX)
+            else value
+            for key, value in entity.items()
+        }
 
     def get_entity(self, table_name: str, partition_key: str, row_key: str) -> dict | None:
         from azure.core.exceptions import ResourceNotFoundError
@@ -61,19 +98,18 @@ class AzureTableStore:
             entity = self._service.get_table_client(table_name).get_entity(partition_key, row_key)
         except ResourceNotFoundError:
             return None
-        return dict(entity)
+        return self._decode(dict(entity))
 
     def list_entities(self, table_name: str, partition_key: str | None = None) -> list[dict]:
-        parameters = None
-        query_filter = None
-        if partition_key is not None:
-            query_filter = "PartitionKey eq @partition"
-            parameters = {"partition": partition_key}
-        entities = self._service.get_table_client(table_name).query_entities(
-            query_filter=query_filter,
-            parameters=parameters,
-        )
-        return [dict(entity) for entity in entities]
+        client = self._service.get_table_client(table_name)
+        if partition_key is None:
+            entities = client.list_entities()
+        else:
+            entities = client.query_entities(
+                query_filter="PartitionKey eq @partition",
+                parameters={"partition": partition_key},
+            )
+        return [self._decode(dict(entity)) for entity in entities]
 
 
 class AzureQueueStore:
@@ -199,7 +235,15 @@ class AzureOpenAILlmClient:
 
 
 def build_azure_container(settings: Settings) -> ServiceContainer:
+    from nzhem.adapters.azure.workspace import (
+        AzureDataWorkspace,
+        AzureRealtimeEventAssessor,
+        AzureSiteDataPublisher,
+    )
+
     objects = AzureObjectStore(settings.storage_account_name)
+    workspace = AzureDataWorkspace(objects._service, Path(settings.data_root))
+    tables = AzureTableStore(settings.storage_account_name)
     event_source = (
         GeoNetFdsnEventSource(settings.geonet_fdsn_url)
         if settings.geonet_poll_enabled
@@ -214,7 +258,7 @@ def build_azure_container(settings: Settings) -> ServiceContainer:
             visibility_timeout=settings.queue_visibility_timeout_seconds,
             max_dequeues=settings.queue_max_dequeue_count,
         ),
-        tables=AzureTableStore(settings.storage_account_name),
+        tables=tables,
         secrets=AzureSecretStore(
             settings.key_vault_url,
             aliases={settings.approval_token_key_name: "approval-token-key"},
@@ -226,4 +270,10 @@ def build_azure_container(settings: Settings) -> ServiceContainer:
         ),
         static_site=AzureStaticSitePublisher(objects),
         event_source=event_source,
+        event_assessor=AzureRealtimeEventAssessor(
+            workspace, memory_limit_mb=settings.duckdb_memory_limit_mb
+        ),
+        site_data_publisher=AzureSiteDataPublisher(
+            workspace, objects, tables, memory_limit_mb=settings.duckdb_memory_limit_mb
+        ),
     )

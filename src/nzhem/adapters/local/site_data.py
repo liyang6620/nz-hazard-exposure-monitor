@@ -13,6 +13,7 @@ import duckdb
 import shapely
 from shapely.geometry import mapping
 
+from nzhem.adapters.local.duckdb_extensions import load_extension
 from nzhem.ports import TableStore
 
 MMI_BANDS = ("<4", "4", "5", "6", "7", "8+")
@@ -84,7 +85,7 @@ class LocalSiteDataPublisher:
         connection = duckdb.connect()
         connection.execute(f"set memory_limit = '{self._memory_limit_mb}MB'")
         connection.execute("set threads = 1")
-        connection.execute("load h3")
+        load_extension(connection, "h3")
         try:
             events = self._gold_events(connection)
             regions = self._region_lookup(connection)

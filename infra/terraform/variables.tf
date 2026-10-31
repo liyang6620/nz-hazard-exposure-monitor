@@ -12,6 +12,13 @@ variable "tenant_id" {
   sensitive   = true
 }
 
+variable "github_principal_id" {
+  description = "Principal ID of the bootstrap-created GitHub managed identity. Never commit its value."
+  type        = string
+  nullable    = false
+  sensitive   = true
+}
+
 variable "resource_group_name" {
   description = "Production resource group pre-created by infra/bootstrap."
   type        = string

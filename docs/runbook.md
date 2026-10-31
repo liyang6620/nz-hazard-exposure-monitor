@@ -18,11 +18,23 @@ state migration requires the project manager's approval relayed by the owner.
    subscription state archived under ignored `tmp/`.
 4. Initialize `infra/terraform` against `production.tfstate`. Save and review
    the complete production plan before apply.
-5. Set the GitHub encrypted secrets and enablement variables listed in the
+5. After the approved production apply, stage the approved reference export and
+   M3 gold Parquet with `scripts/stage_azure_data.py --account-name <account>
+   --execute`. Run it without `--execute` first to see the bounded file count
+   and byte total. The script uploads only Parquet to the private curated and
+   gold containers; it never uploads raw source ZIPs or DuckDB databases.
+6. Set the GitHub encrypted secrets and enablement variables listed in the
    workflow files. Never print
    their values in an issue, PR comment, log, screenshot, or repository file.
-6. Merge the PR only after CI passes. The main-branch deployment workflow builds
-   the locked package, deploys it and checks the startup `housekeeping` run.
+   `AZURE_GITHUB_PRINCIPAL_ID` is the bootstrap output used by production plans.
+7. Merge the PR only after CI passes. The main-branch deployment workflow builds
+   the locked Function package and React application, deploys both and checks
+   the startup `housekeeping` run. It preserves runtime `data/` and `briefings/`
+   in `$web`. The Function publishes a new data generation after startup and
+   each hourly run, and after queue-triggered event assessment.
+
+The 31 Oct replan changes resources and permissions; steps 2-7 are paused until
+the project manager reviews the diff in `evidence/m1-a/replan-2026-10-31.md`.
 
 ## Pre-upgrade stop drill
 

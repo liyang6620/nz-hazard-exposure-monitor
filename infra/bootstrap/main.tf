@@ -5,6 +5,7 @@ locals {
     "Cognitive Services OpenAI User",
     "Key Vault Secrets User",
     "Storage Blob Data Contributor",
+    "Storage Blob Data Owner",
     "Storage Queue Data Contributor",
     "Storage Table Data Contributor",
   ])
@@ -88,6 +89,12 @@ resource "azurerm_storage_container" "state" {
 
 resource "azurerm_role_assignment" "owner_state" {
   scope                = azurerm_storage_container.state.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = var.owner_object_id
+}
+
+resource "azurerm_role_assignment" "owner_production_blob" {
+  scope                = azurerm_resource_group.production.id
   role_definition_name = "Storage Blob Data Contributor"
   principal_id         = var.owner_object_id
 }

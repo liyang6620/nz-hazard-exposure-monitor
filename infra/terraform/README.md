@@ -31,3 +31,12 @@ After provider registration, the subscription did not expose the planned
 `Azure Communication Services Email Sender` role. The Function therefore uses
 the ACS connection string from protected Terraform state and its app settings.
 This credential must not be logged or copied into evidence.
+
+The product frontend replan adds a runtime table, an events poison queue,
+three container-scoped GitHub upload roles and a Function host-storage role.
+It also uses `index.html` as the
+Storage website error document for direct React routes. The pre-bootstrap
+review plan has 47 creates, up from 41; see
+[`evidence/m1-a/replan-2026-10-31.md`](../../evidence/m1-a/replan-2026-10-31.md).
+The GitHub UAMI principal ID is supplied at plan time after bootstrap and is
+never committed.

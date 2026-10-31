@@ -30,6 +30,17 @@ def _no_store_headers() -> dict[str, str]:
     }
 
 
+def _invalid_review_response() -> func.HttpResponse:
+    return func.HttpResponse(
+        "<!doctype html><html lang='en'><meta charset='utf-8'>"
+        "<main><h1>Review link unavailable</h1>"
+        "<p>This link has expired, was already used, or is invalid.</p></main></html>",
+        status_code=400,
+        mimetype="text/html",
+        headers=_no_store_headers(),
+    )
+
+
 def _client_ip(request: func.HttpRequest) -> str:
     forwarded = request.headers.get("x-forwarded-for", "")
     return forwarded.split(",", 1)[0].strip() or "unknown"
@@ -62,15 +73,41 @@ def _map_rate_limit_allows(request: func.HttpRequest, limit: int) -> bool:
 @app.timer_trigger(
     schedule="%HOUSEKEEPING_SCHEDULE%",
     arg_name="timer",
-    run_on_startup=False,
+    run_on_startup=True,
     use_monitor=True,
 )
 def housekeeping(timer: func.TimerRequest) -> None:
     del timer
-    result = build_container().housekeeping().run()
+    container = build_container()
+    result = container.housekeeping().run()
+    processor = container.event_processor()
+    timed_out = processor.expire_stale_processing() if processor else 0
+    publication = container.publish_site_data()
     logging.info(
         "housekeeping completed",
-        extra={"run_id": result.run_id, "events_enqueued": result.events_enqueued},
+        extra={
+            "run_id": result.run_id,
+            "events_enqueued": result.events_enqueued,
+            "timed_out": timed_out,
+            "site_generation": publication["generation_id"] if publication else None,
+        },
+    )
+
+
+@app.queue_trigger(arg_name="message", queue_name="events", connection="AzureWebJobsStorage")
+def process_event(message: func.QueueMessage) -> None:
+    container = build_container()
+    processor = container.event_processor()
+    if processor is None:
+        raise RuntimeError("Azure event assessor is not configured")
+    event = message.get_json()
+    if not isinstance(event, dict):
+        raise ValueError("Event queue payload must be a JSON object")
+    status = processor.process_triggered(event, dequeue_count=message.dequeue_count)
+    publication = container.publish_site_data()
+    logging.info(
+        "event processing completed",
+        extra={"assessment_status": status, "site_generation": publication["generation_id"]},
     )
 
 
@@ -119,11 +156,7 @@ def review_briefing_get(request: func.HttpRequest) -> func.HttpResponse:
     try:
         preview = build_container().approval().preview(token, datetime.now(UTC))
     except (ApprovalRejected, KeyError, ValueError):
-        return func.HttpResponse(
-            "Review link is invalid or unavailable",
-            status_code=400,
-            headers=_no_store_headers(),
-        )
+        return _invalid_review_response()
     html = (
         "<!doctype html><html lang='en'><meta charset='utf-8'><main>"
         f"<h1>{escape(preview.title)}</h1><p>Confirm {escape(preview.action)}.</p>"
@@ -147,22 +180,25 @@ def review_briefing_get(request: func.HttpRequest) -> func.HttpResponse:
 )
 def review_briefing_post(request: func.HttpRequest) -> func.HttpResponse:
     token = request.params.get("token", "")
+    container = build_container()
     try:
-        status = (
-            build_container()
-            .approval()
-            .decide(
-                token,
-                datetime.now(UTC),
-                _client_ip(request),
-            )
-        )
+        status = container.approval().decide(token, datetime.now(UTC), _client_ip(request))
     except (ApprovalRejected, KeyError, ValueError):
-        return func.HttpResponse(
-            "Review link is invalid or unavailable",
-            status_code=400,
-            headers=_no_store_headers(),
-        )
+        return _invalid_review_response()
+    if status == "approved":
+        try:
+            container.publish_site_data()
+        except Exception:
+            logging.exception(
+                "approved briefing site publication failed; hourly retry remains active"
+            )
+            return func.HttpResponse(
+                "<!doctype html><html lang='en'><main><h1>Briefing approved</h1>"
+                "<p>The website update is pending. Please check again shortly.</p></main></html>",
+                status_code=202,
+                mimetype="text/html",
+                headers=_no_store_headers(),
+            )
     return func.HttpResponse(
         f"<!doctype html><html lang='en'><main><h1>Briefing {escape(status)}</h1></main></html>",
         status_code=200,

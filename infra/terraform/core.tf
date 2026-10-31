@@ -37,8 +37,13 @@ resource "azurerm_storage_queue" "events" {
   storage_account_id = azurerm_storage_account.data.id
 }
 
+resource "azurerm_storage_queue" "events_poison" {
+  name               = "events-poison"
+  storage_account_id = azurerm_storage_account.data.id
+}
+
 resource "azurerm_storage_table" "tables" {
-  for_each = toset(["eventsstate", "runs", "briefings"])
+  for_each = toset(["eventsstate", "runs", "briefings", "runtime"])
 
   name               = each.value
   storage_account_id = azurerm_storage_account.data.id
@@ -47,7 +52,7 @@ resource "azurerm_storage_table" "tables" {
 resource "azurerm_storage_account_static_website" "public" {
   storage_account_id = azurerm_storage_account.data.id
   index_document     = "index.html"
-  error_404_document = "404.html"
+  error_404_document = "index.html"
 }
 
 resource "azurerm_storage_management_policy" "data" {

@@ -3,6 +3,7 @@ from __future__ import annotations
 import ast
 import importlib.util
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -36,6 +37,7 @@ def test_azure_function_app_metadata_builds() -> None:
         "budget_stop",
         "housekeeping",
         "map_token",
+        "process_event",
         "review_briefing_get",
         "review_briefing_post",
     }
@@ -47,7 +49,7 @@ def test_azure_function_app_metadata_builds() -> None:
             for method in functions[name].get_bindings()[0].get_dict_repr()["methods"]
         }
         for name in functions
-        if name != "housekeeping"
+        if name not in {"housekeeping", "process_event"}
     }
     assert http_methods == {
         "budget_stop": {"POST"},
@@ -55,6 +57,9 @@ def test_azure_function_app_metadata_builds() -> None:
         "review_briefing_get": {"GET"},
         "review_briefing_post": {"POST"},
     }
+    queue_trigger = functions["process_event"].get_bindings()[0].get_dict_repr()
+    assert queue_trigger["queueName"] == "events"
+    assert queue_trigger["connection"] == "AzureWebJobsStorage"
 
 
 def test_budget_stop_rejects_an_invalid_token(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -126,6 +131,28 @@ def test_map_token_rejects_wrong_origin_before_broker(
     response = module.map_token(Request())
 
     assert response.status_code == 403
+
+
+def test_azure_review_post_publishes_approved_summary(monkeypatch: pytest.MonkeyPatch) -> None:
+    module_path = Path("hosts/azure_functions/function_app.py")
+    spec = importlib.util.spec_from_file_location("nzhem_function_app_review_test", module_path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    calls: list[str] = []
+    container = SimpleNamespace(
+        approval=lambda: SimpleNamespace(
+            decide=lambda *args: calls.append("approve") or "approved"
+        ),
+        publish_site_data=lambda: calls.append("publish"),
+    )
+    monkeypatch.setattr(module, "build_container", lambda: container)
+    request = SimpleNamespace(params={"token": "test"}, headers={})
+
+    response = module.review_briefing_post(request)
+
+    assert response.status_code == 200
+    assert calls == ["approve", "publish"]
 
 
 def test_map_token_rate_limit_fails_closed(monkeypatch: pytest.MonkeyPatch) -> None:

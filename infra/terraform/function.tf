@@ -61,6 +61,12 @@ resource "azurerm_function_app_flex_consumption" "main" {
     "HOUSEKEEPING_SCHEDULE"                 = "0 0 * * * *"
     "POLL_INTERVAL_MINUTES"                 = "60"
     "STORAGE_ACCOUNT_NAME"                  = azurerm_storage_account.data.name
+    "NZHEM_ENV"                             = "azure"
+    "NZHEM_DATA_ROOT"                       = "/tmp/nzhem-data"
+    "NZHEM_DUCKDB_EXTENSIONS_DIR"           = "/home/site/wwwroot/vendor/duckdb_extensions"
+    "ARCGIS_PUBLISHER_ENABLED"              = "false"
+    "DUCKDB_MEMORY_LIMIT_MB"                = "512"
+    "REFERENCE_MAX_RSS_MB"                  = "768"
     "AZURE_SUBSCRIPTION_ID"                 = var.subscription_id
     "AZURE_RESOURCE_GROUP"                  = var.resource_group_name
     "AZURE_FUNCTION_APP_NAME"               = local.names.function_app
