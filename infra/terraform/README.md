@@ -15,6 +15,14 @@ regional availability must be rechecked immediately before apply.
 Pass `budget_start_date` explicitly as the first day of the current billing
 month when planning; Azure rejects a new budget with an older start month.
 
+The data account disables shared keys. AzureRM uses a key-based Table data-plane
+call even with `storage_use_azuread = true`, so the four runtime tables are
+managed through the ARM-backed AzAPI resource. The `removed` and `import` blocks
+move the already-created tables into the new Terraform resource addresses
+without deleting or recreating them. Review the saved plan before applying this
+state migration. Flex Consumption sets Python through `runtime_name` and
+`runtime_version`; it rejects a separate `FUNCTIONS_WORKER_RUNTIME` app setting.
+
 The Function App is publicly reachable over HTTPS because application access
 restrictions cannot distinguish browser approval routes from the budget route.
 Every HTTP trigger therefore authenticates in application code. Terraform

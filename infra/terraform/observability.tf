@@ -47,7 +47,7 @@ resource "azurerm_monitor_metric_alert" "function_failure" {
   criteria {
     metric_namespace = "Microsoft.Insights/components"
     metric_name      = "exceptions/count"
-    aggregation      = "Total"
+    aggregation      = "Count"
     operator         = "GreaterThan"
     threshold        = 0
   }

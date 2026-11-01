@@ -1,5 +1,8 @@
 # Azure for Students deployment progress, 1 Nov 2026 NZDT
 
+For the subsequent partial production apply and recovery plan, see
+[`production-recovery-2026-11-02.md`](production-recovery-2026-11-02.md).
+
 ## Completed
 
 - The active Azure management token was checked immediately before planning:

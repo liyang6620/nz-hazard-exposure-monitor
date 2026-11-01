@@ -62,11 +62,27 @@ resource "azurerm_storage_queue" "events_poison" {
   storage_account_id = azurerm_storage_account.data.id
 }
 
-resource "azurerm_storage_table" "tables" {
+resource "azapi_resource" "tables" {
   for_each = toset(["eventsstate", "runs", "briefings", "runtime"])
 
-  name               = each.value
-  storage_account_id = azurerm_storage_account.data.id
+  type      = "Microsoft.Storage/storageAccounts/tableServices/tables@2023-01-01"
+  name      = each.value
+  parent_id = "${azurerm_storage_account.data.id}/tableServices/default"
+}
+
+removed {
+  from = azurerm_storage_table.tables
+
+  lifecycle {
+    destroy = false
+  }
+}
+
+import {
+  for_each = toset(["eventsstate", "runs", "briefings", "runtime"])
+
+  to = azapi_resource.tables[each.value]
+  id = "${azurerm_storage_account.data.id}/tableServices/default/tables/${each.value}"
 }
 
 resource "azurerm_storage_account_static_website" "public" {
