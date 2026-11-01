@@ -54,3 +54,19 @@ This recovery differs from the approved 50-create plan in provider/resource
 type and Function/alert settings. **Do not apply it without project-manager
 review.** No Terraform state was manually removed and no production repair
 apply was attempted.
+
+## Approved repair and initial deployment
+
+The project manager approved this exact recovery plan after PR #31 CI passed.
+The management token still included MFA, and the saved-plan SHA-256 matched the
+reviewed value immediately before apply. Terraform completed with four imports,
+17 creates, zero changes, and zero destroys. The approved reference and M3 gold
+data upload then completed: 56 Parquet files, 216,680,598 bytes.
+
+The CI-built Linux Function package was accepted by the deployment service and
+all six expected functions indexed. Azure CLI returned an error while fetching
+the host key for its post-deployment status check, so runtime validation remains
+open. The first static-site upload hit an ADLS Gen2 hierarchical-namespace name
+conflict: `history` and `history/index.html` cannot both exist. The route
+publisher now writes only the requested extensionless paths; direct HTTP checks
+are pending the corrected publication.

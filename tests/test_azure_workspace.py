@@ -134,13 +134,9 @@ def test_site_publisher_uploads_manifest_last(
     assert uploads == [
         "data/generations/generation/events.json",
         "history",
-        "history/index.html",
         "method",
-        "method/index.html",
         "about",
-        "about/index.html",
         "events/2026p123456",
-        "events/2026p123456/index.html",
         "data/manifest-generation.json",
         "data/manifest.json",
     ]

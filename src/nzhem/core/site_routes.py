@@ -13,4 +13,4 @@ def static_route_blobs(event_ids: Iterable[str] = ()) -> list[str]:
         if not _EVENT_ID.fullmatch(event_id):
             raise ValueError("Invalid event ID for a static website route")
         routes.append(f"events/{event_id}")
-    return [path for route in routes for path in (route, f"{route}/index.html")]
+    return routes

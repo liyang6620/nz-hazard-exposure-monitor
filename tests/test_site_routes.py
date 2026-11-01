@@ -8,13 +8,9 @@ from nzhem.core.site_routes import static_route_blobs
 def test_static_route_blobs_include_fixed_and_event_paths() -> None:
     assert static_route_blobs(["2016p858000"]) == [
         "history",
-        "history/index.html",
         "method",
-        "method/index.html",
         "about",
-        "about/index.html",
         "events/2016p858000",
-        "events/2016p858000/index.html",
     ]
 
 
