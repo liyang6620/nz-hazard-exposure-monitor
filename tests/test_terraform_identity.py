@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 
@@ -59,8 +60,13 @@ def test_http_routes_use_application_authentication() -> None:
 def test_function_data_queue_and_required_vault_setting_are_wired() -> None:
     function = Path("infra/terraform/function.tf").read_text(encoding="utf-8")
     host = Path("hosts/azure_functions/function_app.py").read_text(encoding="utf-8")
+    host_config = json.loads(Path("hosts/azure_functions/host.json").read_text(encoding="utf-8"))
 
     assert 'connection="NZHEM_DATA_STORAGE"' in host
+    assert host_config["extensionBundle"] == {
+        "id": "Microsoft.Azure.Functions.ExtensionBundle",
+        "version": "[4.*, 5.0.0)",
+    }
     assert '"NZHEM_DATA_STORAGE__queueServiceUri"' in function
     assert '"NZHEM_DATA_STORAGE__credential"' in function
     assert '"KEY_VAULT_URL"' in function

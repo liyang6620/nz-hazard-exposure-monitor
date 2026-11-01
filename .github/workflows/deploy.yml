@@ -56,6 +56,19 @@ jobs:
         run: >-
           python scripts/deploy_static_site.py
           --account-name "${{ secrets.AZURE_STORAGE_ACCOUNT }}"
+      - name: Use managed identity for Function host storage
+        shell: bash
+        run: |
+          if az functionapp config appsettings list \
+            --resource-group "${{ secrets.AZURE_RESOURCE_GROUP }}" \
+            --name "${{ secrets.AZURE_FUNCTION_APP_NAME }}" \
+            --query "[?name=='AzureWebJobsStorage'].name" --output tsv \
+            | grep -qx AzureWebJobsStorage; then
+            az functionapp config appsettings delete \
+              --resource-group "${{ secrets.AZURE_RESOURCE_GROUP }}" \
+              --name "${{ secrets.AZURE_FUNCTION_APP_NAME }}" \
+              --setting-names AzureWebJobsStorage --only-show-errors --output none
+          fi
       - name: Deploy immutable package
         run: >-
           az functionapp deployment source config-zip

@@ -23,6 +23,11 @@ state migration requires the project manager's approval relayed by the owner.
    --execute`. Run it without `--execute` first to see the bounded file count
    and byte total. The script uploads only Parquet to the private curated and
    gold containers; it never uploads raw source ZIPs or DuckDB databases.
+   Before deploying the Function package, remove any platform-injected base
+   `AzureWebJobsStorage` connection string. The host storage account disables
+   shared keys; the Function uses the configured `AzureWebJobsStorage__accountName`
+   and `AzureWebJobsStorage__credential=managedidentity` settings instead. The
+   deployment workflow performs this check and removal automatically.
 6. Set the GitHub encrypted secrets and enablement variables listed in the
    workflow files. Never print
    their values in an issue, PR comment, log, screenshot, or repository file.

@@ -70,3 +70,19 @@ open. The first static-site upload hit an ADLS Gen2 hierarchical-namespace name
 conflict: `history` and `history/index.html` cannot both exist. The route
 publisher now writes only the requested extensionless paths; direct HTTP checks
 are pending the corrected publication.
+
+The Function host initially failed to read its Blob secret repository. A
+read-only settings check found that the platform had injected a base
+`AzureWebJobsStorage` connection string despite the identity-based settings in
+Terraform. The base setting takes precedence and used a shared key against the
+host account, where shared keys are disabled. The Function's system identity
+already held Blob Data Owner, Queue Data Contributor and Table Data Contributor
+on the host account. The injected base setting was removed without changing
+roles or network exposure; the deployment workflow now repeats this removal on
+future deployments.
+
+After the host started, Application Insights reported that the `queueTrigger`
+binding for `process_event` was not registered. `host.json` lacked the Functions
+extension bundle declaration required for the Python queue trigger. The standard
+v4 bundle declaration has been added; queue consumption must be rechecked after
+the next package deployment.
