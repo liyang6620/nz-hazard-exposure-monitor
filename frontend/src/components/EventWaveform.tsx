@@ -14,6 +14,7 @@ interface WaveformData {
 
 export function EventWaveform() {
   const [waveform, setWaveform] = useState<WaveformData | null>(null);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -27,7 +28,7 @@ export function EventWaveform() {
       .then(setWaveform)
       .catch((error: unknown) => {
         if (!(error instanceof DOMException && error.name === "AbortError"))
-          setWaveform(null);
+          setFailed(true);
       });
     return () => controller.abort();
   }, []);
@@ -48,6 +49,8 @@ export function EventWaveform() {
       .join(" ");
   }, [waveform]);
 
+  if (failed)
+    return <div className="waveform-loading">GeoNet waveform unavailable.</div>;
   if (!waveform)
     return <div className="waveform-loading">Loading GeoNet waveform…</div>;
   return (

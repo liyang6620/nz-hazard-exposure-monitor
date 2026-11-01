@@ -28,7 +28,9 @@ def main() -> None:
         if not path.is_file():
             continue
         relative = path.relative_to(root).as_posix()
-        if relative.startswith(("data/", "briefings/")):
+        if relative.startswith("briefings/") or (
+            relative.startswith("data/") and not relative.startswith("data/waveforms/")
+        ):
             continue
         content_type = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
         cache_control = "no-cache" if relative == "index.html" else "public, max-age=31536000"
