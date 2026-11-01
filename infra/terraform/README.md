@@ -12,6 +12,8 @@ the remote backend with its approved coordinates.
 No `terraform apply` is permitted until the saved plan has been approved by the
 project manager and repository owner. The Azure OpenAI model version and
 regional availability must be rechecked immediately before apply.
+Pass `budget_start_date` explicitly as the first day of the current billing
+month when planning; Azure rejects a new budget with an older start month.
 
 The Function App is publicly reachable over HTTPS because application access
 restrictions cannot distinguish browser approval routes from the budget route.

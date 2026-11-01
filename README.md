@@ -22,8 +22,10 @@ server-side Esri MCP static maps within the enforced quotas. The shared core,
 local Docker host and Azure Functions host remain separate. Outstanding work is
 the owner's two-minute Power BI walkthrough, M7 Snowflake work when scheduled by
 the project manager, and the Azure for Students deployment. Seven required
-resource providers have been registered; no Terraform infrastructure has been
-applied. Evidence is under [`evidence/`](evidence/).
+resource providers have been registered. The student-subscription Terraform
+bootstrap and three fixed-amount guardrail budgets are deployed; production
+infrastructure and the public Azure website remain pending plan review. Evidence
+is under [`evidence/`](evidence/).
 
 ## Important limitations
 

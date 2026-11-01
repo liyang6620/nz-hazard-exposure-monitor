@@ -20,8 +20,10 @@ terraform init -reconfigure \
 
 Backend initialization and every apply remain approval-gated.
 
-Pass `subscription_id` and `contact_email` through environment variables or an
+Pass `subscription_id`, `contact_email`, and `budget_start_date` through environment variables or an
 untracked `.tfvars` file. Never commit personal contact details or credentials.
+Set `budget_start_date` to the first day of the current billing month; Azure
+rejects a new monthly budget whose start date is in an earlier month.
 
 The subscription billing currency is NZD. The approved fixed thresholds remain
 NZD 2, NZD 5 and NZD 8, and all three resources have `prevent_destroy`.
