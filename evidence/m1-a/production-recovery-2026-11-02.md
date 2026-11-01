@@ -86,3 +86,12 @@ binding for `process_event` was not registered. `host.json` lacked the Functions
 extension bundle declaration required for the Python queue trigger. The standard
 v4 bundle declaration has been added; queue consumption must be rechecked after
 the next package deployment.
+
+With the extension loaded, the host reported `MessageEncoding: Base64`, while
+the approved Azure queue adapter writes plain JSON. A message reached the
+three-dequeue poison threshold before it could enter `process_event`. Queue
+configuration now specifies `messageEncoding: none`. Hourly housekeeping also
+requeues previously queued events older than five minutes when GeoNet did not
+return a new revision, while leaving terminal events untouched. This recovers
+work stranded by the old binding configuration; cloud replay and poison-queue
+counts still require validation after deployment.
