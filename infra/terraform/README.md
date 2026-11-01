@@ -56,3 +56,9 @@ review plan has 50 creates, up from the 47-create replan; see
 [`evidence/m1-a/replan-2026-10-31.md`](../../evidence/m1-a/replan-2026-10-31.md).
 The GitHub UAMI principal ID is supplied at plan time after bootstrap and is
 never committed.
+
+The owner-operated budget-stop recovery needs Table data access to remove the
+`runs` switch after a test. `owner_runs_recovery` limits Storage Table Data
+Contributor to the `runs` table and the owner's Entra object. The object ID is
+supplied only at plan time. This role is outside the approved 50-resource plan
+and requires a separate reviewed plan before apply.

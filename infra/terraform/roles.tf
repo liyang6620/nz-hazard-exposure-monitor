@@ -66,6 +66,12 @@ resource "azurerm_role_assignment" "function_table" {
   principal_id         = azurerm_function_app_flex_consumption.main.identity[0].principal_id
 }
 
+resource "azurerm_role_assignment" "owner_runs_recovery" {
+  scope                = azapi_resource.tables["runs"].id
+  role_definition_name = "Storage Table Data Contributor"
+  principal_id         = var.owner_object_id
+}
+
 resource "azurerm_role_assignment" "function_key_vault" {
   scope                = azurerm_key_vault.main.id
   role_definition_name = "Key Vault Secrets User"

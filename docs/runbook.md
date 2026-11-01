@@ -38,8 +38,10 @@ state migration requires the project manager's approval relayed by the owner.
    in `$web`. The Function publishes a new data generation after startup and
    each hourly run, and after queue-triggered event assessment.
 
-The 31 Oct replan changes resources and permissions; steps 2-7 are paused until
-the project manager reviews the diff in `evidence/m1-a/replan-2026-10-31.md`.
+The 31 Oct replan was approved and applied; see
+`evidence/m1-a/azure-acceptance-2026-11-02.md` for verified rollout steps and
+remaining acceptance checks. Do not use the original 50-create production plan
+against the now-populated remote state.
 
 ## Pre-upgrade stop drill
 
@@ -52,6 +54,8 @@ the project manager reviews the diff in `evidence/m1-a/replan-2026-10-31.md`.
    request enables the
    `control / budget-killswitch` entity, records the stop run, sends the ACS
    email, and stops the Function App in ARM.
+   The owner must first have the separately approved `runs`-table recovery role;
+   subscription Owner alone cannot delete a Table entity with shared keys off.
 4. Capture screenshots and timestamps without subscription IDs, tenant IDs, or
    personal email addresses.
 

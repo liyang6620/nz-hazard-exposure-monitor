@@ -19,6 +19,13 @@ variable "github_principal_id" {
   sensitive   = true
 }
 
+variable "owner_object_id" {
+  description = "Repository owner's Entra object ID for runs-table stop recovery. Never commit its value."
+  type        = string
+  nullable    = false
+  sensitive   = true
+}
+
 variable "resource_group_name" {
   description = "Production resource group pre-created by infra/bootstrap."
   type        = string

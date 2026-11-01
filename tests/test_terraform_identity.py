@@ -41,7 +41,9 @@ def test_production_has_no_subscription_role_for_github() -> None:
     assert "containers/$web" in roles
     assert "Cost Management Reader" not in roles
     assert 'resource "azurerm_role_definition"' not in roles
-    assert "owner_object_id" not in roles
+    assert "owner_object_id" not in github_role
+    assert 'scope                = azapi_resource.tables["runs"].id' in roles
+    assert "principal_id         = var.owner_object_id" in roles
 
 
 def test_http_routes_use_application_authentication() -> None:

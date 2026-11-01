@@ -23,9 +23,9 @@ local Docker host and Azure Functions host remain separate. Outstanding work is
 the owner's two-minute Power BI walkthrough, M7 Snowflake work when scheduled by
 the project manager, and the Azure for Students deployment. Seven required
 resource providers have been registered. The student-subscription Terraform
-bootstrap and three fixed-amount guardrail budgets are deployed. Production
-infrastructure is partially created but not operational, and the public Azure
-website remains pending plan review. Evidence
+bootstrap, three fixed-amount guardrail budgets, and production infrastructure
+are deployed. The [public Azure website](https://stnzhem8495b7ca.z8.web.core.windows.net/)
+is online; cloud acceptance is still in progress. Evidence
 is under [`evidence/`](evidence/).
 
 ## Important limitations
