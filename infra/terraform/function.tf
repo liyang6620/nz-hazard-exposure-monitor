@@ -51,6 +51,10 @@ resource "azurerm_function_app_flex_consumption" "main" {
     scm_minimum_tls_version                = "1.2"
     http2_enabled                          = true
     ip_restriction_default_action          = "Allow"
+    cors {
+      allowed_origins     = [trimsuffix(azurerm_storage_account.data.primary_web_endpoint, "/")]
+      support_credentials = false
+    }
   }
 
   app_settings = {
@@ -82,7 +86,7 @@ resource "azurerm_function_app_flex_consumption" "main" {
     "BRIEFING_MONTHLY_LIMIT"              = "10"
     "BUDGET_WEBHOOK_TOKEN"                = random_password.budget_webhook_token.result
     "APPROVAL_TOKEN_KEY"                  = random_password.approval_token_key.result
-    "REVIEW_BASE_URL"                     = "https://${local.names.function_app}.azurewebsites.net/api/review-briefing"
+    "REVIEW_BASE_URL"                     = "${trimsuffix(azurerm_storage_account.data.primary_web_endpoint, "/")}/review"
     "MAP_TOKEN_ENABLED"                   = "false"
     "MAP_TOKEN_ALLOWED_ORIGIN"            = trimsuffix(azurerm_storage_account.data.primary_web_endpoint, "/")
     "MAP_TOKEN_RATE_LIMIT_PER_MINUTE"     = "30"

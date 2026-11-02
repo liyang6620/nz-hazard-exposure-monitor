@@ -270,10 +270,11 @@ class LocalRealtimeEventAssessor:
                or coalesce(population_counts.population_2023, 0) > 0
             """
         )
-        max_mmi, buildings, population = connection.execute(
+        max_mmi, populated_max_mmi, buildings, population = connection.execute(
             """
             select
                 max(mmi),
+                max(mmi) filter (where population_2023 > 0),
                 coalesce(sum(building_count) filter (where mmi >= 6), 0),
                 coalesce(sum(population_2023) filter (where mmi >= 6), 0)
             from exposure
@@ -359,6 +360,12 @@ class LocalRealtimeEventAssessor:
             "assessment_status": "ready",
             "assessment_reason": "Exposure assessment completed.",
             "max_mmi": _published_mmi(max_mmi),
+            "populated_max_mmi": (
+                _published_mmi(float(populated_max_mmi)) if populated_max_mmi is not None else None
+            ),
+            "has_populated_mmi_ge_5": (
+                populated_max_mmi is not None and float(populated_max_mmi) >= 5.0
+            ),
             "buildings_mmi_ge_6": int(buildings),
             "population_mmi_ge_6": float(population),
             "no_damaging_shaking": no_damage,

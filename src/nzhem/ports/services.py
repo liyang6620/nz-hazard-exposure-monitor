@@ -51,7 +51,7 @@ class SecretStore(Protocol):
 
 
 class Mailer(Protocol):
-    def send(self, recipient: str, subject: str, text: str) -> None: ...
+    def send(self, recipient: str, subject: str, text: str, *, html: str | None = None) -> None: ...
 
 
 class LlmClient(Protocol):

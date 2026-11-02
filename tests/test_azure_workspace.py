@@ -136,6 +136,7 @@ def test_site_publisher_uploads_manifest_last(
         "history",
         "method",
         "about",
+        "review",
         "events/2026p123456",
         "data/manifest-generation.json",
         "data/manifest.json",

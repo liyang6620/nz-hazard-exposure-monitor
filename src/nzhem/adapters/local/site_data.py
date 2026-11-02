@@ -168,6 +168,8 @@ class LocalSiteDataPublisher:
             summary = json.loads(summary_path.read_text(encoding="utf-8"))
             if summary.get("max_mmi") is not None:
                 summary["max_mmi"] = _published_mmi(float(summary["max_mmi"]))
+            if summary.get("populated_max_mmi") is not None:
+                summary["populated_max_mmi"] = _published_mmi(float(summary["populated_max_mmi"]))
             event_id = str(summary["event_id"])
             summary["briefing"] = briefings.get(
                 event_id, {"status": "pending", "title": None, "public_path": None}

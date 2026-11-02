@@ -10,11 +10,13 @@ class SmtpMailer:
         self._port = port
         self._sender = sender
 
-    def send(self, recipient: str, subject: str, text: str) -> None:
+    def send(self, recipient: str, subject: str, text: str, *, html: str | None = None) -> None:
         message = EmailMessage()
         message["From"] = self._sender
         message["To"] = recipient
         message["Subject"] = subject
         message.set_content(text)
+        if html is not None:
+            message.add_alternative(html, subtype="html")
         with smtplib.SMTP(self._host, self._port, timeout=10) as client:
             client.send_message(message)

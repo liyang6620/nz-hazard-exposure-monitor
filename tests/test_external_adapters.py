@@ -87,6 +87,26 @@ def test_smtp_mailer_sends_plain_text(monkeypatch: pytest.MonkeyPatch) -> None:
     assert "Body" in message.get_content()
 
 
+def test_smtp_mailer_sends_multipart_review_mail(monkeypatch: pytest.MonkeyPatch) -> None:
+    client = Mock()
+    context = Mock()
+    context.__enter__ = Mock(return_value=client)
+    context.__exit__ = Mock(return_value=False)
+    monkeypatch.setattr("nzhem.adapters.local.smtp.smtplib.SMTP", Mock(return_value=context))
+
+    SmtpMailer("mailpit", 1025, "sender@example.invalid").send(
+        "owner@example.invalid",
+        "[NZHEM] Approval needed",
+        "Plain review text",
+        html="<b>Approve</b>",
+    )
+
+    message = client.send_message.call_args.args[0]
+    assert message.get_content_type() == "multipart/alternative"
+    assert "Plain review text" in message.get_body(preferencelist=("plain",)).get_content()
+    assert "<b>Approve</b>" in message.get_body(preferencelist=("html",)).get_content()
+
+
 def test_openai_adapter_enforces_configured_limits(monkeypatch: pytest.MonkeyPatch) -> None:
     response = Mock()
     response.json.return_value = {
