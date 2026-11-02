@@ -90,3 +90,88 @@ restore NZD 5 through another approved plan and perform the recovery procedure.
 
 The Azure for Students spending limit remains enabled as the final backstop. Do
 not upgrade the subscription or attach a payment method.
+
+## Event replay and catch-up
+
+The Azure timer runs at `0 0 * * * *` (UTC cron, once per hour). At startup,
+GeoNet FDSN `updatedafter` catches up changes made while the host was offline.
+Check the `runs` table for successful `housekeeping` rows, then read the public
+`data/manifest.json`; its generation must advance after a run. A new event may
+be `ready` or `outside_model_range`, but must not remain `processing` beyond
+the 60-minute limit. Never infer completion from an administrator invocation's
+HTTP 202 alone.
+
+For a manual catch-up, invoke the existing `housekeeping` function through the
+Azure Functions administrator endpoint with a host master key retrieved only
+into process memory. Do not paste the key, URL query tokens or response bodies
+into a ticket or terminal transcript. Check the resulting `runs` row and
+manifest. Repeating catch-up should not create duplicate event IDs or replace
+terminal results when GeoNet has no newer revision.
+
+The ten fixed historical events can be rebuilt locally from the licensed raw
+shaking files and the approved reference export:
+
+```powershell
+$env:PYTHONPATH = 'src'
+.venv\Scripts\python.exe scripts/replay_historical_events.py `
+  --output-root tmp/weekly-rebuild/gold `
+  --evidence-root tmp/weekly-rebuild/evidence
+```
+
+Use a fresh ignored output directory. Keep `DUCKDB_MEMORY_LIMIT_MB=512`,
+`REFERENCE_MAX_RSS_MB=768` and `REFERENCE_MIN_FREE_DISK_GB=20` or stricter.
+Compare rebuilt Parquet hashes with the approved gold files before replacing
+anything. A 2 November rehearsal matched all 37 Parquet files without
+overwriting the approved output.
+
+## Poison messages
+
+The `events` queue trigger uses plain JSON, one message per batch,
+`maxDequeueCount=3` and a one-minute visibility timeout. After three failed
+deliveries, the Functions queue extension sends the message to `events-poison`.
+Inspect the poison count and message with a narrowly scoped Queue Data role;
+never paste its raw payload into public evidence. Diagnose the schema or
+downstream failure, repair the processor, then requeue only verified event
+payloads. Keep the original poison message until a successful terminal event
+state and site publication are confirmed. The malformed-message cloud drill
+remains unverified because the signed-in owner lacks Queue Data access.
+
+## Rollback and backup
+
+Before deployment, keep the last CI-built Function ZIP and Vite `dist` artifact
+and record their commit. On an application regression, redeploy those exact
+artifacts, verify all six functions index, check the timer and queue trigger,
+and confirm the public manifest and direct-link routes. Do not roll back the
+manifest to a generation that lacks an event already published. Runtime data
+in `$web/data/` and approved `briefings/` is preserved by the static deploy
+script.
+
+Back up each Terraform root's state separately with `terraform state pull` to
+an encrypted, ignored owner-only location; state contains credentials. Validate
+the backup parses as JSON and record its SHA-256 and resource count outside
+the public repository. Do not commit or email the state. The production-state
+read-only backup rehearsal on 2 November contained 39 resource blocks; no
+state restore or resource mutation was performed.
+
+## Move to another subscription
+
+Treat a replacement subscription as a fresh deployment. Obtain project-manager
+approval for its provider registrations and each bootstrap, guardrails and
+production plan. Do not import the student-subscription state into it. Use
+new backend coordinates and a new identity/OIDC configuration, then upload
+only approved Parquet and frontend artifacts. Run `scripts/e2e_replay.py` with
+`--azure-account-name` to compare every curated/gold object to local source,
+and verify direct website routes, mailbox approval, event processing, budget
+stop and recovery before switching traffic or ArcGIS publication. The
+non-mutating migration rehearsal verified the existing 56-file digest and
+fixed routes; an actual second subscription was not created.
+
+## Review-link availability
+
+On Flex Consumption, the first browser GET may show "The service is
+unavailable" while a host instance starts. Refresh the GET confirmation page
+after a short wait; an unsuccessful GET never approves a briefing. Confirm the
+briefing title and action, then click the POST button once. If the response is
+unclear, check the public briefing index before trying again. A used, expired
+or modified link shows a friendly HTML unavailable page. Do not automate POST
+retries or weaken the one-time HMAC decision check.

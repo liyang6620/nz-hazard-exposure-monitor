@@ -26,7 +26,13 @@ resource providers have been registered. The student-subscription Terraform
 bootstrap, three fixed-amount guardrail budgets, and production infrastructure
 are deployed. The [public Azure website](https://stnzhem8495b7ca.z8.web.core.windows.net/)
 is online; cloud acceptance is still in progress. Evidence
-is under [`evidence/`](evidence/).
+is under [`evidence/`](evidence/). A genuine GeoNet M5.0 event on 2 November
+2026 was assessed and published in 32 minutes 9 seconds, meeting the one-hour
+target. The first Azure Kaikōura briefing was approved by the repository owner
+through the emailed confirmation page and is visible on the public detail page.
+The [Azure acceptance record](evidence/m1-a/azure-acceptance-2026-11-02.md)
+tracks remaining platform and operating checks; [actual costs](docs/cost.md)
+are recorded separately.
 
 ## Important limitations
 
