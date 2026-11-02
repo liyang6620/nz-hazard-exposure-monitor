@@ -38,7 +38,7 @@ class AzureObjectStore:
     def put_bytes(self, container: str, path: str, data: bytes) -> None:
         actual_container = "$web" if container == "web" else container
         content_type = mimetypes.guess_type(path)[0] or "application/octet-stream"
-        if path in {"history", "method", "about"} or (
+        if path in {"history", "method", "about", "review"} or (
             path.startswith("events/") and not path.startswith("events/data/")
         ):
             content_type = "text/html"
@@ -48,7 +48,7 @@ class AzureObjectStore:
             "no-cache"
             if path == "data/manifest.json"
             or path.startswith("briefings/")
-            or path in {"history", "method", "about"}
+            or path in {"history", "method", "about", "review"}
             or path.endswith("/index.html")
             or path.startswith("events/")
             else "public, max-age=31536000"
@@ -181,12 +181,15 @@ class AzureMailer:
         self._client = EmailClient.from_connection_string(connection_string)
         self._sender = sender
 
-    def send(self, recipient: str, subject: str, text: str) -> None:
+    def send(self, recipient: str, subject: str, text: str, *, html: str | None = None) -> None:
+        content = {"subject": subject, "plainText": text}
+        if html is not None:
+            content["html"] = html
         self._client.begin_send(
             {
                 "senderAddress": self._sender,
                 "recipients": {"to": [{"address": recipient}]},
-                "content": {"subject": subject, "plainText": text},
+                "content": content,
             }
         ).result()
 

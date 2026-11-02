@@ -257,8 +257,13 @@ def test_static_map_failure_does_not_block_briefing() -> None:
     assert result.map_image is None
 
 
-def test_trigger_requires_significant_event_or_material_magnitude_update() -> None:
-    assert should_draft_briefing({"magnitude": 5.0, "populated_max_mmi": 4.0})
+def test_trigger_requires_populated_mmi_five_or_more_and_material_update() -> None:
+    assert not should_draft_briefing({"magnitude": 8.0, "populated_max_mmi": 0.8})
+    assert not should_draft_briefing({"magnitude": 6.0, "populated_max_mmi": None})
+    assert not should_draft_briefing(
+        {"magnitude": 6.0, "populated_max_mmi": 5.0, "has_populated_mmi_ge_5": False}
+    )
+    assert not should_draft_briefing({"magnitude": 5.0, "populated_max_mmi": 4.0})
     assert should_draft_briefing({"magnitude": 4.0, "populated_max_mmi": 5.0})
     assert not should_draft_briefing({"magnitude": 4.9, "populated_max_mmi": 4.9})
     assert not should_draft_briefing(

@@ -50,8 +50,12 @@ def should_draft_briefing(
     event: Mapping[str, Any], *, previous_magnitude: float | None = None
 ) -> bool:
     magnitude = float(event["magnitude"])
+    if event.get("has_populated_mmi_ge_5") is False:
+        return False
+    if event.get("populated_max_mmi") is None:
+        return False
     populated_max_mmi = float(event["populated_max_mmi"])
-    if magnitude < 5.0 and populated_max_mmi < 5.0:
+    if event.get("has_populated_mmi_ge_5") is not True and populated_max_mmi < 5.0:
         return False
     return previous_magnitude is None or abs(
         Decimal(str(magnitude)) - Decimal(str(previous_magnitude))

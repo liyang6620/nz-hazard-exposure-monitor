@@ -83,10 +83,15 @@ Table value.
 
 ## Live budget drill
 
-After deployment, first confirm that Cost Management is calculating actual
-usage on Azure for Students. Submit a new plan that temporarily lowers only
-`budget-killswitch` to the approved test amount. After the real budget triggers,
-restore NZD 5 through another approved plan and perform the recovery procedure.
+For the approved Azure for Students drill, create an independent temporary
+NZD 1 monthly subscription budget bound to the existing budget-stop Action
+Group. Its Terraform root must plan exactly one new budget and no changes to
+the permanent budgets. Cost Management may report usage with a delay; wait for
+the actual amount to cross NZD 1 and record the Azure budget notification,
+Action Group delivery, webhook receipt, durable switch and ARM stop in order.
+After owner-operated recovery, remove only this temporary budget with a plan
+showing one deletion. If Azure rejects the budget or never delivers an alert,
+record the failure without claiming the end-to-end path passed.
 
 The Azure for Students spending limit remains enabled as the final backstop. Do
 not upgrade the subscription or attach a payment method.

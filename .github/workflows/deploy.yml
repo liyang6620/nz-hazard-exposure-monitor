@@ -49,6 +49,7 @@ jobs:
         working-directory: frontend
         env:
           VITE_LINZ_LDS_TILES_API_KEY: ${{ secrets.LINZ_LDS_TILES_API_KEY }}
+          VITE_REVIEW_API_BASE_URL: https://${{ secrets.AZURE_FUNCTION_APP_NAME }}.azurewebsites.net/api/review-briefing
         run: |
           npm ci
           npm run build

@@ -16,6 +16,7 @@ import azure.functions as func
 from nzhem.config import Settings
 from nzhem.container import build_container
 from nzhem.core.agent.approval import ApprovalRejected
+from nzhem.core.agent.briefing import should_draft_briefing
 
 app = func.FunctionApp()
 _map_token_rate_lock = threading.Lock()
@@ -27,17 +28,34 @@ def _no_store_headers() -> dict[str, str]:
         "Cache-Control": "no-store",
         "Content-Security-Policy": "default-src 'none'; form-action 'self'",
         "X-Content-Type-Options": "nosniff",
+        "Referrer-Policy": "no-referrer",
     }
 
 
-def _invalid_review_response() -> func.HttpResponse:
+def _review_headers(request: func.HttpRequest) -> dict[str, str]:
+    headers = {**_no_store_headers(), "Vary": "Origin"}
+    origin = request.headers.get("origin", "").rstrip("/")
+    allowed = Settings.from_env().map_token_allowed_origin.rstrip("/")
+    if origin and allowed and hmac.compare_digest(origin, allowed):
+        headers["Access-Control-Allow-Origin"] = allowed
+    return headers
+
+
+def _invalid_review_response(request: func.HttpRequest) -> func.HttpResponse:
+    if "application/json" in request.headers.get("accept", ""):
+        return func.HttpResponse(
+            json.dumps({"error": "Review link unavailable"}),
+            status_code=400,
+            mimetype="application/json",
+            headers=_review_headers(request),
+        )
     return func.HttpResponse(
         "<!doctype html><html lang='en'><meta charset='utf-8'>"
         "<main><h1>Review link unavailable</h1>"
         "<p>This link has expired, was already used, or is invalid.</p></main></html>",
         status_code=400,
         mimetype="text/html",
-        headers=_no_store_headers(),
+        headers=_review_headers(request),
     )
 
 
@@ -129,6 +147,16 @@ def _create_cloud_review_briefing(container, request: dict) -> None:
     if container.tables.get_entity("briefings", "briefing", briefing_id) is not None:
         logging.info("briefing request already handled", extra={"event_id": event_id})
         return
+    summary = container.briefing_tools.get_published_summary(event_id)
+    if not should_draft_briefing(
+        {
+            "magnitude": summary["magnitude"],
+            "populated_max_mmi": summary.get("populated_max_mmi"),
+            "has_populated_mmi_ge_5": summary.get("has_populated_mmi_ge_5"),
+        }
+    ):
+        logging.info("event is below briefing trigger", extra={"event_id": event_id})
+        return
     now = container.clock.now()
     month = now.strftime("%Y-%m")
     existing = container.tables.list_entities("briefings", "briefing")
@@ -139,7 +167,6 @@ def _create_cloud_review_briefing(container, request: dict) -> None:
     draft = container.draft_briefing().draft(event_id, briefing_id=briefing_id)
     if not draft.fidelity_passed:
         raise ValueError("Cloud briefing failed numeric fidelity validation")
-    summary = container.briefing_tools.get_published_summary(event_id)
     approval = container.approval()
     approval.create_pending(
         briefing_id=briefing_id,
@@ -153,6 +180,7 @@ def _create_cloud_review_briefing(container, request: dict) -> None:
         now=now,
         revision=revision,
         source_magnitude=float(summary["magnitude"]),
+        email_payload=dict(draft.payload),
     )
     approval.supersede_older_revisions(event_id, keep_revision=revision, now=now)
     logging.info("cloud briefing submitted for review", extra={"event_id": event_id})
@@ -199,11 +227,18 @@ def budget_stop(request: func.HttpRequest) -> func.HttpResponse:
     auth_level=func.AuthLevel.ANONYMOUS,
 )
 def review_briefing_get(request: func.HttpRequest) -> func.HttpResponse:
-    token = request.params.get("token", "")
+    token = request.headers.get("x-review-token", "") or request.params.get("token", "")
     try:
         preview = build_container().approval().preview(token, datetime.now(UTC))
     except (ApprovalRejected, KeyError, ValueError):
-        return _invalid_review_response()
+        return _invalid_review_response(request)
+    if "application/json" in request.headers.get("accept", ""):
+        return func.HttpResponse(
+            json.dumps({"title": preview.title, "action": preview.action}),
+            status_code=200,
+            mimetype="application/json",
+            headers=_review_headers(request),
+        )
     html = (
         "<!doctype html><html lang='en'><meta charset='utf-8'><main>"
         f"<h1>{escape(preview.title)}</h1><p>Confirm {escape(preview.action)}.</p>"
@@ -215,7 +250,7 @@ def review_briefing_get(request: func.HttpRequest) -> func.HttpResponse:
         html,
         status_code=200,
         mimetype="text/html",
-        headers=_no_store_headers(),
+        headers=_review_headers(request),
     )
 
 
@@ -226,12 +261,12 @@ def review_briefing_get(request: func.HttpRequest) -> func.HttpResponse:
     auth_level=func.AuthLevel.ANONYMOUS,
 )
 def review_briefing_post(request: func.HttpRequest) -> func.HttpResponse:
-    token = request.params.get("token", "")
+    token = request.headers.get("x-review-token", "") or request.params.get("token", "")
     container = build_container()
     try:
         status = container.approval().decide(token, datetime.now(UTC), _client_ip(request))
     except (ApprovalRejected, KeyError, ValueError):
-        return _invalid_review_response()
+        return _invalid_review_response(request)
     if status == "approved":
         try:
             container.publish_site_data()
@@ -244,13 +279,20 @@ def review_briefing_post(request: func.HttpRequest) -> func.HttpResponse:
                 "<p>The website update is pending. Please check again shortly.</p></main></html>",
                 status_code=202,
                 mimetype="text/html",
-                headers=_no_store_headers(),
+                headers=_review_headers(request),
             )
+    if "application/json" in request.headers.get("accept", ""):
+        return func.HttpResponse(
+            json.dumps({"status": status}),
+            status_code=200,
+            mimetype="application/json",
+            headers=_review_headers(request),
+        )
     return func.HttpResponse(
         f"<!doctype html><html lang='en'><main><h1>Briefing {escape(status)}</h1></main></html>",
         status_code=200,
         mimetype="text/html",
-        headers=_no_store_headers(),
+        headers=_review_headers(request),
     )
 
 

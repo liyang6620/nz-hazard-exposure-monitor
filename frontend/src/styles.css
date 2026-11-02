@@ -1,5 +1,35 @@
 @import "tailwindcss";
 
+.review-page {
+  width: min(100% - 32px, 680px);
+  margin: 8vh auto;
+  padding: 28px 0;
+  border-top: 3px solid #171815;
+}
+.review-heading {
+  font-weight: 600;
+  margin-bottom: 32px;
+}
+.review-page h1 {
+  font-size: 2rem;
+  line-height: 1.2;
+}
+.review-confirm {
+  background: #171815;
+  color: #faf7ee;
+  border: 0;
+  padding: 12px 20px;
+  cursor: pointer;
+}
+.review-confirm:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+.review-confirm:focus-visible {
+  outline: 3px solid #171815;
+  outline-offset: 3px;
+}
+
 :root {
   font-family: "IBM Plex Sans", sans-serif;
   color: #171815;

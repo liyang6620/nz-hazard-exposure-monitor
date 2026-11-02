@@ -29,7 +29,12 @@ def _container():
         ),
         draft_briefing=lambda: draft_service,
         briefing_tools=SimpleNamespace(
-            get_published_summary=lambda event_id: {"event_id": event_id, "magnitude": 7.8}
+            get_published_summary=lambda event_id: {
+                "event_id": event_id,
+                "magnitude": 7.8,
+                "max_mmi": 8.4,
+                "populated_max_mmi": 8.4,
+            }
         ),
         approval=lambda: approval,
     )
@@ -69,6 +74,20 @@ def test_failed_fidelity_never_sends_an_approval_link():
     draft_service.draft.return_value.fidelity_passed = False
     with pytest.raises(ValueError, match="numeric fidelity"):
         _create_cloud_review_briefing(container, {"event_id": "2016p858000"})
+    approval.create_pending.assert_not_called()
+
+
+def test_remote_high_magnitude_without_populated_shaking_never_calls_llm():
+    container, draft_service, approval = _container()
+    container.briefing_tools.get_published_summary = lambda event_id: {
+        "event_id": event_id,
+        "magnitude": 5.0,
+        "max_mmi": 7.0,
+        "populated_max_mmi": 0.8,
+        "has_populated_mmi_ge_5": False,
+    }
+    _create_cloud_review_briefing(container, {"event_id": "2026p824047"})
+    draft_service.draft.assert_not_called()
     approval.create_pending.assert_not_called()
 
 

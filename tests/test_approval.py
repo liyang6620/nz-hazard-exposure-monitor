@@ -15,8 +15,10 @@ class RecordingMailer:
     def __init__(self) -> None:
         self.messages: list[tuple[str, str, str]] = []
 
-    def send(self, recipient: str, subject: str, text: str) -> None:
+    def send(self, recipient: str, subject: str, text: str, *, html: str | None = None) -> None:
         self.messages.append((recipient, subject, text))
+        assert html is not None
+        assert "Approve" in html and "Reject" in html
 
 
 def service(tmp_path: Path) -> tuple[ApprovalService, SqliteTableStore, RecordingMailer]:

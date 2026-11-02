@@ -9,6 +9,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 from urllib.parse import quote
 
+from nzhem.core.agent.review_email import render_review_email
 from nzhem.ports import Mailer, ObjectStore, StaticSitePublisher, TableStore
 
 
@@ -115,6 +116,7 @@ class ApprovalService:
         needs_manual_review: bool = False,
         revision: int = 1,
         source_magnitude: float | None = None,
+        email_payload: dict[str, Any] | None = None,
     ) -> PendingBriefing:
         expires_at = now.astimezone(UTC) + timedelta(hours=72)
         draft_root = f"drafts/{event_id}/{revision}"
@@ -158,19 +160,18 @@ class ApprovalService:
         self._tables.upsert_entity(self.TABLE, entity)
         approve = self._signer.issue(briefing_id, "approve", expires_at)
         reject = self._signer.issue(briefing_id, "reject", expires_at)
-        marker = "MANUAL REVIEW REQUIRED\n\n" if needs_manual_review else ""
+        subject, plain, html_email = render_review_email(
+            title,
+            email_payload,
+            f"{review_base_url}#token={quote(approve)}",
+            f"{review_base_url}#token={quote(reject)}",
+            needs_manual_review=needs_manual_review,
+        )
         self._mailer.send(
             recipient,
-            (
-                f"NZHEM briefing review (revision {revision}): {title}"
-                if revision > 1
-                else f"NZHEM briefing review: {title}"
-            ),
-            marker
-            + markdown
-            + "\n"
-            + f"Approve: {review_base_url}?token={quote(approve)}\n"
-            + f"Reject: {review_base_url}?token={quote(reject)}\n",
+            subject,
+            plain,
+            html=html_email,
         )
         return PendingBriefing(briefing_id, approve, reject, expires_at)
 

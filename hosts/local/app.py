@@ -9,7 +9,8 @@ from html import escape
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse, JSONResponse, Response
 
 from nzhem.container import ServiceContainer, build_container
 from nzhem.core.agent.approval import ApprovalRejected
@@ -71,6 +72,12 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(title="NZ Hazard Exposure Monitor", version="0.1.0", lifespan=lifespan)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://127.0.0.1:8080"],
+    allow_methods=["GET", "POST"],
+    allow_headers=["Accept", "X-Review-Token"],
+)
 
 INVALID_REVIEW_HTML = (
     "<!doctype html><html lang='en'><meta charset='utf-8'>"
@@ -180,6 +187,7 @@ def draft_briefing(event_id: str, revision: bool = False) -> dict[str, object]:
             needs_manual_review=not draft.fidelity_passed,
             revision=len(event_briefings) + 1,
             source_magnitude=float(event["magnitude"]),
+            email_payload=dict(draft.payload),
         )
         return {
             "briefing_id": pending.briefing_id,
@@ -198,11 +206,16 @@ def draft_briefing(event_id: str, revision: bool = False) -> dict[str, object]:
 
 
 @app.get("/review-briefing", response_class=HTMLResponse)
-def review_briefing_get(token: str) -> HTMLResponse:
+def review_briefing_get(request: Request, token: str = "") -> Response:
+    token = request.headers.get("x-review-token", "") or token
     try:
         preview = container.approval().preview(token, container.clock.now())
     except (ApprovalRejected, KeyError, ValueError):
+        if "application/json" in request.headers.get("accept", ""):
+            return JSONResponse({"error": "Review link unavailable"}, status_code=400)
         return HTMLResponse(INVALID_REVIEW_HTML, status_code=400)
+    if "application/json" in request.headers.get("accept", ""):
+        return JSONResponse({"title": preview.title, "action": preview.action})
     return HTMLResponse(
         "<!doctype html><html lang='en'><meta charset='utf-8'><main>"
         f"<h1>{escape(preview.title)}</h1><p>Confirm {escape(preview.action)}.</p>"
@@ -212,7 +225,8 @@ def review_briefing_get(token: str) -> HTMLResponse:
 
 
 @app.post("/review-briefing", response_class=HTMLResponse)
-def review_briefing_post(token: str, request: Request) -> HTMLResponse:
+def review_briefing_post(request: Request, token: str = "") -> Response:
+    token = request.headers.get("x-review-token", "") or token
     try:
         status = container.approval().decide(
             token,
@@ -220,7 +234,11 @@ def review_briefing_post(token: str, request: Request) -> HTMLResponse:
             request.client.host if request.client else "unknown",
         )
     except (ApprovalRejected, KeyError, ValueError):
+        if "application/json" in request.headers.get("accept", ""):
+            return JSONResponse({"error": "Review link unavailable"}, status_code=400)
         return HTMLResponse(INVALID_REVIEW_HTML, status_code=400)
+    if "application/json" in request.headers.get("accept", ""):
+        return JSONResponse({"status": status})
     return HTMLResponse(
         f"<!doctype html><html lang='en'><main><h1>Briefing {escape(status)}</h1></main></html>"
     )
