@@ -27,3 +27,10 @@ variable "budget_end_date" {
   type        = string
   default     = "2036-10-01T00:00:00Z"
 }
+
+variable "budget_stop_action_group_id" {
+  description = "Existing production Action Group for the temporary NZD 1 drill."
+  type        = string
+  nullable    = false
+  sensitive   = true
+}
