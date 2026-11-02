@@ -8,6 +8,13 @@ in the new page's HTTP request URL. Old direct Function links remain compatible.
 The page has a no-referrer policy and loads no third-party resources. The
 Function CORS origin is limited to the public NZHEM website.
 
+After deployment, direct HTTP GET returned 200 for `/`, `/review`, `/history`,
+`/method`, `/about` and a Kaikōura detail link. CORS preflight returned 204,
+allowed the site origin and the `x-review-token` header. One invalid-link GET
+timed out after 45 seconds before reaching the handler; a later retry returned
+the expected friendly HTTP 400. The page now bounds each GET attempt to 15
+seconds before retrying. POST retains its one-attempt behaviour.
+
 D8 now requires a populated exposure cell with raw MMI at least 5.0 before a
 new briefing request can call the LLM or send mail. Published MMI values remain
 rounded to one decimal; a separate boolean preserves the unrounded threshold.
