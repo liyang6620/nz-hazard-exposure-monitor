@@ -18,6 +18,14 @@
 - 2 Nov 22:50: a saved Terraform plan containing one new missing-housekeeping
   log alert and no other changes was applied under the project manager's
   preapproval. It sends to the existing failure email Action Group.
+- 2 Nov 23:00: the restored timer ran and published a new public manifest.
+  The published list had 50 events and no `processing` entries.
+- 2 Nov 23:45-23:47: Functions Core Tools published the prebuilt CI artifact.
+  The Flex deployment pipeline and host health check succeeded, six functions
+  were indexed, and an invalid review GET returned the expected build SHA
+  `aefd39b2211530aba206a58e4cdb1ae5d58f0b12` in `X-NZHEM-Build`.
+  The host storage setting remained managed identity only. The next scheduled
+  timer run after this code deployment is still being observed.
 
 ## Cause and impact
 
@@ -32,10 +40,11 @@ No evidence indicates that gold reference data was changed.
 ## Repair and prevention
 
 The invalid setting was removed, restoring the approved managed-identity host
-storage configuration. Deployment code now uses Flex One Deploy, embeds a git
+storage configuration. Deployment code now uses Functions Core Tools, embeds a git
 SHA in the package, and checks the served SHA, six indexed functions and the
 next scheduled manifest publication. The runbook requires observing an actual
 timer execution after every deployment. The new log alert evaluates a
 two-hour successful-housekeeping count every 30 minutes; it covers the failure
 mode where the Function resource still says Running. The first alert delivery
-and the next hourly publication remain to be confirmed after the repair.
+and first hourly publication after the new code deployment remain to be
+confirmed.
