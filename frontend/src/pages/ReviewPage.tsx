@@ -33,7 +33,10 @@ export default function ReviewPage() {
             headers: { Accept: "application/json", "X-Review-Token": token },
             credentials: "omit",
             referrerPolicy: "no-referrer",
-            signal: controller.signal,
+            signal: AbortSignal.any([
+              controller.signal,
+              AbortSignal.timeout(15_000),
+            ]),
           });
           if (response.status === 400 || response.status === 404) {
             setState({
