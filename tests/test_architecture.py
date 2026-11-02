@@ -60,6 +60,7 @@ def test_azure_function_app_metadata_builds() -> None:
     queue_trigger = functions["process_event"].get_bindings()[0].get_dict_repr()
     assert queue_trigger["queueName"] == "events"
     assert queue_trigger["connection"] == "NZHEM_DATA_STORAGE"
+    assert module._no_store_headers()["X-NZHEM-Build"] == "unknown"
 
 
 def test_budget_stop_rejects_an_invalid_token(monkeypatch: pytest.MonkeyPatch) -> None:

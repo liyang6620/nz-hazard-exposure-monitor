@@ -23,6 +23,12 @@ The NZD 1 drill budget will only alert after delayed actual cost crosses NZD 1;
 it must not be treated as an immediate stop test.
 The Function App was still reported `Running` on 3 Nov; no natural budget
 notification or Action Group delivery has been verified yet.
+The 3 Nov missing-housekeeping log alert evaluates a two-hour window every
+30 minutes. The Azure retail pricing API for Australia East listed system log
+alerts at US$0.50/month for 15-minute evaluation; this less frequent rule is
+budgeted conservatively at **no more than US$0.50/month** for the alert rule,
+plus existing low-volume log ingestion and any email delivery charges. Review
+the first actual charge before treating that estimate as a measured cost.
 
 Query Cost Management once per NZ day during the first operating week. Record
 the query date, returned currency and actual month-to-date total; do not

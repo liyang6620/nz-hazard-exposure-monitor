@@ -9,6 +9,7 @@ import uuid
 from collections import defaultdict
 from datetime import UTC, datetime
 from html import escape
+from pathlib import Path
 from urllib.parse import urlsplit
 
 import azure.functions as func
@@ -21,6 +22,10 @@ from nzhem.core.agent.briefing import should_draft_briefing
 app = func.FunctionApp()
 _map_token_rate_lock = threading.Lock()
 _map_token_rate_buckets: dict[tuple[str, str], int] = defaultdict(int)
+_build_sha_path = Path(__file__).with_name("build_git_sha.txt")
+_build_sha = (
+    _build_sha_path.read_text(encoding="ascii").strip() if _build_sha_path.exists() else "unknown"
+)
 
 
 def _no_store_headers() -> dict[str, str]:
@@ -29,6 +34,7 @@ def _no_store_headers() -> dict[str, str]:
         "Content-Security-Policy": "default-src 'none'; form-action 'self'",
         "X-Content-Type-Options": "nosniff",
         "Referrer-Policy": "no-referrer",
+        "X-NZHEM-Build": _build_sha,
     }
 
 

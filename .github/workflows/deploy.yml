@@ -40,6 +40,8 @@ jobs:
       - run: bash scripts/build_function_package.sh | tee package-size.json
       - name: Enforce package limit
         run: python -c "import json; d=json.load(open('package-size.json')); assert d['below_zip_limit'], d"
+      - name: Verify package source commit
+        run: test "$(cat dist/function/build_git_sha.txt)" = "$GITHUB_SHA"
       - uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
@@ -70,25 +72,54 @@ jobs:
               --name "${{ secrets.AZURE_FUNCTION_APP_NAME }}" \
               --setting-names AzureWebJobsStorage --only-show-errors --output none
           fi
-      - name: Deploy immutable package
+      - name: Deploy immutable package with Flex One Deploy
         run: >-
-          az functionapp deployment source config-zip
+          az functionapp deploy
           --resource-group "${{ secrets.AZURE_RESOURCE_GROUP }}"
           --name "${{ secrets.AZURE_FUNCTION_APP_NAME }}"
-          --src dist/function.zip
-          --timeout 1800
-      - name: Verify functions and a fresh site-data publication
+          --src-path dist/function.zip
+          --type zip
+          --timeout 1800000
+      - name: Verify host storage uses managed identity
         shell: bash
         run: |
-          az functionapp function list \
+          settings="$(az functionapp config appsettings list \
+            --resource-group "${{ secrets.AZURE_RESOURCE_GROUP }}" \
+            --name "${{ secrets.AZURE_FUNCTION_APP_NAME }}" --output json)"
+          SETTINGS_JSON="$settings" python - <<'PY'
+          import json, os
+          values = {row['name']: row['value'] for row in json.loads(os.environ['SETTINGS_JSON'])}
+          assert 'AzureWebJobsStorage' not in values
+          assert values.get('AzureWebJobsStorage__credential') == 'managedidentity'
+          assert values.get('AzureWebJobsStorage__accountName')
+          PY
+      - name: Verify deployed commit and trigger indexing
+        shell: bash
+        run: |
+          function_url="https://${{ secrets.AZURE_FUNCTION_APP_NAME }}.azurewebsites.net"
+          for attempt in {1..18}; do
+            build="$(curl --silent --max-time 20 -D - -o /dev/null \
+              "${function_url}/api/review-briefing" \
+              | tr -d '\r' | awk 'tolower($1)=="x-nzhem-build:" {print $2}' | tail -1)"
+            if [ "$build" = "$GITHUB_SHA" ]; then
+              break
+            fi
+            sleep 10
+          done
+          test "$build" = "$GITHUB_SHA"
+          count="$(az functionapp function list \
             --resource-group "${{ secrets.AZURE_RESOURCE_GROUP }}" \
             --name "${{ secrets.AZURE_FUNCTION_APP_NAME }}" \
-            --query '[].name' --output table
+            --query 'length(@)' --output tsv)"
+          test "$count" = 6
+      - name: Verify the next scheduled site-data publication
+        shell: bash
+        run: |
           site_url="$(az storage account show \
             --resource-group "${{ secrets.AZURE_RESOURCE_GROUP }}" \
             --name "${{ secrets.AZURE_STORAGE_ACCOUNT }}" \
             --query 'primaryEndpoints.web' --output tsv)"
-          for attempt in {1..15}; do
+          for attempt in {1..225}; do
             if curl --fail --silent --show-error \
               "${site_url%/}/data/manifest.json" -o site-manifest.json; then
               if python -c "import json,os; from datetime import datetime; d=json.load(open('site-manifest.json')); started=datetime.fromisoformat(os.environ['DEPLOY_STARTED_AT'].replace('Z','+00:00')); published=datetime.fromisoformat(d['generated_at'].replace('Z','+00:00')); assert published >= started"; then
@@ -97,5 +128,5 @@ jobs:
             fi
             sleep 20
           done
-          echo 'No fresh site-data publication appeared after deployment.' >&2
+          echo 'The next hourly timer did not publish fresh site data.' >&2
           exit 1

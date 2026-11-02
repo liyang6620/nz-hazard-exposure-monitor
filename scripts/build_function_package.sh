@@ -18,6 +18,7 @@ PYTHONPATH="$stage/.python_packages/lib/site-packages" \
 
 cp "$repo_root/hosts/azure_functions/function_app.py" \
   "$repo_root/hosts/azure_functions/host.json" "$stage/"
+git -C "$repo_root" rev-parse HEAD > "$stage/build_git_sha.txt"
 cp -R "$repo_root/src/nzhem" "$stage/.python_packages/lib/site-packages/"
 cp "$repo_root/hosts/azure_functions/vendor/duckdb_extensions/"*.duckdb_extension \
   "$stage/vendor/duckdb_extensions/"
