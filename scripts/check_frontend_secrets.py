@@ -6,10 +6,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 FRONTEND = ROOT / "frontend"
 TEXT_SUFFIXES = {".html", ".js", ".json", ".md", ".mjs", ".ts", ".tsx"}
-FORBIDDEN_NAMES = re.compile(r"(?<!VITE_LINZ_BASEMAPS_)(?:ARCGIS|OPENAI|LINZ)_API_KEY")
+FORBIDDEN_NAMES = re.compile(r"(?:ARCGIS|OPENAI|LINZ)_API_KEY")
 VITE_KEY = re.compile(r"VITE_[A-Z0-9_]*KEY")
 SERVER_SECRET = re.compile(r"(?:sk-[A-Za-z0-9_-]{20,}|AAPK[A-Za-z0-9_-]{20,})")
-ALLOWED_BROWSER_KEY = "VITE_LINZ_BASEMAPS_API_KEY"
+ALLOWED_BROWSER_KEY = "VITE_LINZ_LDS_TILES_API_KEY"
 
 
 def main() -> None:

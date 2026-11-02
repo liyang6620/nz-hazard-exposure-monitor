@@ -1,6 +1,10 @@
 {
   "version": "2.0",
   "functionTimeout": "00:30:00",
+  "extensionBundle": {
+    "id": "Microsoft.Azure.Functions.ExtensionBundle",
+    "version": "[4.*, 5.0.0)"
+  },
   "logging": {
     "applicationInsights": {
       "samplingSettings": {
@@ -11,7 +15,11 @@
   },
   "extensions": {
     "queues": {
-      "maxDequeueCount": 3
+      "maxDequeueCount": 3,
+      "batchSize": 1,
+      "newBatchThreshold": 0,
+      "messageEncoding": "none",
+      "visibilityTimeout": "00:01:00"
     }
   }
 }

@@ -1,8 +1,8 @@
 FROM node:22.19.0-bookworm-slim AS frontend
 
 WORKDIR /workspace/frontend
-ARG VITE_LINZ_BASEMAPS_API_KEY=""
-ENV VITE_LINZ_BASEMAPS_API_KEY=${VITE_LINZ_BASEMAPS_API_KEY}
+ARG VITE_LINZ_LDS_TILES_API_KEY=""
+ENV VITE_LINZ_LDS_TILES_API_KEY=${VITE_LINZ_LDS_TILES_API_KEY}
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci
 COPY frontend ./

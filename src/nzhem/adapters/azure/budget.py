@@ -24,7 +24,7 @@ def activate_budget_stop(settings: Settings, run_id: str) -> None:
             "updated_at": datetime.now(UTC).isoformat(),
         },
     )
-    AzureMailer(settings.communication_endpoint, settings.email_sender).send(
+    AzureMailer(settings.communication_connection_string, settings.email_sender).send(
         settings.notification_email,
         "NZHEM budget stop activated",
         f"The Azure deployment budget stop was activated. Run ID: {run_id}.",

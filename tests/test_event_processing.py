@@ -4,6 +4,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+import pytest
 import requests
 
 from nzhem.adapters.local.realtime import LocalRealtimeEventAssessor
@@ -89,6 +90,60 @@ def test_processes_event_once_and_keeps_terminal_revision(tmp_path: Path) -> Non
     assert state is not None and state["assessment_status"] == "ready"
     assert state["first_seen_at"] == "2026-10-29T01:00:00+00:00"
     assert tables.get_entity("runtime", "monitor", "event-processing") is not None
+
+
+def test_external_queue_trigger_retries_then_records_terminal_failure(tmp_path: Path) -> None:
+    clock = MutableClock(datetime(2026, 10, 29, 1, tzinfo=UTC))
+    assessor = StubAssessor(RuntimeError("broken"))
+    service, tables, _ = _service(tmp_path, assessor, clock)
+
+    for attempt in (1, 2):
+        with pytest.raises(RuntimeError):
+            service.process_triggered(_event(), dequeue_count=attempt)
+    assert service.process_triggered(_event(), dequeue_count=3) == "failed"
+    assert assessor.calls == 3
+    assert tables.get_entity("eventsstate", "recent", "2026p-test")["assessment_status"] == "failed"
+
+
+def test_external_queue_trigger_times_out_stale_attempt(tmp_path: Path) -> None:
+    clock = MutableClock(datetime(2026, 10, 29, 1, tzinfo=UTC))
+    assessor = StubAssessor({"assessment_status": "ready"})
+    service, tables, _ = _service(tmp_path, assessor, clock)
+    tables.upsert_entity(
+        "eventsstate",
+        {
+            "PartitionKey": "recent",
+            "RowKey": "2026p-test",
+            "revision": "r1",
+            "processing_started_at": "2026-10-29T00:00:00+00:00",
+            "assessment_status": "processing",
+        },
+    )
+
+    assert service.process_triggered(_event(), dequeue_count=2) == "timed_out"
+    assert assessor.calls == 0
+    state = tables.get_entity("eventsstate", "recent", "2026p-test")
+    assert state is not None and state["assessment_status"] == "timed_out"
+
+
+def test_external_queue_trigger_restarts_timeout_for_new_revision(tmp_path: Path) -> None:
+    clock = MutableClock(datetime(2026, 10, 29, 3, tzinfo=UTC))
+    assessor = StubAssessor({"assessment_status": "ready", "max_mmi": 5.0})
+    service, tables, _ = _service(tmp_path, assessor, clock)
+    tables.upsert_entity(
+        "eventsstate",
+        {
+            "PartitionKey": "recent",
+            "RowKey": "2026p-test",
+            "revision": "r0",
+            "processing_started_at": "2026-10-29T00:00:00+00:00",
+            "assessment_status": "timed_out",
+        },
+    )
+
+    assert service.process_triggered(_event(), dequeue_count=1) == "ready"
+    state = tables.get_entity("eventsstate", "recent", "2026p-test")
+    assert state is not None and state["processing_started_at"] == clock.now().isoformat()
 
 
 def test_three_failures_become_terminal_instead_of_processing_forever(tmp_path: Path) -> None:

@@ -1,7 +1,7 @@
 resource "azurerm_cognitive_account" "openai" {
   name                          = local.names.openai
-  resource_group_name           = azurerm_resource_group.production.name
-  location                      = azurerm_resource_group.production.location
+  resource_group_name           = var.resource_group_name
+  location                      = var.location
   kind                          = "OpenAI"
   sku_name                      = "S0"
   custom_subdomain_name         = local.names.openai

@@ -12,11 +12,30 @@ variable "tenant_id" {
   sensitive   = true
 }
 
-variable "owner_object_id" {
-  description = "Entra object ID of the repository owner for local Power BI reads."
+variable "github_principal_id" {
+  description = "Principal ID of the bootstrap-created GitHub managed identity. Never commit its value."
   type        = string
   nullable    = false
   sensitive   = true
+}
+
+variable "owner_object_id" {
+  description = "Repository owner's Entra object ID for runs-table stop recovery. Never commit its value."
+  type        = string
+  nullable    = false
+  sensitive   = true
+}
+
+variable "resource_group_name" {
+  description = "Production resource group pre-created by infra/bootstrap."
+  type        = string
+  default     = "rg-nzhem-prod"
+}
+
+variable "github_repository" {
+  description = "GitHub owner/name used to derive the bootstrap-owned custom role ID."
+  type        = string
+  default     = "liyang6620/nz-hazard-exposure-monitor"
 }
 
 variable "notification_email" {
@@ -31,34 +50,6 @@ variable "notification_email" {
   }
 }
 
-variable "github_principal_id" {
-  description = "Service principal object ID emitted by infra/identity."
-  type        = string
-  nullable    = false
-  sensitive   = true
-}
-
-variable "budget_webhook_client_id" {
-  description = "Application client ID used by Function Easy Auth."
-  type        = string
-  nullable    = false
-  sensitive   = true
-}
-
-variable "budget_webhook_object_id" {
-  description = "Application object ID used by the secure Action Group webhook."
-  type        = string
-  nullable    = false
-  sensitive   = true
-}
-
-variable "budget_webhook_identifier_uri" {
-  description = "Audience URI emitted by infra/identity."
-  type        = string
-  nullable    = false
-  sensitive   = true
-}
-
 variable "location" {
   description = "Azure region for production resources."
   type        = string
@@ -68,7 +59,7 @@ variable "location" {
 variable "budget_start_date" {
   description = "First day of the current billing month in RFC 3339 format."
   type        = string
-  default     = "2026-10-01T00:00:00Z"
+  nullable    = false
 }
 
 variable "budget_end_date" {

@@ -101,6 +101,66 @@ class EventProcessingService:
         timed_out = self._expire_stale_processing(self._clock.now().astimezone(UTC))
         return EventProcessingResult(timed_out=timed_out, **counts)
 
+    def process_triggered(self, event: Mapping[str, Any], *, dequeue_count: int) -> str:
+        """Process a message already claimed by an external queue trigger."""
+        now = self._clock.now().astimezone(UTC)
+        self._ensure_monitor_started(now)
+        event_id = str(event["event_id"])
+        existing = self._tables.get_entity("eventsstate", "recent", event_id) or {}
+        if self._is_current_terminal(existing, event):
+            return "skipped"
+        processing = self._processing_state(existing, event, now, dequeue_count)
+        started = datetime.fromisoformat(
+            str(processing["processing_started_at"]).replace("Z", "+00:00")
+        ).astimezone(UTC)
+        if now - started >= self._timeout:
+            self._tables.upsert_entity(
+                "eventsstate",
+                {
+                    **processing,
+                    "assessment_status": "timed_out",
+                    "assessment_reason": "Assessment exceeded the 60-minute processing limit.",
+                    "assessment_completed_at": now.isoformat(),
+                    "updated_at": now.isoformat(),
+                },
+            )
+            return "timed_out"
+        self._tables.upsert_entity("eventsstate", processing)
+        try:
+            outcome = dict(self._assessor.assess(event, now))
+            status = str(outcome.get("assessment_status", ""))
+            if status not in TERMINAL_STATUSES:
+                raise ValueError(f"Assessor returned non-terminal status: {status}")
+        except Exception as exc:
+            if dequeue_count < self._max_attempts:
+                raise
+            self._tables.upsert_entity(
+                "eventsstate",
+                {
+                    **processing,
+                    "assessment_status": "failed",
+                    "assessment_reason": "Assessment failed after three attempts.",
+                    "failure_type": type(exc).__name__,
+                    "assessment_completed_at": now.isoformat(),
+                    "updated_at": now.isoformat(),
+                },
+            )
+            return "failed"
+        self._tables.upsert_entity(
+            "eventsstate",
+            {
+                **processing,
+                **outcome,
+                "assessment_completed_at": now.isoformat(),
+                "assessment_attempts": dequeue_count,
+                "updated_at": now.isoformat(),
+            },
+        )
+        return status
+
+    def expire_stale_processing(self) -> int:
+        return self._expire_stale_processing(self._clock.now().astimezone(UTC))
+
     def _ensure_monitor_started(self, now: datetime) -> None:
         if self._tables.get_entity("runtime", "monitor", "event-processing") is not None:
             return
@@ -127,7 +187,10 @@ class EventProcessingService:
         attempt: int,
     ) -> dict[str, Any]:
         first_seen = existing.get("first_seen_at") or now.isoformat()
-        started = existing.get("processing_started_at") or now.isoformat()
+        same_revision = str(existing.get("revision", "")) == str(event.get("revision", ""))
+        started = (
+            existing.get("processing_started_at") if same_revision else None
+        ) or now.isoformat()
         return {
             **dict(existing),
             **dict(event),

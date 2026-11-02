@@ -65,6 +65,54 @@ def test_next_run_catches_up_from_last_success(tmp_path: Path) -> None:
     assert source.updated_after == first_time
 
 
+def test_old_queued_event_is_requeued_once_without_repeating_terminal_events(
+    tmp_path: Path,
+) -> None:
+    now = datetime(2026, 10, 23, 12, tzinfo=UTC)
+    tables = SqliteTableStore(tmp_path / "state.db")
+    queues = SqliteQueueStore(tmp_path / "state.db")
+    event = {
+        "event_id": "stuck-event",
+        "revision": "r1",
+        "event_time": now.isoformat(),
+        "magnitude": 4.5,
+        "depth_km": 12.0,
+        "latitude": -41.0,
+        "longitude": 174.0,
+        "event_name": "Wellington",
+        "action": "upsert",
+    }
+    for event_id, status, age_minutes in (
+        ("stuck-event", "queued", 10),
+        ("recent-event", "queued", 1),
+        ("finished-event", "ready", 10),
+    ):
+        tables.upsert_entity(
+            "eventsstate",
+            {
+                **event,
+                "event_id": event_id,
+                "PartitionKey": "recent",
+                "RowKey": event_id,
+                "assessment_status": status,
+                "updated_at": (now - timedelta(minutes=age_minutes)).isoformat(),
+            },
+        )
+    service = HousekeepingService(
+        clock=FixedClock(now), tables=tables, queues=queues, event_source=RecordingSource()
+    )
+
+    result = service.run()
+
+    assert result.events_enqueued == 1
+    assert result.events_requeued == 1
+    assert queues.receive("events").payload["event_id"] == "stuck-event"
+    assert (
+        tables.get_entity("eventsstate", "recent", "stuck-event")["updated_at"] == now.isoformat()
+    )
+    assert service.run().events_requeued == 0
+
+
 def test_failure_is_recorded_without_exposing_message(tmp_path: Path) -> None:
     class FailingSource:
         def fetch_updated_after(self, updated_after: datetime) -> list[dict]:

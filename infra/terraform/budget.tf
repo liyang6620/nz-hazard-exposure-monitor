@@ -1,6 +1,16 @@
+resource "random_password" "budget_webhook_token" {
+  length  = 32
+  special = false
+}
+
+resource "random_password" "approval_token_key" {
+  length  = 48
+  special = false
+}
+
 resource "azurerm_monitor_action_group" "budget_stop" {
   name                = "ag-nzhem-budget-stop"
-  resource_group_name = azurerm_resource_group.production.name
+  resource_group_name = var.resource_group_name
   short_name          = "nzhemstop"
   tags                = var.tags
 
@@ -12,14 +22,8 @@ resource "azurerm_monitor_action_group" "budget_stop" {
 
   webhook_receiver {
     name                    = "budget-stop-function"
-    service_uri             = "https://${azurerm_function_app_flex_consumption.main.default_hostname}/api/budget-stop"
+    service_uri             = "https://${azurerm_function_app_flex_consumption.main.default_hostname}/api/budget-stop?token=${random_password.budget_webhook_token.result}"
     use_common_alert_schema = true
-
-    aad_auth {
-      object_id      = var.budget_webhook_object_id
-      identifier_uri = var.budget_webhook_identifier_uri
-      tenant_id      = var.tenant_id
-    }
   }
 }
 

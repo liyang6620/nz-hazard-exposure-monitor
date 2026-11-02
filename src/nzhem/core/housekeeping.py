@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from nzhem.core.agent.approval import expire_pending_briefings
 from nzhem.core.runlog import RunLog
@@ -14,6 +14,7 @@ class HousekeepingResult:
     run_id: str
     catchup_from: str
     events_enqueued: int
+    events_requeued: int
     briefings_expired: int
 
 
@@ -43,6 +44,7 @@ class HousekeepingService:
 
         try:
             events = self._event_source.fetch_updated_after(updated_after)
+            fetched_ids = {str(event["event_id"]) for event in events}
             for event in events:
                 self._queues.send("events", dict(event))
                 existing = (
@@ -63,10 +65,39 @@ class HousekeepingService:
                         "updated_at": now.isoformat(),
                     },
                 )
+            requeued = 0
+            cutoff = now - timedelta(minutes=5)
+            required_fields = (
+                "event_id",
+                "revision",
+                "event_time",
+                "magnitude",
+                "depth_km",
+                "latitude",
+                "longitude",
+                "event_name",
+                "action",
+            )
+            event_fields = (*required_fields, "magnitude_type", "magnitude_revision_time")
+            for row in self._tables.list_entities("eventsstate", "recent"):
+                if row.get("assessment_status") != "queued" or str(row["RowKey"]) in fetched_ids:
+                    continue
+                try:
+                    updated_at = datetime.fromisoformat(
+                        str(row["updated_at"]).replace("Z", "+00:00")
+                    )
+                except (KeyError, ValueError):
+                    continue
+                if updated_at > cutoff or any(field not in row for field in required_fields):
+                    continue
+                self._queues.send("events", {field: row.get(field) for field in event_fields})
+                self._tables.upsert_entity("eventsstate", {**row, "updated_at": now.isoformat()})
+                requeued += 1
             briefings_expired = expire_pending_briefings(self._tables, now)
             details = {
                 "catchup_from": updated_after.isoformat(),
-                "events_enqueued": len(events),
+                "events_enqueued": len(events) + requeued,
+                "events_requeued": requeued,
                 "briefings_expired": briefings_expired,
             }
             self._runlog.record(

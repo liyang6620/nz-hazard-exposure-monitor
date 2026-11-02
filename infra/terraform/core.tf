@@ -1,13 +1,7 @@
-resource "azurerm_resource_group" "production" {
-  name     = "rg-nzhem-prod"
-  location = var.location
-  tags     = var.tags
-}
-
 resource "azurerm_storage_account" "data" {
   name                            = local.names.storage
-  resource_group_name             = azurerm_resource_group.production.name
-  location                        = azurerm_resource_group.production.location
+  resource_group_name             = var.resource_group_name
+  location                        = var.location
   account_tier                    = "Standard"
   account_replication_type        = "LRS"
   account_kind                    = "StorageV2"
@@ -30,6 +24,26 @@ resource "azurerm_storage_account" "data" {
   tags = var.tags
 }
 
+resource "azurerm_storage_account" "function_host" {
+  name                            = local.names.host_storage
+  resource_group_name             = var.resource_group_name
+  location                        = var.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  account_kind                    = "StorageV2"
+  min_tls_version                 = "TLS1_2"
+  allow_nested_items_to_be_public = false
+  public_network_access_enabled   = true
+  shared_access_key_enabled       = false
+  tags                            = var.tags
+}
+
+resource "azurerm_storage_container" "function_deployments" {
+  name                  = "deployments"
+  storage_account_id    = azurerm_storage_account.function_host.id
+  container_access_type = "private"
+}
+
 resource "azurerm_storage_container" "data" {
   for_each = local.blob_container_names
 
@@ -43,17 +57,38 @@ resource "azurerm_storage_queue" "events" {
   storage_account_id = azurerm_storage_account.data.id
 }
 
-resource "azurerm_storage_table" "tables" {
-  for_each = toset(["eventsstate", "runs", "briefings"])
-
-  name               = each.value
+resource "azurerm_storage_queue" "events_poison" {
+  name               = "events-poison"
   storage_account_id = azurerm_storage_account.data.id
+}
+
+resource "azapi_resource" "tables" {
+  for_each = toset(["eventsstate", "runs", "briefings", "runtime"])
+
+  type      = "Microsoft.Storage/storageAccounts/tableServices/tables@2023-01-01"
+  name      = each.value
+  parent_id = "${azurerm_storage_account.data.id}/tableServices/default"
+}
+
+removed {
+  from = azurerm_storage_table.tables
+
+  lifecycle {
+    destroy = false
+  }
+}
+
+import {
+  for_each = toset(["eventsstate", "runs", "briefings", "runtime"])
+
+  to = azapi_resource.tables[each.value]
+  id = "${azurerm_storage_account.data.id}/tableServices/default/tables/${each.value}"
 }
 
 resource "azurerm_storage_account_static_website" "public" {
   storage_account_id = azurerm_storage_account.data.id
   index_document     = "index.html"
-  error_404_document = "404.html"
+  error_404_document = "index.html"
 }
 
 resource "azurerm_storage_management_policy" "data" {
@@ -94,8 +129,8 @@ resource "azurerm_storage_management_policy" "data" {
 
 resource "azurerm_key_vault" "main" {
   name                          = local.names.key_vault
-  resource_group_name           = azurerm_resource_group.production.name
-  location                      = azurerm_resource_group.production.location
+  resource_group_name           = var.resource_group_name
+  location                      = var.location
   tenant_id                     = var.tenant_id
   sku_name                      = "standard"
   rbac_authorization_enabled    = true

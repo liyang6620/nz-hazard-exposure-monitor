@@ -21,9 +21,18 @@ private hosted ArcGIS layer has
 server-side Esri MCP static maps within the enforced quotas. The shared core,
 local Docker host and Azure Functions host remain separate. Outstanding work is
 the owner's two-minute Power BI walkthrough, M7 Snowflake work when scheduled by
-the project manager, and the Azure for Students deployment. The reviewed Azure
-plan remains isolated in unmerged PR #31; no provider registration or Terraform
-apply has run. Evidence is under [`evidence/`](evidence/).
+the project manager, and the Azure for Students deployment. Seven required
+resource providers have been registered. The student-subscription Terraform
+bootstrap, three fixed-amount guardrail budgets, and production infrastructure
+are deployed. The [public Azure website](https://stnzhem8495b7ca.z8.web.core.windows.net/)
+is online; cloud acceptance is still in progress. Evidence
+is under [`evidence/`](evidence/). A genuine GeoNet M5.0 event on 2 November
+2026 was assessed and published in 32 minutes 9 seconds, meeting the one-hour
+target. The first Azure Kaikōura briefing was approved by the repository owner
+through the emailed confirmation page and is visible on the public detail page.
+The [Azure acceptance record](evidence/m1-a/azure-acceptance-2026-11-02.md)
+tracks remaining platform and operating checks; [actual costs](docs/cost.md)
+are recorded separately.
 
 ## Important limitations
 
@@ -47,9 +56,9 @@ src/nzhem/adapters/   local and Azure implementations
 hosts/local/          FastAPI + APScheduler Docker host
 hosts/azure_functions Azure Functions trigger bindings
 dbt/                  DuckDB/dbt transformation project
-infra/bootstrap/      one-time remote-state storage
+infra/bootstrap/      state storage, production resource group and GitHub UAMI
 infra/providers/      explicitly approved Azure provider registrations
-infra/identity/       Entra applications and GitHub OIDC bootstrap
+infra/identity/       retired Entra-application design notes
 infra/guardrails/     independent subscription budget root module
 infra/terraform/      production Azure infrastructure
 scripts/              build and verification tooling
@@ -59,7 +68,7 @@ evidence/              sanitized milestone evidence
 
 ## Run the local deployment
 
-The event map uses LINZ Basemaps when a public browser key is configured and falls
+The event map uses LINZ Data Service topographic tiles when a public browser key is configured and falls
 back to OpenStreetMap otherwise. See [docs/linz-basemaps.md](docs/linz-basemaps.md)
 for the key type and setup steps; never use the server-only ArcGIS or OpenAI keys in
 the browser.
@@ -173,12 +182,14 @@ dbt build --project-dir dbt --profiles-dir dbt/profiles --target duckdb_local
 ```
 
 The parity fixture contains locked real GeoNet Kaikoura and Christchurch M3
-summary outputs. Terraform roots remain validation-only. `terraform-plan.yml`
-and `deploy.yml` are hard-disabled until the Microsoft account is restored and
-M1-A is approved.
+summary outputs. Terraform roots remain validation-only until M1-A approval.
+The Azure workflows are gated by repository variables and remain inactive until
+the approved bootstrap creates the GitHub managed identity and its federated
+credentials.
 
-Runtime secrets come from local environment variables or Azure Key Vault. No
-long-lived credentials belong in this repository or GitHub CI.
+Runtime secrets come from local environment variables, Azure Key Vault, or
+Terraform-generated values held in protected remote state and Function app
+settings. No long-lived credentials belong in this repository or GitHub CI.
 
 CI also runs `scripts/check_pbip_portability.py`; PBIP sources containing local
 drive, UNC, macOS user-home or Linux user-home paths are rejected.

@@ -3,6 +3,9 @@ from __future__ import annotations
 import ast
 import importlib.util
 from pathlib import Path
+from types import SimpleNamespace
+
+import pytest
 
 
 def test_core_does_not_import_azure_packages() -> None:
@@ -30,6 +33,146 @@ def test_azure_function_app_metadata_builds() -> None:
     spec.loader.exec_module(module)
 
     functions = {function.get_function_name(): function for function in module.app.get_functions()}
-    assert set(functions) == {"budget_stop", "housekeeping"}
+    assert set(functions) == {
+        "budget_stop",
+        "housekeeping",
+        "map_token",
+        "process_event",
+        "review_briefing_get",
+        "review_briefing_post",
+    }
     trigger = functions["budget_stop"].get_bindings()[0].get_dict_repr()
     assert trigger["name"] == "request"
+    http_methods = {
+        name: {
+            str(method.value)
+            for method in functions[name].get_bindings()[0].get_dict_repr()["methods"]
+        }
+        for name in functions
+        if name not in {"housekeeping", "process_event"}
+    }
+    assert http_methods == {
+        "budget_stop": {"POST"},
+        "map_token": {"GET"},
+        "review_briefing_get": {"GET"},
+        "review_briefing_post": {"POST"},
+    }
+    queue_trigger = functions["process_event"].get_bindings()[0].get_dict_repr()
+    assert queue_trigger["queueName"] == "events"
+    assert queue_trigger["connection"] == "NZHEM_DATA_STORAGE"
+
+
+def test_budget_stop_rejects_an_invalid_token(monkeypatch: pytest.MonkeyPatch) -> None:
+    required = {
+        "NZHEM_ENV": "azure",
+        "STORAGE_ACCOUNT_NAME": "storage",
+        "AZURE_SUBSCRIPTION_ID": "subscription",
+        "AZURE_RESOURCE_GROUP": "resource-group",
+        "AZURE_FUNCTION_APP_NAME": "function",
+        "BUDGET_WEBHOOK_TOKEN": "expected-token-value",
+        "ACS_CONNECTION_STRING": (
+            "endpoint=https://example.communication.azure.com;accesskey=test-key"
+        ),
+        "ACS_SENDER": "sender@example.invalid",
+        "KEY_VAULT_URL": "https://example.vault.azure.net",
+        "AZURE_OPENAI_ENDPOINT": "https://example.openai.azure.com",
+    }
+    for name, value in required.items():
+        monkeypatch.setenv(name, value)
+
+    module_path = Path("hosts/azure_functions/function_app.py")
+    spec = importlib.util.spec_from_file_location("nzhem_function_app_token_test", module_path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    class InvalidTokenRequest:
+        params = {"token": "wrong-token-value"}
+
+    response = module.budget_stop(InvalidTokenRequest())
+
+    assert response.status_code == 403
+
+
+def test_map_token_is_disabled_and_fails_closed(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("MAP_TOKEN_ENABLED", "false")
+
+    module_path = Path("hosts/azure_functions/function_app.py")
+    spec = importlib.util.spec_from_file_location("nzhem_function_app_map_test", module_path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    class Request:
+        params: dict[str, str] = {}
+        headers: dict[str, str] = {}
+
+    response = module.map_token(Request())
+
+    assert response.status_code == 404
+
+
+def test_map_token_rejects_wrong_origin_before_broker(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("MAP_TOKEN_ENABLED", "true")
+    monkeypatch.setenv("MAP_TOKEN_ALLOWED_ORIGIN", "https://public.example")
+
+    module_path = Path("hosts/azure_functions/function_app.py")
+    spec = importlib.util.spec_from_file_location("nzhem_function_app_origin_test", module_path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    class Request:
+        params: dict[str, str] = {}
+        headers = {"origin": "https://attacker.example"}
+
+    response = module.map_token(Request())
+
+    assert response.status_code == 403
+
+
+def test_azure_review_post_publishes_approved_summary(monkeypatch: pytest.MonkeyPatch) -> None:
+    module_path = Path("hosts/azure_functions/function_app.py")
+    spec = importlib.util.spec_from_file_location("nzhem_function_app_review_test", module_path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    calls: list[str] = []
+    container = SimpleNamespace(
+        approval=lambda: SimpleNamespace(
+            decide=lambda *args: calls.append("approve") or "approved"
+        ),
+        publish_site_data=lambda: calls.append("publish"),
+    )
+    monkeypatch.setattr(module, "build_container", lambda: container)
+    request = SimpleNamespace(params={"token": "test"}, headers={})
+
+    response = module.review_briefing_post(request)
+
+    assert response.status_code == 200
+    assert calls == ["approve", "publish"]
+
+
+def test_map_token_rate_limit_fails_closed(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("MAP_TOKEN_ENABLED", "true")
+    monkeypatch.setenv("MAP_TOKEN_ALLOWED_ORIGIN", "https://public.example")
+    monkeypatch.setenv("MAP_TOKEN_RATE_LIMIT_PER_MINUTE", "1")
+
+    module_path = Path("hosts/azure_functions/function_app.py")
+    spec = importlib.util.spec_from_file_location("nzhem_function_app_rate_test", module_path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    class Request:
+        params: dict[str, str] = {}
+        headers = {
+            "origin": "https://public.example",
+            "referer": "https://public.example/map/",
+            "x-forwarded-for": "192.0.2.1",
+        }
+
+    assert module.map_token(Request()).status_code == 503
+    assert module.map_token(Request()).status_code == 429

@@ -110,9 +110,7 @@ export default function HomePage() {
           >
             <div>
               <h2 id="processing-record-heading">Observed processing time</h2>
-              <p>
-                A real GeoNet event assessed and published by the local monitor.
-              </p>
+              <p>A real GeoNet event assessed and published by the monitor.</p>
             </div>
             <dl>
               <div>
