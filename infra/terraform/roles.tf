@@ -72,6 +72,14 @@ resource "azurerm_role_assignment" "owner_runs_recovery" {
   principal_id         = var.owner_object_id
 }
 
+resource "azurerm_role_assignment" "owner_poison_drill_sender" {
+  count = var.owner_poison_drill_enabled ? 1 : 0
+
+  scope                = azurerm_storage_queue.events.id
+  role_definition_name = "Storage Queue Data Message Sender"
+  principal_id         = var.owner_object_id
+}
+
 resource "azurerm_role_assignment" "function_key_vault" {
   scope                = azurerm_key_vault.main.id
   role_definition_name = "Key Vault Secrets User"

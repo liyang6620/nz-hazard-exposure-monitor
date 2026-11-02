@@ -26,6 +26,12 @@ variable "owner_object_id" {
   sensitive   = true
 }
 
+variable "owner_poison_drill_enabled" {
+  description = "Temporary events-queue sender grant for the supervised poison-message drill."
+  type        = bool
+  default     = false
+}
+
 variable "resource_group_name" {
   description = "Production resource group pre-created by infra/bootstrap."
   type        = string
