@@ -183,10 +183,13 @@ retries or weaken the one-time HMAC decision check.
 
 ## Flex deployment and hourly publication gate
 
-Deploy Flex Consumption with One Deploy (`az functionapp deploy --type zip`),
-not `az functionapp deployment source config-zip`. The latter can add a
-shared-key `AzureWebJobsStorage` setting and leave the timer listener unable
-to authenticate, even while the Function App says Running. Before and after
+Deploy Flex Consumption with Functions Core Tools from the prebuilt package
+directory (`func azure functionapp publish <app> --no-build --python --force`).
+This path completed the Flex deployment pipeline and host health check during
+the 3 Nov recovery. The previous `az functionapp deployment source config-zip`
+attempts coincided with a shared-key `AzureWebJobsStorage` setting and a timer
+listener unable to authenticate, even while the Function App said Running.
+Before and after
 deployment, verify that the exact `AzureWebJobsStorage` setting is absent and
 that `AzureWebJobsStorage__accountName` and
 `AzureWebJobsStorage__credential=managedidentity` are present. Never print
