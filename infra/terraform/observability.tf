@@ -56,3 +56,37 @@ resource "azurerm_monitor_metric_alert" "function_failure" {
     action_group_id = azurerm_monitor_action_group.failure_email.id
   }
 }
+
+resource "azurerm_monitor_scheduled_query_rules_alert_v2" "housekeeping_missing" {
+  name                    = "nzhem-housekeeping-missing"
+  resource_group_name     = var.resource_group_name
+  location                = var.location
+  scopes                  = [azurerm_log_analytics_workspace.main.id]
+  description             = "No successful housekeeping execution was logged in two hours."
+  severity                = 1
+  evaluation_frequency    = "PT30M"
+  window_duration         = "PT2H"
+  auto_mitigation_enabled = true
+  tags                    = var.tags
+
+  criteria {
+    query                   = <<-KQL
+      AppRequests
+      | where Name == "housekeeping" and Success == true
+      | summarize Executions = count()
+    KQL
+    metric_measure_column   = "Executions"
+    time_aggregation_method = "Minimum"
+    operator                = "LessThan"
+    threshold               = 1
+
+    failing_periods {
+      minimum_failing_periods_to_trigger_alert = 1
+      number_of_evaluation_periods             = 1
+    }
+  }
+
+  action {
+    action_groups = [azurerm_monitor_action_group.failure_email.id]
+  }
+}

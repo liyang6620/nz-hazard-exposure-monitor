@@ -181,6 +181,28 @@ unclear, check the public briefing index before trying again. A used, expired
 or modified link shows a friendly HTML unavailable page. Do not automate POST
 retries or weaken the one-time HMAC decision check.
 
+## Flex deployment and hourly publication gate
+
+Deploy Flex Consumption with One Deploy (`az functionapp deploy --type zip`),
+not `az functionapp deployment source config-zip`. The latter can add a
+shared-key `AzureWebJobsStorage` setting and leave the timer listener unable
+to authenticate, even while the Function App says Running. Before and after
+deployment, verify that the exact `AzureWebJobsStorage` setting is absent and
+that `AzureWebJobsStorage__accountName` and
+`AzureWebJobsStorage__credential=managedidentity` are present. Never print
+the connection-string value.
+
+The CI package includes `build_git_sha.txt`. An invalid, token-free GET to
+`/api/review-briefing` returns `X-NZHEM-Build` with the source commit; check
+it against the deployed commit. Confirm that all six triggers are indexed.
+Then wait through the next scheduled UTC hour and verify a successful
+`housekeeping` request in Application Insights and a newer
+`/data/manifest.json` `generated_at`. Do not mark a deploy complete based on
+ZIP acceptance, Function `Running`, or trigger enumeration alone. If the next
+hour misses, keep ArcGIS publishing disabled and treat it as an incident.
+After publication resumes, inspect `events.json` for the offline catch-up
+period and verify queued events reach terminal assessments.
+
 ## ArcGIS publisher handover
 
 The private `event_exposure_r6` hosted item is the only write target. The
