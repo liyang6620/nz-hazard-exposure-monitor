@@ -32,6 +32,18 @@ variable "owner_poison_drill_enabled" {
   default     = false
 }
 
+variable "owner_arcgis_key_write_enabled" {
+  description = "Temporary vault-scoped Secrets Officer grant for supervised ArcGIS key entry."
+  type        = bool
+  default     = false
+}
+
+variable "arcgis_publisher_enabled" {
+  description = "Enable the single Azure ArcGIS writer only after the owner completes key handover."
+  type        = bool
+  default     = false
+}
+
 variable "resource_group_name" {
   description = "Production resource group pre-created by infra/bootstrap."
   type        = string

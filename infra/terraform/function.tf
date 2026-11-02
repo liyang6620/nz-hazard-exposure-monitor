@@ -69,7 +69,7 @@ resource "azurerm_function_app_flex_consumption" "main" {
     "NZHEM_ENV"                           = "azure"
     "NZHEM_DATA_ROOT"                     = "/tmp/nzhem-data"
     "NZHEM_DUCKDB_EXTENSIONS_DIR"         = "/home/site/wwwroot/vendor/duckdb_extensions"
-    "ARCGIS_PUBLISHER_ENABLED"            = "false"
+    "ARCGIS_PUBLISHER_ENABLED"            = tostring(var.arcgis_publisher_enabled)
     "DUCKDB_MEMORY_LIMIT_MB"              = "512"
     "REFERENCE_MAX_RSS_MB"                = "768"
     "AZURE_SUBSCRIPTION_ID"               = var.subscription_id

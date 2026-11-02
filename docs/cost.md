@@ -10,6 +10,7 @@ subscription not supported`), so Action Group delivery is not verified.
 |---|---:|---|---|
 | 2 Nov 2026 | 0.277 | NZD | First non-empty Cost Management reading; delayed and not a daily run rate. |
 | 2 Nov 2026, later query | 0.381775 | NZD | Month-to-date ActualCost; Cost Management data remains delayed. |
+| 3 Nov 2026 | unavailable | NZD | Cost Management query returned HTTP 429; no actual amount was inferred. |
 
 The later reading, grouped by Cost Management `ServiceName`, was Storage
 NZD 0.378492, Email NZD 0.001780, Foundry Models NZD 0.001471, and Key Vault
@@ -20,6 +21,8 @@ by Azure, not a forecast. Most reported spend is Storage, but this single day
 cannot distinguish one-time deployment transactions from steady-state use.
 The NZD 1 drill budget will only alert after delayed actual cost crosses NZD 1;
 it must not be treated as an immediate stop test.
+The Function App was still reported `Running` on 3 Nov; no natural budget
+notification or Action Group delivery has been verified yet.
 
 Query Cost Management once per NZ day during the first operating week. Record
 the query date, returned currency and actual month-to-date total; do not

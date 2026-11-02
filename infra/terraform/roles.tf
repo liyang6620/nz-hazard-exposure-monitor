@@ -80,6 +80,14 @@ resource "azurerm_role_assignment" "owner_poison_drill_sender" {
   principal_id         = var.owner_object_id
 }
 
+resource "azurerm_role_assignment" "owner_arcgis_key_write" {
+  count = var.owner_arcgis_key_write_enabled ? 1 : 0
+
+  scope                = azurerm_key_vault.main.id
+  role_definition_name = "Key Vault Secrets Officer"
+  principal_id         = var.owner_object_id
+}
+
 resource "azurerm_role_assignment" "function_key_vault" {
   scope                = azurerm_key_vault.main.id
   role_definition_name = "Key Vault Secrets User"
