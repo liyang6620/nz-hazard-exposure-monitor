@@ -15,6 +15,7 @@ from nzhem.ports import (
     Clock,
     EventAssessor,
     EventSource,
+    HostedFeaturePublisher,
     LlmClient,
     Mailer,
     ObjectStore,
@@ -46,6 +47,7 @@ class ServiceContainer:
     static_map_provider: StaticMapProvider | None = None
     site_data_publisher: SiteDataPublisher | None = None
     event_assessor: EventAssessor | None = None
+    hosted_feature_publisher: HostedFeaturePublisher | None = None
 
     def housekeeping(self) -> HousekeepingService:
         return HousekeepingService(
@@ -87,6 +89,11 @@ class ServiceContainer:
         if self.site_data_publisher is None:
             return None
         return self.site_data_publisher.publish(self.clock.now())
+
+    def publish_hosted_features(self) -> Mapping[str, int] | None:
+        if self.hosted_feature_publisher is None:
+            return None
+        return self.hosted_feature_publisher.publish(self.clock.now())
 
     def process_events(self) -> EventProcessingResult | None:
         processor = self.event_processor()

@@ -180,3 +180,31 @@ briefing title and action, then click the POST button once. If the response is
 unclear, check the public briefing index before trying again. A used, expired
 or modified link shows a friendly HTML unavailable page. Do not automate POST
 retries or weaken the one-time HMAC decision check.
+
+## ArcGIS publisher handover
+
+The private `event_exposure_r6` hosted item is the only write target. The
+Azure hourly timer publishes only ready, recent monitoring events from the
+already published website generation. It matches `event_id` and `h3_r6`, uses
+50-feature `applyEdits` batches with rollback enabled, and records the source
+GeoJSON digest in the `runs` table after successful edits. A failed batch is
+safe to retry because the next run queries current object IDs. It rejects an
+unexpected item URL, public sharing, changed layer schema, duplicate cells,
+oversized event payloads, storage at 125 MiB, or edits exceeding the 125 MiB
+monthly local ledger. Check the portal's account-wide monthly usage as well:
+the local ledger cannot include edits made outside this application.
+
+Keep both deployments' `ARCGIS_PUBLISHER_ENABLED` false while handing over.
+First generate a Terraform plan with only the vault-scoped temporary
+`owner_arcgis_key_write` role, and apply it under the existing approval. The
+owner then adds a Key Vault secret named `arcgis-publisher-key` through the
+Azure portal, pasting the existing server-side key directly into the secret
+form. Do not place the key in a shell argument, application setting, browser
+bundle, issue, screenshot or log. Disable the temporary role and apply a plan
+containing only its deletion. The Function's existing `Key Vault Secrets User`
+role remains. Verify the Function can read the secret without printing it,
+then enable only the Azure publisher through a reviewed application-setting
+plan. Confirm the hosted item ID is unchanged, read back feature count and
+storage use, compare the monthly feature-edit allowance, and verify the local
+publisher is still off. If the ArcGIS service rejects any edit, leave Azure
+publishing off and record the error code for review.

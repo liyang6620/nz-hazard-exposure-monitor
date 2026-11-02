@@ -101,6 +101,7 @@ def housekeeping(timer: func.TimerRequest) -> None:
     processor = container.event_processor()
     timed_out = processor.expire_stale_processing() if processor else 0
     publication = container.publish_site_data()
+    hosted = container.publish_hosted_features()
     logging.info(
         "housekeeping completed",
         extra={
@@ -108,6 +109,7 @@ def housekeeping(timer: func.TimerRequest) -> None:
             "events_enqueued": result.events_enqueued,
             "timed_out": timed_out,
             "site_generation": publication["generation_id"] if publication else None,
+            "arcgis_events": hosted["events"] if hosted else None,
         },
     )
 

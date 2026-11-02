@@ -65,6 +65,7 @@ class Settings:
     arcgis_publisher_enabled: bool = False
     arcgis_static_maps_enabled: bool = False
     arcgis_api_key_name: str = "ARCGIS_API_KEY"
+    arcgis_layer_item_id: str = "ce9c69b085584965a236d0c6fdfb7ebc"
     run_startup_housekeeping: bool = True
     llm_reasoning_effort: str = "minimal"
     llm_max_output_tokens: int = 1200
@@ -129,6 +130,9 @@ class Settings:
             arcgis_publisher_enabled=_bool("ARCGIS_PUBLISHER_ENABLED", False),
             arcgis_static_maps_enabled=_bool("ARCGIS_STATIC_MAPS_ENABLED", False),
             arcgis_api_key_name=os.getenv("ARCGIS_API_KEY_NAME", "ARCGIS_API_KEY").strip(),
+            arcgis_layer_item_id=os.getenv(
+                "ARCGIS_LAYER_ITEM_ID", "ce9c69b085584965a236d0c6fdfb7ebc"
+            ).strip(),
             run_startup_housekeeping=_bool("RUN_STARTUP_HOUSEKEEPING", True),
             llm_reasoning_effort=os.getenv("LLM_REASONING_EFFORT", "minimal").strip(),
             llm_max_output_tokens=_positive_int("LLM_MAX_OUTPUT_TOKENS", 1200),
@@ -182,6 +186,8 @@ class Settings:
             raise ConfigurationError("REFERENCE_EXPORT_WORK_RESERVE_GB cannot be below 5")
         if self.arcgis_static_maps_enabled and not self.arcgis_api_key_name:
             raise ConfigurationError("ARCGIS_API_KEY_NAME is required when static maps are enabled")
+        if self.arcgis_publisher_enabled and not self.arcgis_layer_item_id:
+            raise ConfigurationError("ARCGIS_LAYER_ITEM_ID is required when publishing is enabled")
         if self.map_token_enabled and not self.map_token_allowed_origin.startswith("https://"):
             raise ConfigurationError(
                 "MAP_TOKEN_ALLOWED_ORIGIN must be an HTTPS origin when map token relay is enabled"

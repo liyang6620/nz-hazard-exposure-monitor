@@ -246,6 +246,7 @@ class AzureOpenAILlmClient:
 
 
 def build_azure_container(settings: Settings) -> ServiceContainer:
+    from nzhem.adapters.azure.arcgis_publisher import AzureArcgisPublisher
     from nzhem.adapters.azure.workspace import (
         AzureDataWorkspace,
         AzureRealtimeEventAssessor,
@@ -261,6 +262,13 @@ def build_azure_container(settings: Settings) -> ServiceContainer:
         if settings.geonet_poll_enabled
         else NullEventSource()
     )
+    secrets = AzureSecretStore(
+        settings.key_vault_url,
+        aliases={
+            settings.approval_token_key_name: "approval-token-key",
+            settings.arcgis_api_key_name: "arcgis-publisher-key",
+        },
+    )
     return ServiceContainer(
         settings=settings,
         clock=SystemClock(),
@@ -271,10 +279,7 @@ def build_azure_container(settings: Settings) -> ServiceContainer:
             max_dequeues=settings.queue_max_dequeue_count,
         ),
         tables=tables,
-        secrets=AzureSecretStore(
-            settings.key_vault_url,
-            aliases={settings.approval_token_key_name: "approval-token-key"},
-        ),
+        secrets=secrets,
         mailer=AzureMailer(settings.communication_connection_string, settings.email_sender),
         llm=AzureOpenAILlmClient(
             settings.azure_openai_endpoint,
@@ -288,5 +293,16 @@ def build_azure_container(settings: Settings) -> ServiceContainer:
         ),
         site_data_publisher=AzureSiteDataPublisher(
             workspace, objects, tables, memory_limit_mb=settings.duckdb_memory_limit_mb
+        ),
+        hosted_feature_publisher=(
+            AzureArcgisPublisher(
+                objects,
+                tables,
+                secrets,
+                item_id=settings.arcgis_layer_item_id,
+                key_name=settings.arcgis_api_key_name,
+            )
+            if settings.arcgis_publisher_enabled
+            else None
         ),
     )
