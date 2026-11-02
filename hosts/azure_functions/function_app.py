@@ -97,18 +97,65 @@ def housekeeping(timer: func.TimerRequest) -> None:
 @app.queue_trigger(arg_name="message", queue_name="events", connection="NZHEM_DATA_STORAGE")
 def process_event(message: func.QueueMessage) -> None:
     container = build_container()
-    processor = container.event_processor()
-    if processor is None:
-        raise RuntimeError("Azure event assessor is not configured")
     event = message.get_json()
     if not isinstance(event, dict):
         raise ValueError("Event queue payload must be a JSON object")
+    if event.get("kind") == "briefing_request":
+        if container.settings.environment != "azure":
+            raise ValueError("Cloud briefing requests require Azure mode")
+        _create_cloud_review_briefing(container, event)
+        return
+    processor = container.event_processor()
+    if processor is None:
+        raise RuntimeError("Azure event assessor is not configured")
     status = processor.process_triggered(event, dequeue_count=message.dequeue_count)
     publication = container.publish_site_data()
     logging.info(
         "event processing completed",
         extra={"assessment_status": status, "site_generation": publication["generation_id"]},
     )
+
+
+def _create_cloud_review_briefing(container, request: dict) -> None:
+    import re
+
+    event_id = request.get("event_id")
+    revision = request.get("revision", 1)
+    if not isinstance(event_id, str) or not re.fullmatch(r"[0-9]{4}p[0-9]+", event_id):
+        raise ValueError("Invalid briefing event ID")
+    if type(revision) is not int or not 1 <= revision <= 10:
+        raise ValueError("Invalid briefing revision")
+    briefing_id = f"{event_id}-r{revision}"
+    if container.tables.get_entity("briefings", "briefing", briefing_id) is not None:
+        logging.info("briefing request already handled", extra={"event_id": event_id})
+        return
+    now = container.clock.now()
+    month = now.strftime("%Y-%m")
+    existing = container.tables.list_entities("briefings", "briefing")
+    if sum(str(row.get("created_at", "")).startswith(month) for row in existing) >= (
+        container.settings.briefing_monthly_limit
+    ):
+        raise ValueError("Monthly briefing limit reached")
+    draft = container.draft_briefing().draft(event_id, briefing_id=briefing_id)
+    if not draft.fidelity_passed:
+        raise ValueError("Cloud briefing failed numeric fidelity validation")
+    summary = container.briefing_tools.get_published_summary(event_id)
+    approval = container.approval()
+    approval.create_pending(
+        briefing_id=briefing_id,
+        event_id=event_id,
+        title=str(draft.payload["headline"]),
+        html=draft.html,
+        markdown=draft.markdown,
+        map_image=draft.map_image,
+        recipient=container.settings.notification_email,
+        review_base_url=container.settings.review_base_url,
+        now=now,
+        revision=revision,
+        source_magnitude=float(summary["magnitude"]),
+    )
+    approval.supersede_older_revisions(event_id, keep_revision=revision, now=now)
+    logging.info("cloud briefing submitted for review", extra={"event_id": event_id})
 
 
 @app.route(

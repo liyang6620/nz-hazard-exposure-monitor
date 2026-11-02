@@ -248,6 +248,7 @@ def build_azure_container(settings: Settings) -> ServiceContainer:
         AzureRealtimeEventAssessor,
         AzureSiteDataPublisher,
     )
+    from nzhem.core.agent.published_briefing_tools import PublishedBriefingTools
 
     objects = AzureObjectStore(settings.storage_account_name)
     workspace = AzureDataWorkspace(objects._service, Path(settings.data_root))
@@ -276,6 +277,7 @@ def build_azure_container(settings: Settings) -> ServiceContainer:
             settings.azure_openai_endpoint,
             settings.azure_openai_deployment,
         ),
+        briefing_tools=PublishedBriefingTools(objects),
         static_site=AzureStaticSitePublisher(objects),
         event_source=event_source,
         event_assessor=AzureRealtimeEventAssessor(
