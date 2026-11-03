@@ -208,6 +208,13 @@ hour misses, keep ArcGIS publishing disabled and treat it as an incident.
 After publication resumes, inspect `events.json` for the offline catch-up
 period and verify queued events reach terminal assessments.
 
+Request and Exception telemetry is excluded from host sampling so hourly
+execution and failure alerts can observe each run. Other telemetry remains at
+the existing 20% sampling rate; the Application Insights daily cap remains
+0.1 GB. After deploying this setting, compare two consecutive scheduled
+`housekeeping` requests with the Azure `runs` table and public manifest, then
+exercise the missing-housekeeping alert before treating it as reliable.
+
 ## ArcGIS publisher handover
 
 The private `event_exposure_r6` hosted item is the only write target. The
