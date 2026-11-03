@@ -42,4 +42,6 @@ the SHA-256 of sorted name, size and ETag records was unchanged:
 This is a metadata identity check, not a fresh content-byte hash. The
 temporary role was immediately removed by a saved plan with exactly one
 deletion; Terraform state and an Azure role-scope query both showed it absent.
-Owner confirmation of actual email receipt is pending.
+The owner checked the 163 inbox and spam and reported no alert email. The
+owner then requested a Gmail second receiver for the existing failure Action
+Group; that change and its own delivery check are separate from this drill.
