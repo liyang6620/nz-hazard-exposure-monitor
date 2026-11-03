@@ -14,7 +14,7 @@ resource "azurerm_application_insights" "main" {
   location             = var.location
   workspace_id         = azurerm_log_analytics_workspace.main.id
   application_type     = "web"
-  sampling_percentage  = 20
+  sampling_percentage  = 100
   daily_data_cap_in_gb = 0.1
   retention_in_days    = 30
   tags                 = var.tags

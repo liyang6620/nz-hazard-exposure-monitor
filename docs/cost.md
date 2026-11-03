@@ -29,6 +29,19 @@ alerts at US$0.50/month for 15-minute evaluation; this less frequent rule is
 budgeted conservatively at **no more than US$0.50/month** for the alert rule,
 plus existing low-volume log ingestion and any email delivery charges. Review
 the first actual charge before treating that estimate as a measured cost.
+Application Insights currently samples at 20%, which is unsuitable for an
+alert based on only two hourly requests. A separate review plan proposes
+100% sampling for reliable `AppRequests` capture. The workspace reported
+about 31 MB of application telemetry over the last three days at 20%; a
+conservative fivefold estimate is about 1.6 GB/month, below the workspace's
+free monthly ingestion allowance. This is a planning estimate, not an Azure
+bill, and must be checked after any approved sampling change.
+The preferred Function-host sampling exception did not restore an
+`AppRequests` row for the 3 Nov 11:00 UTC scheduled run. A fresh 24-hour
+workspace Usage query measured about 3.8 MB; a fivefold projection is about
+0.57 GB/month. The earlier 1.6 GB/month figure is retained as a conservative
+planning bound for the 100% sampling fallback. Its 0.1 GB daily cap remains
+enabled, and actual charges must be checked after deployment.
 
 Query Cost Management once per NZ day during the first operating week. Record
 the query date, returned currency and actual month-to-date total; do not
