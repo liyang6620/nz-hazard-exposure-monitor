@@ -34,6 +34,7 @@ def _container():
                 "magnitude": 7.8,
                 "max_mmi": 8.4,
                 "populated_max_mmi": 8.4,
+                "as_if_today": True,
             }
         ),
         approval=lambda: approval,
@@ -52,10 +53,31 @@ def test_cloud_request_creates_one_fidelity_checked_pending_briefing():
 
 def test_cloud_test_request_marks_draft_non_publishable():
     container, _, approval = _container()
+    container.briefing_tools.get_published_summary = lambda event_id: {
+        "event_id": event_id,
+        "magnitude": 7.8,
+        "max_mmi": 8.4,
+        "as_if_today": True,
+    }
     _create_cloud_review_briefing(
         container, {"event_id": "2016p858000", "revision": 9, "test_only": True}
     )
     assert approval.create_pending.call_args.kwargs["test_only"] is True
+
+
+def test_test_request_cannot_bypass_trigger_for_live_event():
+    container, draft_service, _ = _container()
+    container.briefing_tools.get_published_summary = lambda event_id: {
+        "event_id": event_id,
+        "magnitude": 7.8,
+        "max_mmi": 8.4,
+        "as_if_today": False,
+    }
+    with pytest.raises(ValueError, match="historical replay"):
+        _create_cloud_review_briefing(
+            container, {"event_id": "2026p824047", "revision": 9, "test_only": True}
+        )
+    draft_service.draft.assert_not_called()
 
 
 def test_duplicate_request_does_not_call_the_model_or_send_mail():
