@@ -10,7 +10,8 @@ subscription not supported`), so Action Group delivery is not verified.
 |---|---:|---|---|
 | 2 Nov 2026 | 0.277 | NZD | First non-empty Cost Management reading; delayed and not a daily run rate. |
 | 2 Nov 2026, later query | 0.381775 | NZD | Month-to-date ActualCost; Cost Management data remains delayed. |
-| 3 Nov 2026 | unavailable | NZD | Cost Management query returned HTTP 429; no actual amount was inferred. |
+| 3 Nov 2026, first query | unavailable | NZD | Cost Management returned HTTP 429; no amount was inferred. |
+| 4 Nov 2026 NZDT | 0.535918 | NZD | Month-to-date ActualCost returned by Cost Management; charges are delayed. |
 
 The later reading, grouped by Cost Management `ServiceName`, was Storage
 NZD 0.378492, Email NZD 0.001780, Foundry Models NZD 0.001471, and Key Vault
@@ -21,21 +22,27 @@ by Azure, not a forecast. Most reported spend is Storage, but this single day
 cannot distinguish one-time deployment transactions from steady-state use.
 The NZD 1 drill budget will only alert after delayed actual cost crosses NZD 1;
 it must not be treated as an immediate stop test.
-The Function App was still reported `Running` on 3 Nov; no natural budget
-notification or Action Group delivery has been verified yet.
+The 4 Nov NZDT reading grouped by service was Storage NZD 0.526743, Azure
+Monitor NZD 0.005859, Email NZD 0.001780, Foundry Models NZD 0.001471 and
+Key Vault NZD 0.000064. Azure App Service, Bandwidth, Functions and Log
+Analytics each returned zero. Displayed service values are rounded; the
+unrounded total was NZD 0.535918. It remains too early to infer a steady-state
+monthly cost from deployment-period storage transactions.
+The Function App was reported `Running` at the 4 Nov NZDT recheck; no natural
+budget notification or Action Group email delivery has been verified yet.
 The 3 Nov missing-housekeeping log alert evaluates a two-hour window every
 30 minutes. The Azure retail pricing API for Australia East listed system log
 alerts at US$0.50/month for 15-minute evaluation; this less frequent rule is
 budgeted conservatively at **no more than US$0.50/month** for the alert rule,
 plus existing low-volume log ingestion and any email delivery charges. Review
 the first actual charge before treating that estimate as a measured cost.
-Application Insights currently samples at 20%, which is unsuitable for an
-alert based on only two hourly requests. A separate review plan proposes
-100% sampling for reliable `AppRequests` capture. The workspace reported
+Application Insights previously sampled at 20%, which was unsuitable for an
+alert based on only two hourly requests. The approved fallback raised sampling
+to 100% while retaining the 0.1 GB daily cap. The workspace previously reported
 about 31 MB of application telemetry over the last three days at 20%; a
 conservative fivefold estimate is about 1.6 GB/month, below the workspace's
 free monthly ingestion allowance. This is a planning estimate, not an Azure
-bill, and must be checked after any approved sampling change.
+bill, and must be checked after the sampling change.
 The preferred Function-host sampling exception did not restore an
 `AppRequests` row for the 3 Nov 11:00 UTC scheduled run. A fresh 24-hour
 workspace Usage query measured about 3.8 MB; a fivefold projection is about
