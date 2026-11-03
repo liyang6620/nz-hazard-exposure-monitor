@@ -159,7 +159,9 @@ def _create_cloud_review_briefing(container, request: dict) -> None:
         logging.info("briefing request already handled", extra={"event_id": event_id})
         return
     summary = container.briefing_tools.get_published_summary(event_id)
-    if not should_draft_briefing(
+    if test_only and summary.get("as_if_today") is not True:
+        raise ValueError("TEST briefing requires a historical replay")
+    if not test_only and not should_draft_briefing(
         {
             "magnitude": summary["magnitude"],
             "populated_max_mmi": summary.get("populated_max_mmi"),
