@@ -142,6 +142,11 @@ state and site publication are confirmed. The owner-supervised malformed-message
 drill moved one message to `events-poison` and left curated/gold hashes unchanged.
 Its temporary sender role was removed. The exception alert did not produce a
 verified notification, so alert delivery remains an acceptance gap.
+When enqueueing a valid JSON request from Windows, use the Azure Queue SDK's
+`send_message(json.dumps(payload))` after validating the object locally.
+PowerShell passing JSON through `az.cmd --content` can remove quotation marks;
+the 4 Nov TEST-mail rehearsal sent one such malformed message to the poison
+queue. Never requeue an uninspected poison payload.
 
 ## Rollback and backup
 
