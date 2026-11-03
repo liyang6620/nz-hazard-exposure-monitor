@@ -19,9 +19,13 @@ UTC before the deployment and had not been republished by the deployment
 itself. An initial Application Insights query found no housekeeping request
 between 22:20 and 22:40 UTC, consistent with startup execution being disabled.
 
-Next acceptance gate: observe the scheduled 23:00 UTC request, a newer public
-manifest and no extra pre-hour startup run. A successful package upload or
-Running host alone is not sufficient.
+The next scheduled 23:00 UTC request was recorded successful at
+23:00:00.018 UTC. The public manifest advanced from 22:00 to 23:00:02 UTC,
+and all six triggers remained indexed. Application Insights returned no
+housekeeping request between the 22:21 deployment and 23:00; the only request
+in that interval's query was the scheduled 23:00 run. This passes the
+post-deployment publication gate and confirms the extra startup pass was
+absent in the observed window.
 
 An attempt to send a test notification from the existing Function-failure
 Action Group using Azure Monitor's metric-static-threshold test endpoint
