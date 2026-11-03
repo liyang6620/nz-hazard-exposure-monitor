@@ -147,10 +147,13 @@ def _create_cloud_review_briefing(container, request: dict) -> None:
 
     event_id = request.get("event_id")
     revision = request.get("revision", 1)
+    test_only = request.get("test_only", False)
     if not isinstance(event_id, str) or not re.fullmatch(r"[0-9]{4}p[0-9]+", event_id):
         raise ValueError("Invalid briefing event ID")
     if type(revision) is not int or not 1 <= revision <= 10:
         raise ValueError("Invalid briefing revision")
+    if type(test_only) is not bool:
+        raise ValueError("Invalid test briefing flag")
     briefing_id = f"{event_id}-r{revision}"
     if container.tables.get_entity("briefings", "briefing", briefing_id) is not None:
         logging.info("briefing request already handled", extra={"event_id": event_id})
@@ -189,6 +192,7 @@ def _create_cloud_review_briefing(container, request: dict) -> None:
         revision=revision,
         source_magnitude=float(summary["magnitude"]),
         email_payload=dict(draft.payload),
+        test_only=test_only,
     )
     approval.supersede_older_revisions(event_id, keep_revision=revision, now=now)
     logging.info("cloud briefing submitted for review", extra={"event_id": event_id})

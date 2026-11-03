@@ -18,7 +18,9 @@ class RecordingMailer:
     def send(self, recipient: str, subject: str, text: str, *, html: str | None = None) -> None:
         self.messages.append((recipient, subject, text))
         assert html is not None
-        assert "Approve" in html and "Reject" in html
+        assert "Reject" in html
+        if "TEST:" not in subject:
+            assert "Approve" in html
 
 
 def service(tmp_path: Path) -> tuple[ApprovalService, SqliteTableStore, RecordingMailer]:
@@ -112,6 +114,31 @@ def test_reject_does_not_publish(tmp_path: Path) -> None:
     assert tables.get_entity("briefings", "briefing", "briefing-1")["status"] == "rejected"
     assert not (tmp_path / "data/web/briefings/event-1.html").exists()
     assert not (tmp_path / "data/web" / entity["published_map_path"]).exists()
+
+
+def test_test_only_draft_can_be_rejected_but_never_approved(tmp_path: Path) -> None:
+    approval, tables, mailer = service(tmp_path)
+    now = datetime(2026, 11, 3, tzinfo=UTC)
+    pending = approval.create_pending(
+        briefing_id="event-1-r9",
+        event_id="event-1",
+        title="M7.8 Kaikōura — test draft",
+        html="<h1>Test draft</h1>",
+        markdown="Test draft",
+        recipient="owner@example.invalid",
+        review_base_url="http://127.0.0.1:8000/review-briefing",
+        now=now,
+        test_only=True,
+    )
+    assert "TEST:" in mailer.messages[0][1]
+    assert "Approve (opens" not in mailer.messages[0][2]
+    with pytest.raises(ApprovalRejected):
+        approval.preview(pending.approve_token, now)
+    with pytest.raises(ApprovalRejected):
+        approval.decide(pending.approve_token, now, "127.0.0.1")
+    assert tables.get_entity("briefings", "briefing", "event-1-r9")["status"] == "pending"
+    assert approval.decide(pending.reject_token, now, "127.0.0.1") == "rejected"
+    assert not (tmp_path / "data/web/briefings/event-1.html").exists()
 
 
 def test_superseded_revision_invalidates_both_review_links(tmp_path: Path) -> None:

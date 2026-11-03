@@ -12,12 +12,23 @@ def render_review_email(
     reject_url: str,
     *,
     needs_manual_review: bool = False,
+    test_only: bool = False,
 ) -> tuple[str, str, str]:
     event_title = title.split(" — ", 1)[0]
-    subject = f"[NZHEM] Approval needed: {event_title}"
+    subject = f"[NZHEM] {'TEST: ' if test_only else ''}Approval needed: {event_title}"
     figures = list(payload.get("key_figures", [])) if payload else []
     situation = [str(item["text"]) for item in payload.get("situation", [])] if payload else []
-    warning = "Manual fact review required. " if needs_manual_review else ""
+    warning = "TEST message. Reject this draft; it cannot be published. " if test_only else ""
+    if needs_manual_review:
+        warning += "Manual fact review required. "
+    approve_button = (
+        ""
+        if test_only
+        else "<a href='"
+        + escape(approve_url, quote=True)
+        + "' style='display:inline-block;padding:12px 20px;margin:0 10px 10px 0;"
+        "background:#171815;color:#faf7ee;text-decoration:none;font-weight:bold'>Approve</a>"
+    )
     rows = "".join(
         "<tr><th align='left' style='padding:9px 12px;border-bottom:1px solid #aaa28f'>"
         + escape(str(item["label"]))
@@ -49,11 +60,8 @@ def render_review_email(
         "<tr><td style='padding:22px 12px 8px'><h2 style='font-size:18px;margin:0 0 8px'>"
         "Situation</h2><p style='line-height:1.5;margin:0'>" + situation_html + "</p></td></tr>"
         "<tr><td style='padding:22px 12px'>"
-        "<a href='"
-        + escape(approve_url, quote=True)
-        + "' style='display:inline-block;padding:12px 20px;margin:0 10px 10px 0;"
-        "background:#171815;color:#faf7ee;text-decoration:none;font-weight:bold'>Approve</a>"
-        "<a href='"
+        + approve_button
+        + "<a href='"
         + escape(reject_url, quote=True)
         + "' style='display:inline-block;padding:11px 19px;margin:0 0 10px;"
         "border:1px solid #171815;color:#171815;text-decoration:none;"
@@ -72,8 +80,7 @@ def render_review_email(
         + figure_lines
         + "\n\nSituation\n"
         + " ".join(situation)
-        + "\n\nApprove (opens a confirmation page): "
-        + approve_url
+        + ("\n\nApprove (opens a confirmation page): " + approve_url if not test_only else "")
         + "\nReject (opens a confirmation page): "
         + reject_url
         + "\nNo decision is made until you select Confirm.\n"

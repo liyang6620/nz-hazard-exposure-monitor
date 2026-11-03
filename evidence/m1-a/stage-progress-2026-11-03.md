@@ -90,3 +90,25 @@ against the US$1 cap; no new direct OpenAI call was made in this stage.
 Owner-specific instructions and pending actions are in ignored
 `tmp/OWNER_TODO.md`. No subscription ID, tenant ID, address, secret or approval
 token is included in this evidence.
+
+## Owner-assisted handover, 3 Nov
+
+- The owner placed the ArcGIS publisher credential in the project Key Vault.
+  The temporary vault-scoped Secrets Officer assignment was applied and then
+  removed. The Azure-only publisher switch was enabled after build verification;
+  the local switch remains off. A housekeeping run wrote one ArcGIS edit batch.
+  The private hosted item ID remained unchanged, feature count rose from 4,011
+  to 4,014, and account storage was 3,521,464 bytes, below 125 MiB.
+- A Terraform plan containing only one owner Queue Data Message Sender grant on
+  `events` was applied. One malformed message was submitted. The `events`
+  queue returned to zero messages and `events-poison` increased from 22 to 23.
+  A second 56-file, 216,680,598-byte Azure/local curated-and-gold comparison
+  matched the pre-drill SHA-256
+  `adcfc2ea9a29a5b22ef0006514b9ea1cdce23dc41c1b591eb4a06147e91eea10`.
+  A new one-deletion-only plan removed the temporary sender grant; Terraform
+  state and Azure both confirm it is absent. No corresponding alert instance
+  was found at the time of this check, so alert delivery is **not verified**.
+- A Terraform Function setting update recreated a plain `AzureWebJobsStorage`
+  setting and caused host-storage authentication failures. It was removed
+  again; the two managed-identity host settings remain. Terraform updates must
+  be followed by the same host-setting check used in the deployment workflow.

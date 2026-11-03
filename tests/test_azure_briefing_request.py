@@ -50,6 +50,14 @@ def test_cloud_request_creates_one_fidelity_checked_pending_briefing():
     approval.supersede_older_revisions.assert_called_once()
 
 
+def test_cloud_test_request_marks_draft_non_publishable():
+    container, _, approval = _container()
+    _create_cloud_review_briefing(
+        container, {"event_id": "2016p858000", "revision": 9, "test_only": True}
+    )
+    assert approval.create_pending.call_args.kwargs["test_only"] is True
+
+
 def test_duplicate_request_does_not_call_the_model_or_send_mail():
     container, draft_service, approval = _container()
     container.tables.get_entity.return_value = {"status": "pending"}

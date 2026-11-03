@@ -117,6 +117,7 @@ class ApprovalService:
         revision: int = 1,
         source_magnitude: float | None = None,
         email_payload: dict[str, Any] | None = None,
+        test_only: bool = False,
     ) -> PendingBriefing:
         expires_at = now.astimezone(UTC) + timedelta(hours=72)
         draft_root = f"drafts/{event_id}/{revision}"
@@ -151,6 +152,7 @@ class ApprovalService:
             "title": title,
             "status": "pending",
             "needs_manual_review": needs_manual_review,
+            "test_only": test_only,
             "draft_html_path": f"{draft_root}/index.html",
             "draft_map_path": draft_map_path,
             "published_map_path": published_map_path,
@@ -166,6 +168,7 @@ class ApprovalService:
             f"{review_base_url}#token={quote(approve)}",
             f"{review_base_url}#token={quote(reject)}",
             needs_manual_review=needs_manual_review,
+            test_only=test_only,
         )
         self._mailer.send(
             recipient,
@@ -177,11 +180,15 @@ class ApprovalService:
 
     def preview(self, token: str, now: datetime) -> ReviewPreview:
         claims, entity = self._verified_pending(token, now)
+        if claims["action"] == "approve" and entity.get("test_only"):
+            raise ApprovalRejected("Review link is invalid or unavailable")
         return ReviewPreview(entity["briefing_id"], entity["title"], claims["action"])
 
     def decide(self, token: str, now: datetime, source_ip: str) -> str:
         claims, entity = self._verified_pending(token, now)
         action = claims["action"]
+        if action == "approve" and entity.get("test_only"):
+            raise ApprovalRejected("Review link is invalid or unavailable")
         if action == "approve":
             document = self._objects.get_bytes("briefings", entity["draft_html_path"])
             if entity.get("draft_map_path"):
