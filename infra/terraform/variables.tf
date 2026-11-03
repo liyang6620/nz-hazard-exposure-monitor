@@ -68,6 +68,18 @@ variable "notification_email" {
   }
 }
 
+variable "failure_alert_gmail" {
+  description = "Optional second recipient for the Function-failure Action Group; pass privately."
+  type        = string
+  default     = ""
+  sensitive   = true
+
+  validation {
+    condition     = var.failure_alert_gmail == "" || can(regex("^[^@\\s]+@gmail\\.com$", var.failure_alert_gmail))
+    error_message = "failure_alert_gmail must be empty or a Gmail address."
+  }
+}
+
 variable "location" {
   description = "Azure region for production resources."
   type        = string
