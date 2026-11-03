@@ -290,6 +290,8 @@ class LocalSiteDataPublisher:
     def _briefing_states(self) -> dict[str, dict[str, Any]]:
         grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
         for row in self._tables.list_entities("briefings", "briefing"):
+            if row.get("test_only"):
+                continue
             grouped[str(row.get("event_id", ""))].append(row)
         result: dict[str, dict[str, Any]] = {}
         for event_id, rows in grouped.items():
