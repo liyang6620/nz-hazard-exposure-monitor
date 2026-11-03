@@ -25,7 +25,11 @@
   were indexed, and an invalid review GET returned the expected build SHA
   `aefd39b2211530aba206a58e4cdb1ae5d58f0b12` in `X-NZHEM-Build`.
   The host storage setting remained managed identity only. The next scheduled
-  timer run after this code deployment is still being observed.
+  timer run after this code deployment was then observed.
+- 3 Nov 00:00: the first post-deployment hourly run completed successfully in
+  the Azure `runs` table, and public `manifest.json` advanced to
+  `2026-11-03T00:00:00Z`. The 23:58 startup catch-up had enqueued one event;
+  the published 50-event list contained no `processing` entries.
 
 ## Cause and impact
 
@@ -45,6 +49,13 @@ SHA in the package, and checks the served SHA, six indexed functions and the
 next scheduled manifest publication. The runbook requires observing an actual
 timer execution after every deployment. The new log alert evaluates a
 two-hour successful-housekeeping count every 30 minutes; it covers the failure
-mode where the Function resource still says Running. The first alert delivery
-and first hourly publication after the new code deployment remain to be
-confirmed.
+mode where the Function resource still says Running. The first post-deployment
+hourly publication is confirmed. Alert delivery remains untested. A further
+monitoring issue was observed: Application Insights `AppRequests` returned
+zero housekeeping rows for the successful 23:00 and 00:00 runs even though
+the Azure `runs` table and public manifest agree they completed. The existing
+Application Insights resource samples at 20%, so a two-hour log-count rule
+may falsely report a missed run. This alert is deployed but must not be
+called a reliable freshness monitor until telemetry capture is verified.
+An independent public-manifest freshness check would require a separately
+reviewed Azure resource or monitoring architecture change; none was added.
