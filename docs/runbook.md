@@ -34,9 +34,11 @@ state migration requires the project manager's approval relayed by the owner.
    `AZURE_GITHUB_PRINCIPAL_ID` is the bootstrap output used by production plans.
 7. Merge the PR only after CI passes. The main-branch deployment workflow builds
    the locked Function package and React application, deploys both and checks
-   the startup `housekeeping` run. It preserves runtime `data/` and `briefings/`
-   in `$web`. The Function publishes a new data generation after startup and
-   each hourly run, and after queue-triggered event assessment.
+   the next scheduled `housekeeping` run. It preserves runtime `data/` and
+   `briefings/` in `$web`. The Function publishes a new data generation after
+   each hourly run and after queue-triggered event assessment. The Azure timer
+   does not run on host startup; an idle-host wakeup must not create an extra
+   poll or storage write.
 
 The 31 Oct replan was approved and applied; see
 `evidence/m1-a/azure-acceptance-2026-11-02.md` for verified rollout steps and
