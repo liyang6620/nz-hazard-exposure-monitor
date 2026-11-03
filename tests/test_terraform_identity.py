@@ -70,6 +70,10 @@ def test_function_data_queue_and_required_vault_setting_are_wired() -> None:
         "version": "[4.*, 5.0.0)",
     }
     assert host_config["extensions"]["queues"]["messageEncoding"] == "none"
+    assert (
+        host_config["logging"]["applicationInsights"]["samplingSettings"]["excludedTypes"]
+        == "Request;Exception"
+    )
     assert '"NZHEM_DATA_STORAGE__queueServiceUri"' in function
     assert '"NZHEM_DATA_STORAGE__credential"' in function
     assert '"KEY_VAULT_URL"' in function
