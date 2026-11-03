@@ -231,6 +231,40 @@ def test_only_approved_briefing_paths_are_published_and_generations_are_bounded(
     assert sorted(path.name for path in root.iterdir()) == ["002", "003"]
 
 
+def test_test_review_never_replaces_approved_public_briefing(tmp_path: Path) -> None:
+    publisher, tables = _publisher(tmp_path)
+    tables.upsert_entity(
+        "briefings",
+        {
+            "PartitionKey": "briefing",
+            "RowKey": "event-r1",
+            "event_id": "event",
+            "status": "approved",
+            "title": "Approved briefing",
+            "created_at": "2026-11-01T00:00:00Z",
+        },
+    )
+    tables.upsert_entity(
+        "briefings",
+        {
+            "PartitionKey": "briefing",
+            "RowKey": "event-r9",
+            "event_id": "event",
+            "status": "rejected",
+            "test_only": True,
+            "created_at": "2026-11-03T00:00:00Z",
+            "reviewed_at": "2026-11-03T01:00:00Z",
+        },
+    )
+
+    states = publisher._briefing_states()  # noqa: SLF001
+    assert states["event"] == {
+        "status": "approved",
+        "title": "Approved briefing",
+        "public_path": "/briefings/event.html",
+    }
+
+
 def test_loads_realtime_payload_and_records_only_post_start_event(tmp_path: Path) -> None:
     publisher, tables = _publisher(tmp_path)
     realtime = tmp_path / "realtime"
