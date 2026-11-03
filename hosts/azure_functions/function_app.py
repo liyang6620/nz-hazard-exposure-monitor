@@ -97,7 +97,7 @@ def _map_rate_limit_allows(request: func.HttpRequest, limit: int) -> bool:
 @app.timer_trigger(
     schedule="%HOUSEKEEPING_SCHEDULE%",
     arg_name="timer",
-    run_on_startup=True,
+    run_on_startup=False,
     use_monitor=True,
 )
 def housekeeping(timer: func.TimerRequest) -> None:
