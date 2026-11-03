@@ -138,8 +138,10 @@ Inspect the poison count and message with a narrowly scoped Queue Data role;
 never paste its raw payload into public evidence. Diagnose the schema or
 downstream failure, repair the processor, then requeue only verified event
 payloads. Keep the original poison message until a successful terminal event
-state and site publication are confirmed. The malformed-message cloud drill
-remains unverified because the signed-in owner lacks Queue Data access.
+state and site publication are confirmed. The owner-supervised malformed-message
+drill moved one message to `events-poison` and left curated/gold hashes unchanged.
+Its temporary sender role was removed. The exception alert did not produce a
+verified notification, so alert delivery remains an acceptance gap.
 
 ## Rollback and backup
 
