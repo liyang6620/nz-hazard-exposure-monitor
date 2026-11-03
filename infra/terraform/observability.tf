@@ -31,6 +31,16 @@ resource "azurerm_monitor_action_group" "failure_email" {
     email_address           = var.notification_email
     use_common_alert_schema = true
   }
+
+  dynamic "email_receiver" {
+    for_each = nonsensitive(var.failure_alert_gmail != "") ? [1] : []
+
+    content {
+      name                    = "repository-owner-gmail"
+      email_address           = var.failure_alert_gmail
+      use_common_alert_schema = true
+    }
+  }
 }
 
 resource "azurerm_monitor_metric_alert" "function_failure" {
@@ -70,11 +80,7 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "housekeeping_missing"
   tags                    = var.tags
 
   criteria {
-    query                   = <<-KQL
-      AppRequests
-      | where Name == "housekeeping" and Success == true
-      | summarize Executions = count()
-    KQL
+    query                   = "AppRequests\n| where Name == \"housekeeping\" and Success == true\n| summarize Executions = count()"
     metric_measure_column   = "Executions"
     time_aggregation_method = "Minimum"
     operator                = "LessThan"
