@@ -1,38 +1,67 @@
 # NZ Hazard Exposure Monitor
 
-NZ Hazard Exposure Monitor shows how many New Zealand buildings and people are
-inside damaging earthquake shaking, with a target of publishing the first
-exposure view within one hour of a GeoNet event. It is built for catastrophe and
-exposure analysts who need a traceable screening view before detailed portfolio
-or loss analysis begins.
+**See how many New Zealand buildings and people are exposed to damaging
+earthquake shaking, within a one-hour publication target.** The
+[live website](https://stnzhem8495b7ca.z8.web.core.windows.net/) serves
+catastrophe and exposure analysts who need a traceable first view before
+portfolio matching or loss modelling.
 
-The product combines GeoNet shaking, LINZ building outlines and 2023 Census
-population in an H3 grid. It publishes a current-event overview, event maps,
-regional and MMI-band comparisons, ten as-if-today historical replays and
-analyst-approved briefings. The same cloud-independent core supports two formal
-deployment targets: a complete local Docker Compose product and the primary
-Azure architecture.
+The homepage shows recent GeoNet earthquakes; each detail page combines
+shaking, H3 exposure cells, MMI-band charts, regional totals and, when a human
+has approved it, a written briefing. Ten historical events have a separate
+**as-if-today** replay using current buildings and 2023 population. An event
+without damaging shaking still receives a clear assessment.
 
-## Status
+| Observed result | Evidence |
+|---|---|
+| Genuine new GeoNet M5.0 event published **32 minutes 9 seconds** after origin on 2 Nov 2026 | [Azure acceptance](evidence/m1-a/azure-acceptance-2026-11-02.md) |
+| Azure and local replay data matched across **56 curated/gold Parquet files** (216,680,598 bytes) | [Azure acceptance](evidence/m1-a/azure-acceptance-2026-11-02.md) |
+| November month-to-date actual cost: **NZD 0.535918** as reported on 4 Nov NZDT; billing is delayed, so this is not a monthly run rate | [Cost record](docs/cost.md) |
 
-M1-L, M2, M3, MG, M5, M6 and both product-frontend increments are complete. The
-private hosted ArcGIS layer has
-4,011 features, incremental editing is verified, and approved briefings can use
-server-side Esri MCP static maps within the enforced quotas. The shared core,
-local Docker host and Azure Functions host remain separate. Outstanding work is
-the owner's two-minute Power BI walkthrough, M7 Snowflake work when scheduled by
-the project manager, and the Azure for Students deployment. Seven required
-resource providers have been registered. The student-subscription Terraform
-bootstrap, three fixed-amount guardrail budgets, and production infrastructure
-are deployed. The [public Azure website](https://stnzhem8495b7ca.z8.web.core.windows.net/)
-is online; cloud acceptance is still in progress. Evidence
-is under [`evidence/`](evidence/). A genuine GeoNet M5.0 event on 2 November
-2026 was assessed and published in 32 minutes 9 seconds, meeting the one-hour
-target. The first Azure Kaikōura briefing was approved by the repository owner
-through the emailed confirmation page and is visible on the public detail page.
-The [Azure acceptance record](evidence/m1-a/azure-acceptance-2026-11-02.md)
-tracks remaining platform and operating checks; [actual costs](docs/cost.md)
-are recorded separately.
+## Architecture
+
+```mermaid
+flowchart LR
+    G[GeoNet FDSN and Shaking Layers] --> H[Hourly housekeeping]
+    H --> Q[Event queue]
+    Q --> C[Shared event processor]
+    L[LINZ buildings and 2023 Census population] --> C
+    C --> D[(Curated and gold Parquet)]
+    D --> P[Versioned JSON and GeoJSON publisher]
+    P --> W[Public React website]
+    D --> B[Bounded briefing agent]
+    B --> E[Approval email]
+    E --> R[Human GET preview and one-time POST decision]
+    R --> W
+    P --> A[Single ArcGIS hosted-layer publisher]
+```
+
+`src/nzhem/core` and the ports are shared by two supported hosts. The local
+Docker Compose host uses folders, SQLite, Mailpit and Caddy; the Azure Functions
+host uses managed-identity Storage, ACS Email, Key Vault and the Storage static
+website. Only Azure currently publishes to the private ArcGIS layer. The browser
+uses LINZ LDS topographic tiles with a public tile key and never receives
+server-side ArcGIS, OpenAI or approval secrets. See the
+[method](docs/methodology.md), [operations runbook](docs/runbook.md) and
+[five-minute demo](docs/interview-demo.md).
+
+## Current status
+
+The Azure for Students deployment is live, with no subscription upgrade or
+payment method. Its Function processes hourly GeoNet updates and publishes
+immutable data generations before switching the public manifest. The first
+Azure Kaikōura briefing was approved through the emailed GET confirmation and
+POST decision flow and appears on the website. The private ArcGIS item retained
+its ID during Azure incremental publication; the 4 Nov check found 4,014
+features and 3,521,464 bytes, within the 125 MiB free storage allowance.
+
+Acceptance evidence is under [`evidence/m1-a/`](evidence/m1-a/). The
+[owner-assisted record](evidence/m1-a/owner-assisted-acceptance-2026-11-04.md)
+documents the poison-queue drill, unchanged gold hashes, TEST-mail rejection
+and hourly telemetry. Action Group email delivery and the NZD 1 natural budget
+stop drill remain open; the student subscription rejected Azure's built-in
+Action Group test. The owner's two-minute Power BI walkthrough and M7
+Snowflake work are separately deferred.
 
 ## Important limitations
 
@@ -181,11 +210,12 @@ sqlfluff lint dbt/models --dialect duckdb
 dbt build --project-dir dbt --profiles-dir dbt/profiles --target duckdb_local
 ```
 
-The parity fixture contains locked real GeoNet Kaikoura and Christchurch M3
-summary outputs. Terraform roots remain validation-only until M1-A approval.
-The Azure workflows are gated by repository variables and remain inactive until
-the approved bootstrap creates the GitHub managed identity and its federated
-credentials.
+The parity fixture contains locked real GeoNet Kaikōura and Christchurch M3
+summary outputs. CI validates all Terraform roots; it does not apply them.
+Azure infrastructure is already deployed. Function packages are currently
+published through the owner-authorised Flex Consumption Core Tools path, with
+the build SHA, six triggers, managed-identity host storage and next scheduled
+site-data generation verified after deployment.
 
 Runtime secrets come from local environment variables, Azure Key Vault, or
 Terraform-generated values held in protected remote state and Function app
