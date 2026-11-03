@@ -32,8 +32,9 @@ state migration requires the project manager's approval relayed by the owner.
    workflow files. Never print
    their values in an issue, PR comment, log, screenshot, or repository file.
    `AZURE_GITHUB_PRINCIPAL_ID` is the bootstrap output used by production plans.
-7. Merge the PR only after CI passes. The main-branch deployment workflow builds
-   the locked Function package and React application, deploys both and checks
+7. Merge the PR only after CI passes. The deployment workflow is manually
+   dispatched from `main`; it builds the locked Function package and React
+   application, deploys both and checks
    the next scheduled `housekeeping` run. It preserves runtime `data/` and
    `briefings/` in `$web`. The Function publishes a new data generation after
    each hourly run and after queue-triggered event assessment. The Azure timer
@@ -215,12 +216,14 @@ hour misses, keep ArcGIS publishing disabled and treat it as an incident.
 After publication resumes, inspect `events.json` for the offline catch-up
 period and verify queued events reach terminal assessments.
 
-Request and Exception telemetry is excluded from host sampling so hourly
-execution and failure alerts can observe each run. Other telemetry remains at
-the existing 20% sampling rate; the Application Insights daily cap remains
-0.1 GB. After deploying this setting, compare two consecutive scheduled
-`housekeeping` requests with the Azure `runs` table and public manifest, then
-exercise the missing-housekeeping alert before treating it as reliable.
+Request and Exception telemetry is excluded from Function-host sampling.
+Other Function-host telemetry retains the 20% host sampling setting.
+Application Insights resource sampling was separately raised to 100% after
+the host exception alone still omitted an hourly request. Its daily cap
+remains 0.1 GB. The 12:00 and 13:00 UTC requests and later scheduled runs were
+recorded after that fallback, and the prior missing-housekeeping alert
+instances resolved. Action Group email delivery is still unverified despite
+a Function-failure alert firing; do not treat notification delivery as passed.
 
 ## ArcGIS publisher handover
 

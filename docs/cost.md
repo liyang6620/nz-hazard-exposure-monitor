@@ -12,6 +12,7 @@ subscription not supported`), so Action Group delivery is not verified.
 | 2 Nov 2026, later query | 0.381775 | NZD | Month-to-date ActualCost; Cost Management data remains delayed. |
 | 3 Nov 2026, first query | unavailable | NZD | Cost Management returned HTTP 429; no amount was inferred. |
 | 4 Nov 2026 NZDT | 0.535918 | NZD | Month-to-date ActualCost returned by Cost Management; charges are delayed. |
+| 4 Nov 2026 NZDT, later query | 0.614707 | NZD | Month-to-date ActualCost; the separate NZD 1 drill budget reported current spend NZD 0.600112. |
 
 The later reading, grouped by Cost Management `ServiceName`, was Storage
 NZD 0.378492, Email NZD 0.001780, Foundry Models NZD 0.001471, and Key Vault
@@ -28,6 +29,21 @@ Key Vault NZD 0.000064. Azure App Service, Bandwidth, Functions and Log
 Analytics each returned zero. Displayed service values are rounded; the
 unrounded total was NZD 0.535918. It remains too early to infer a steady-state
 monthly cost from deployment-period storage transactions.
+
+The operating target is under US$3/month, but the subscription bills in NZD.
+These first readings cannot establish a monthly run rate: Cost Management
+reports late, storage transactions include initial data upload and repeated
+deployment activity, and the system has not completed a steady operating
+month. Compare later daily service totals and a month of normal hourly runs
+using the exchange rate applicable to the bill before proposing a resource
+change. The 125 MiB ArcGIS hosted storage limit is a separate free-tier
+constraint; its 4 Nov snapshot was 3,521,464 bytes.
+The later 4 Nov query grouped by service returned Storage NZD 0.588954, Azure
+Monitor NZD 0.020925, Email NZD 0.002226, Foundry Models NZD 0.002185 and Key
+Vault NZD 0.000416. Azure App Service, Bandwidth, Functions and Log Analytics
+returned zero. The total is NZD 0.614707 after rounding; the underlying
+service values and budget current-spend view differ slightly because Cost
+Management updates asynchronously.
 The Function App was reported `Running` at the 4 Nov NZDT recheck; no natural
 budget notification or Action Group email delivery has been verified yet.
 The 3 Nov missing-housekeeping log alert evaluates a two-hour window every
@@ -56,3 +72,7 @@ substitute estimates for delayed or missing rows. Watch for charges from
 Functions, storage transactions, Application Insights, ACS Email and Azure
 OpenAI. The application separately enforces briefing token and monthly-count
 limits. No subscription upgrade or payment method is part of this plan.
+The temporary NZD 1 budget drill remains active until its natural notification
+either proves the Action Group stop path or exposes a delivery failure. Delete
+it only after the stop and owner-operated recovery are recorded, using a
+reviewed plan with just that one deletion.
