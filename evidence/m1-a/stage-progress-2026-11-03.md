@@ -2,6 +2,29 @@
 
 Public site: <https://stnzhem8495b7ca.z8.web.core.windows.net/>.
 
+## Emergency hourly-publication recovery
+
+The 2 Nov outage was traced to an invalid shared-key host-storage setting:
+the timer listener repeatedly failed with HTTP 403 while the Function App
+still showed Running. The last pre-incident housekeeping success was
+10:58Z. The conflicting setting was removed, the prebuilt CI package was
+published through Functions Core Tools, and the public build header verified
+source SHA `aefd39b2211530aba206a58e4cdb1ae5d58f0b12`. The 23:00Z and
+00:00Z hourly publications were confirmed by the public manifest and Azure
+`runs` table; the latter is the first scheduled run after the new deployment.
+The published 50-event catalogue has no `processing` backlog.
+
+PR #44 merged the deployment gate, a two-hour missing-housekeeping log alert,
+and the incident record. Its saved Terraform plan contained one alert
+creation only and was applied under the preapproval. PR #45 merged the
+Functions Core Tools workflow after that method succeeded in production.
+The alert uses an existing email Action Group and has an estimated incremental
+rule cost at or below US$0.50/month. **Its effectiveness is not accepted:**
+Application Insights did not record the two successful runs in `AppRequests`
+and currently samples at 20%. An independent manifest freshness monitor or
+sampling change needs a new project-manager-reviewed plan. See
+`hourly-publication-incident-2026-11-03.md` for the timeline and limitation.
+
 ## Completed and verified
 
 - PR #37 deployed the static review page, HTML/plain-text approval email and
