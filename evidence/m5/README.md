@@ -1,23 +1,21 @@
-# M5 Power BI evidence
+# M5 redesign evidence
 
-Power BI Desktop 2.155.756.0 opened the PBIP project and refreshed both real
-M3 Parquet tables on 2026-10-25 after `RepoRoot` was set locally to the
-absolute repository path. That machine-specific value was restored to the
-source-controlled relative placeholder before commit. The five pages rendered
-nonblank data and were captured individually:
+The prior five-page PDF and screenshots were rejected as default tables with
+implicit aggregations. They are retained under `rejected-v1/` as historical
+evidence only and do not demonstrate acceptance of the redesigned report.
 
-- `powerbi-overview.png`
-- `powerbi-event-explorer.png`
-- `powerbi-population-exposure.png`
-- `powerbi-buildings-footprint.png`
-- `powerbi-method-quality.png`
+The replacement PBIP contains five specified pages, 61 visual definitions,
+11 data tables and 20 explicit measures. The model disables implicit measures,
+hides source keys and numeric columns, and uses the paper/ink/MMI theme. The
+MMI threshold selects 4–8 with 6 as the default. `check_powerbi_project.py`
+passed, including PBIR JSON schema validation. `check_powerbi_snapshot.py`
+reconciled all ten events' MMI 6+ buildings and population to M3 gold and found
+no orphan region keys. The local snapshot was built with DuckDB limited to
+512 MB and one thread; C-drive free space remained above 20 GiB.
 
-`nzhem-powerbi-report.pdf` is the exported five-page report (275,462 bytes).
-`pdfinfo` reports five pages at 996 x 576 points. The final Method and quality page uses a static
-imported notes table so the policy-data, interpretation, and building-date
-limitations remain visible in both Power BI Desktop and PDF export.
-
-No Microsoft account was used, no report was published, and no license or
-privacy terms were accepted. A clipboard permission prompt raised by the
-embedded Power BI WebView was dismissed without granting access. The required
-two-minute walkthrough remains an owner action.
+Power BI Desktop was launched for validation, but Windows displayed its lock
+screen. The redesigned pages have **not yet been refreshed or visually
+validated** in Desktop; replacement screenshots, PDF, and model-size report
+are still required. No Microsoft account login, licence acceptance or Service
+publish was performed. The old screenshot and PDF filenames must not be used
+as proof of the new design.

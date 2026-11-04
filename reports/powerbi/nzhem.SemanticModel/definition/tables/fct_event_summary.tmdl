@@ -1,0 +1,72 @@
+table fct_event_summary
+	lineageTag: 3c2aa821-72b2-5a18-bb97-5ac22412f04a
+
+	column 'Event ID'
+		dataType: string
+		isHidden
+		lineageTag: 67fe28fe-5b21-5296-944c-b4e28ed0e6d4
+		summarizeBy: none
+		sourceColumn: event_id
+
+	column 'Event Date'
+		dataType: dateTime
+		isHidden
+		lineageTag: e4442ae3-8639-5bb6-b3ef-a537d6a7ee04
+		summarizeBy: none
+		sourceColumn: event_date
+
+	column 'Maximum MMI'
+		dataType: double
+		isHidden
+		formatString: 0.0
+		lineageTag: 1b4becd6-1e2b-5c03-b39c-f043ad1e0309
+		summarizeBy: none
+		sourceColumn: max_mmi
+
+	column 'Buildings MMI 6+'
+		dataType: int64
+		isHidden
+		formatString: #,0
+		lineageTag: d9bc3fc7-b3c7-5ee9-9873-19d8c429b288
+		summarizeBy: none
+		sourceColumn: buildings_mmi_ge_6
+
+	column 'People MMI 6+'
+		dataType: double
+		isHidden
+		formatString: #,0
+		lineageTag: 83d9d988-0bac-5820-a449-78fedb8854de
+		summarizeBy: none
+		sourceColumn: population_mmi_ge_6
+
+	column 'Footprint m2 MMI 6+'
+		dataType: double
+		isHidden
+		formatString: #,0
+		lineageTag: d56847ab-c6fb-5466-87bb-ba74130bcf38
+		summarizeBy: none
+		sourceColumn: footprint_m2_mmi_ge_6
+
+	column 'Validation Stations'
+		dataType: int64
+		isHidden
+		formatString: #,0
+		lineageTag: 66256239-db8e-5a50-b094-34a855fa9e33
+		summarizeBy: none
+		sourceColumn: validation_station_count
+
+	column 'Validation MAE'
+		dataType: double
+		isHidden
+		formatString: 0.000
+		lineageTag: 87de6a4c-6e9b-576e-bb03-932db978efe8
+		summarizeBy: none
+		sourceColumn: validation_mae
+
+	partition fct_event_summary = m
+		mode: import
+		source =
+				let
+					Source = Parquet.Document(File.Contents(RepoRoot & "\.local\data\powerbi\fct_event_summary.parquet"))
+				in
+					Source

@@ -1,0 +1,48 @@
+table fct_validation
+	lineageTag: a94a524d-87c7-5085-a643-a00dd2782830
+
+	column 'Event ID'
+		dataType: string
+		isHidden
+		lineageTag: dc6bbce6-2374-57d0-98c7-2075d6ad1824
+		summarizeBy: none
+		sourceColumn: event_id
+
+	column 'Station ID'
+		dataType: string
+		isHidden
+		lineageTag: 9b0db6bc-ae51-5cf2-abe4-878d1a693c2d
+		summarizeBy: none
+		sourceColumn: station_id
+
+	column 'Observed MMI'
+		dataType: double
+		isHidden
+		formatString: 0.0
+		lineageTag: ca1cb8ce-fd3b-5691-96e7-d5d142ae8eaa
+		summarizeBy: none
+		sourceColumn: observed_mmi
+
+	column 'Estimated MMI'
+		dataType: double
+		isHidden
+		formatString: 0.0
+		lineageTag: 92c71ad6-215f-5819-bb66-3b71e4d54a96
+		summarizeBy: none
+		sourceColumn: estimated_mmi
+
+	column 'Absolute Error'
+		dataType: double
+		isHidden
+		formatString: 0.000
+		lineageTag: d131ef0d-8e12-5822-813d-62ce201f1967
+		summarizeBy: none
+		sourceColumn: absolute_error
+
+	partition fct_validation = m
+		mode: import
+		source =
+				let
+					Source = Parquet.Document(File.Contents(RepoRoot & "\.local\data\powerbi\fct_validation.parquet"))
+				in
+					Source

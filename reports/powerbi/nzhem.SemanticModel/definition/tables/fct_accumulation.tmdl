@@ -1,0 +1,59 @@
+table fct_accumulation
+	lineageTag: cffe00a3-908d-5a72-94e4-27ad9cae4e30
+
+	column 'Region Key'
+		dataType: string
+		isHidden
+		lineageTag: 827c9591-faa2-58e8-947b-4ebe7579c2a8
+		summarizeBy: none
+		sourceColumn: region_key
+
+	column 'Accumulation Score'
+		dataType: int64
+		isHidden
+		formatString: #,0
+		lineageTag: 0193f2c5-d19a-5633-9fd9-b20597cf5b51
+		summarizeBy: none
+		sourceColumn: accumulation_score
+
+	column 'Buildings in Strong Cells'
+		dataType: int64
+		isHidden
+		formatString: #,0
+		lineageTag: cce5e40f-96fa-5275-bba1-1f5d7298b5d6
+		summarizeBy: none
+		sourceColumn: buildings_in_strong_cells
+
+	column 'Maximum Strong Events'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 47e75558-219e-5617-a279-136be9581bb0
+		summarizeBy: none
+		sourceColumn: maximum_strong_events
+
+	column 'Latitude'
+		dataType: double
+		isHidden
+		formatString: 0.000
+		dataCategory: Latitude
+		lineageTag: bbf54d6e-acce-57c4-a316-de29fc1a0fc9
+		summarizeBy: none
+		sourceColumn: latitude
+
+	column 'Longitude'
+		dataType: double
+		isHidden
+		formatString: 0.000
+		dataCategory: Longitude
+		lineageTag: a7a90205-4d0b-5ab7-b9c4-a40c42409665
+		summarizeBy: none
+		sourceColumn: longitude
+
+	partition fct_accumulation = m
+		mode: import
+		source =
+				let
+					Source = Parquet.Document(File.Contents(RepoRoot & "\.local\data\powerbi\fct_accumulation.parquet"))
+				in
+					Source

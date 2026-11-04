@@ -1,0 +1,116 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "event-comparison-table",
+  "position": {
+    "x": 48,
+    "y": 670,
+    "z": 1,
+    "width": 1344,
+    "height": 144,
+    "tabOrder": 1
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "drillFilterOtherVisuals": true,
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_event"
+                    }
+                  },
+                  "Property": "Event"
+                }
+              },
+              "queryRef": "dim_event.Event",
+              "nativeQueryRef": "Event"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Magnitude"
+                }
+              },
+              "queryRef": "_Measures.Magnitude",
+              "nativeQueryRef": "Magnitude"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Max MMI"
+                }
+              },
+              "queryRef": "_Measures.Max MMI",
+              "nativeQueryRef": "Max MMI"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Exposed Buildings"
+                }
+              },
+              "queryRef": "_Measures.Exposed Buildings",
+              "nativeQueryRef": "Exposed Buildings"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Exposed Population"
+                }
+              },
+              "queryRef": "_Measures.Exposed Population",
+              "nativeQueryRef": "Exposed Population"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'EVENT COMPARISON / SELECT ANY ROW TO CROSS-FILTER'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "subtitle",
+  "position": {
+    "x": 48,
+    "y": 82,
+    "z": 1,
+    "width": 1344,
+    "height": 36,
+    "tabOrder": 1
+  },
+  "visual": {
+    "visualType": "textbox",
+    "drillFilterOtherVisuals": true,
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "Earthquakes in local New Zealand time; magnitude is shown beside thresholded exposure.",
+                    "textStyle": {
+                      "fontFamily": "IBM Plex Sans",
+                      "fontSize": "12pt",
+                      "color": "#171815"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

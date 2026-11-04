@@ -1,0 +1,32 @@
+table dim_mmi_band
+	lineageTag: 3cf2b04f-25c4-5f53-927a-236246ccf254
+
+	column 'Band Key'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 4e1a24e4-fe3b-5246-9215-7c703bde5020
+		summarizeBy: none
+		sourceColumn: band_key
+
+	column 'MMI Band'
+		dataType: string
+		lineageTag: de97d962-f3ba-5d4b-a7fc-0704d6c13e6c
+		summarizeBy: none
+		sourceColumn: band_label
+
+	column 'Minimum MMI'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 6d0405d7-9125-5243-98cb-ad216ebf5d00
+		summarizeBy: none
+		sourceColumn: minimum_mmi
+
+	partition dim_mmi_band = m
+		mode: import
+		source =
+				let
+					Source = Parquet.Document(File.Contents(RepoRoot & "\.local\data\powerbi\dim_mmi_band.parquet"))
+				in
+					Source

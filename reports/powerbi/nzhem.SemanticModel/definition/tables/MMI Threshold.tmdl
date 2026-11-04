@@ -1,0 +1,17 @@
+table 'MMI Threshold'
+	lineageTag: e384154b-9fc0-59a6-8150-cc8f061b50fe
+
+	column 'MMI Threshold'
+		dataType: int64
+		formatString: 0
+		lineageTag: 7bb23b3c-141d-557b-be1e-f0d368869dfc
+		summarizeBy: none
+		sourceColumn: threshold
+
+	partition 'MMI Threshold' = m
+		mode: import
+		source =
+				let
+					Source = Parquet.Document(File.Contents(RepoRoot & "\.local\data\powerbi\mmi_threshold.parquet"))
+				in
+					Source

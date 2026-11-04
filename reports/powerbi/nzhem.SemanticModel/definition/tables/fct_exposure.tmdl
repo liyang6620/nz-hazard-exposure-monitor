@@ -1,0 +1,55 @@
+table fct_exposure
+	lineageTag: 7d9870e4-a98d-5d56-b215-98e016f60d0b
+
+	column 'Event ID'
+		dataType: string
+		isHidden
+		lineageTag: 873811ec-b954-593b-ba24-0b24c674010d
+		summarizeBy: none
+		sourceColumn: event_id
+
+	column 'Region Key'
+		dataType: string
+		isHidden
+		lineageTag: 3104b901-15d1-5500-93ed-b68bb9bf1e56
+		summarizeBy: none
+		sourceColumn: region_key
+
+	column 'Band Key'
+		dataType: int64
+		isHidden
+		lineageTag: f8d98420-ea68-5657-8124-d94c6cb62d7b
+		summarizeBy: none
+		sourceColumn: band_key
+
+	column 'Buildings'
+		dataType: int64
+		isHidden
+		formatString: #,0
+		lineageTag: c2a06fed-a5c8-534e-8e11-fed95c20d929
+		summarizeBy: none
+		sourceColumn: buildings
+
+	column 'Footprint m2'
+		dataType: double
+		isHidden
+		formatString: #,0
+		lineageTag: 710f8330-a57e-507f-9c64-a4d2cacd74b8
+		summarizeBy: none
+		sourceColumn: footprint_m2
+
+	column 'People'
+		dataType: double
+		isHidden
+		formatString: #,0
+		lineageTag: faf87e31-3af1-599a-a988-58f4141c99eb
+		summarizeBy: none
+		sourceColumn: people
+
+	partition fct_exposure = m
+		mode: import
+		source =
+				let
+					Source = Parquet.Document(File.Contents(RepoRoot & "\.local\data\powerbi\fct_exposure.parquet"))
+				in
+					Source

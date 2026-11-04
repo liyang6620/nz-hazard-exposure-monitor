@@ -1,0 +1,114 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "regional-map",
+  "position": {
+    "x": 732,
+    "y": 402,
+    "z": 1,
+    "width": 660,
+    "height": 220,
+    "tabOrder": 1
+  },
+  "visual": {
+    "visualType": "scatterChart",
+    "drillFilterOtherVisuals": true,
+    "query": {
+      "queryState": {
+        "X": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Regional Map Longitude"
+                }
+              },
+              "queryRef": "_Measures.Regional Map Longitude",
+              "nativeQueryRef": "Regional Map Longitude"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Regional Map Latitude"
+                }
+              },
+              "queryRef": "_Measures.Regional Map Latitude",
+              "nativeQueryRef": "Regional Map Latitude"
+            }
+          ]
+        },
+        "Size": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Accumulated Building Exposures"
+                }
+              },
+              "queryRef": "_Measures.Accumulated Building Exposures",
+              "nativeQueryRef": "Accumulated Building Exposures"
+            }
+          ]
+        },
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_region"
+                    }
+                  },
+                  "Property": "Territorial Authority"
+                }
+              },
+              "queryRef": "dim_region.Territorial Authority",
+              "nativeQueryRef": "Territorial Authority"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'ACCUMULATION CENTROIDS  /  LONGITUDE × LATITUDE'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

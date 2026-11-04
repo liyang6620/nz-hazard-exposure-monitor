@@ -1,0 +1,71 @@
+{
+  "name": "NZHEM Earthquake Record",
+  "dataColors": [
+    "#F7D34D",
+    "#FFF200",
+    "#FFB300",
+    "#FF6800",
+    "#D7191C"
+  ],
+  "background": "#F2EDDF",
+  "foreground": "#171815",
+  "tableAccent": "#171815",
+  "textClasses": {
+    "title": {
+      "fontFace": "IBM Plex Sans",
+      "color": "#171815",
+      "fontSize": 18
+    },
+    "header": {
+      "fontFace": "IBM Plex Sans",
+      "color": "#171815",
+      "fontSize": 12
+    },
+    "label": {
+      "fontFace": "IBM Plex Sans",
+      "color": "#171815",
+      "fontSize": 10
+    },
+    "callout": {
+      "fontFace": "IBM Plex Mono",
+      "color": "#171815",
+      "fontSize": 28
+    }
+  },
+  "visualStyles": {
+    "*": {
+      "*": {
+        "background": [
+          {
+            "color": {
+              "solid": {
+                "color": "#F2EDDF"
+              }
+            }
+          }
+        ],
+        "border": [
+          {
+            "show": true,
+            "color": {
+              "solid": {
+                "color": "#D5D2C9"
+              }
+            }
+          }
+        ],
+        "title": [
+          {
+            "fontFace": "IBM Plex Sans",
+            "fontSize": 11,
+            "fontColor": {
+              "solid": {
+                "color": "#171815"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

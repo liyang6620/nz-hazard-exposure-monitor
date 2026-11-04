@@ -1,0 +1,132 @@
+table _Measures
+	lineageTag: 79a7a6ba-7769-536a-ab2c-e3950fbb693d
+
+	/// Selected minimum intensity; 4–8, default 6.
+	measure 'MMI Threshold Selected' = SELECTEDVALUE('MMI Threshold'[MMI Threshold], 6)
+		formatString: 0
+		displayFolder: 01 Exposure
+		lineageTag: 9761a4fd-928a-5f5e-acd4-0a202d0ae475
+
+	/// Current building outlines in cells at or above the selected MMI threshold.
+	measure 'Exposed Buildings' = VAR threshold = [MMI Threshold Selected] RETURN CALCULATE(SUM(fct_exposure[Buildings]), KEEPFILTERS(fct_exposure[Band Key] >= threshold))
+		formatString: #,0
+		displayFolder: 01 Exposure
+		lineageTag: 67a94066-2bf0-5b73-93a9-b0cff7041253
+
+	/// Building footprint area in square metres at or above the selected MMI threshold.
+	measure 'Exposed Footprint m2' = VAR threshold = [MMI Threshold Selected] RETURN CALCULATE(SUM(fct_exposure[Footprint m2]), KEEPFILTERS(fct_exposure[Band Key] >= threshold))
+		formatString: #,0
+		displayFolder: 01 Exposure
+		lineageTag: 860f33b0-41c4-5acc-a194-f407115146dd
+
+	/// 2023 allocated population in cells at or above the selected MMI threshold, rounded to people.
+	measure 'Exposed Population' = VAR threshold = [MMI Threshold Selected] RETURN ROUND(CALCULATE(SUM(fct_exposure[People]), KEEPFILTERS(fct_exposure[Band Key] >= threshold)), 0)
+		formatString: #,0
+		displayFolder: 01 Exposure
+		lineageTag: fabd96b1-fa53-509f-b4a8-5870f4fe2611
+
+	/// Share of current buildings exposed in the selected region and event; blank for multiple events.
+	measure '% Region Buildings Exposed' = IF(HASONEVALUE(dim_event[Event ID]), DIVIDE([Exposed Buildings], SUM(dim_region[Region Buildings])))
+		formatString: 0.0%
+		displayFolder: 02 Regions
+		lineageTag: 9b21b860-ab59-5cad-9bc6-9975afe733c3
+
+	/// Sum of current buildings multiplied by the number of historical MMI 6+ events per cell; repeated exposure, not unique buildings.
+	measure 'Accumulated Building Exposures' = SUM(fct_accumulation[Accumulation Score])
+		formatString: #,0
+		displayFolder: 02 Regions
+		lineageTag: 5663174c-e4bf-5578-937f-8686d5af379a
+
+	/// Current buildings in cells that experienced MMI 6+ in at least one replay.
+	measure 'Buildings in Strong Cells' = SUM(fct_accumulation[Buildings in Strong Cells])
+		formatString: #,0
+		displayFolder: 02 Regions
+		lineageTag: cf85128b-731b-58de-a1b4-6bccb6d4e989
+
+	/// Highest populated-cell MMI in the filtered event set; never summed.
+	measure 'Max MMI' = MAX(fct_event_summary[Maximum MMI])
+		formatString: 0.0
+		displayFolder: 03 Events
+		lineageTag: d59bce0a-48bb-5120-8f72-40265cccdca7
+
+	/// Highest GeoNet magnitude in the filtered event set.
+	measure 'Magnitude' = MAX(dim_event[Magnitude])
+		formatString: 0.0
+		displayFolder: 03 Events
+		lineageTag: 1ee03fb5-3e04-5245-9f2f-eb26323ce68f
+
+	/// Number of distinct historical replay events in filter context.
+	measure 'Event Count' = DISTINCTCOUNT(dim_event[Event ID])
+		formatString: #,0
+		displayFolder: 03 Events
+		lineageTag: d24d2d1e-378a-56f2-9f3a-47ffc7e27584
+
+	/// Station-weighted mean absolute error, recomputed from valid stations rather than summed event MAEs.
+	measure 'Estimated MMI MAE' = DIVIDE(SUM(fct_validation[Absolute Error]), COUNTROWS(fct_validation))
+		formatString: 0.000
+		displayFolder: 04 Quality
+		lineageTag: 943ad51b-cfc3-5249-b175-d6eadf813222
+
+	/// Valid observed-intensity stations included in the MAE calculation.
+	measure 'Validation Stations' = COUNTROWS(fct_validation)
+		formatString: #,0
+		displayFolder: 04 Quality
+		lineageTag: 983c5ba3-ef3c-5f88-97c0-704ed887573f
+
+	/// Last successful local SQLite housekeeping run captured by the snapshot; not Azure live status.
+	measure 'Last Successful Run' = MAX(fct_health[Last Run])
+		formatString: d MMM yyyy HH:mm
+		displayFolder: 04 Quality
+		lineageTag: ad02e995-e5a8-5b48-aaeb-fc3f66be368a
+
+	/// Age of the last local run at snapshot creation, in hours.
+	measure 'Hours Since Last Run' = DATEDIFF(MAX(fct_health[Last Run]), MAX(fct_health[Snapshot At]), HOUR)
+		formatString: #,0
+		displayFolder: 04 Quality
+		lineageTag: 6aaba7d9-5893-54d1-8686-ff6d20d4a6e6
+
+	/// Recorded failed local housekeeping runs in the snapshot.
+	measure 'Failed Runs' = SUM(fct_health[Failed Runs])
+		formatString: #,0
+		displayFolder: 04 Quality
+		lineageTag: a00ad122-e7e7-5829-9779-64c518515fc4
+
+	/// Current buildings at H3 resolution 6 for map bubble size.
+	measure 'Map Buildings' = SUM(fct_map[Buildings])
+		formatString: #,0
+		displayFolder: 05 Map
+		lineageTag: 2eedf7c2-2b9e-5e5e-a6db-8ff5436a0df8
+
+	/// Longitude of the H3 resolution 6 map point.
+	measure 'Map Longitude' = AVERAGE(fct_map[Longitude])
+		formatString: 0.000
+		displayFolder: 05 Map
+		lineageTag: 3975b853-e181-52ef-a27d-b0967e883de3
+
+	/// Latitude of the H3 resolution 6 map point.
+	measure 'Map Latitude' = AVERAGE(fct_map[Latitude])
+		formatString: 0.000
+		displayFolder: 05 Map
+		lineageTag: 501aace6-1590-5777-903f-4e8966043590
+
+	/// Longitude of the regional accumulation centroid.
+	measure 'Regional Map Longitude' = AVERAGE(fct_accumulation[Longitude])
+		formatString: 0.000
+		displayFolder: 05 Map
+		lineageTag: 579aac71-a826-504a-a22b-39d98d524199
+
+	/// Latitude of the regional accumulation centroid.
+	measure 'Regional Map Latitude' = AVERAGE(fct_accumulation[Latitude])
+		formatString: 0.000
+		displayFolder: 05 Map
+		lineageTag: 9ae5c6a7-ffa6-5906-a7ec-c2267294b18c
+
+	column Placeholder
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: [Placeholder]
+
+	partition _Measures = calculated
+		mode: import
+		source = ROW("Placeholder", "")

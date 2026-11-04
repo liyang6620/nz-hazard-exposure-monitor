@@ -1,0 +1,78 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "event-buildings",
+  "position": {
+    "x": 48,
+    "y": 310,
+    "z": 1,
+    "width": 658,
+    "height": 340,
+    "tabOrder": 1
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "drillFilterOtherVisuals": true,
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_event"
+                    }
+                  },
+                  "Property": "Event"
+                }
+              },
+              "queryRef": "dim_event.Event",
+              "nativeQueryRef": "Event"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Exposed Buildings"
+                }
+              },
+              "queryRef": "_Measures.Exposed Buildings",
+              "nativeQueryRef": "Exposed Buildings"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'BUILDINGS / EVENT'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

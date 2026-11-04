@@ -9,17 +9,26 @@
         "visual": "2.5.0"
       },
       "type": "SharedResources"
+    },
+    "customTheme": {
+      "name": "nzhem-theme.json",
+      "reportVersionAtImport": {
+        "visual": "2.10.0",
+        "report": "3.1.0",
+        "page": "2.0.0"
+      },
+      "type": "RegisteredResources"
     }
   },
   "resourcePackages": [
     {
-      "name": "SharedResources",
-      "type": "SharedResources",
+      "name": "RegisteredResources",
+      "type": "RegisteredResources",
       "items": [
         {
-          "name": "CY25SU12",
-          "path": "BaseThemes/CY25SU12.json",
-          "type": "BaseTheme"
+          "name": "nzhem-theme.json",
+          "path": "nzhem-theme.json",
+          "type": "CustomTheme"
         }
       ]
     }

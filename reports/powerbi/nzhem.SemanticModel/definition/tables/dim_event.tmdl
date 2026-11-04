@@ -1,0 +1,69 @@
+table dim_event
+	lineageTag: 911d2703-3de2-5f70-9dea-b9c3058b747c
+
+	column 'Event ID'
+		dataType: string
+		isHidden
+		lineageTag: fe02f1dc-d48c-51a6-b25c-28c47f55ae3c
+		summarizeBy: none
+		sourceColumn: event_id
+
+	column 'Event'
+		dataType: string
+		lineageTag: 91d4df7a-d0e3-5d96-a46b-25d3776cb3fb
+		summarizeBy: none
+		sourceColumn: event_name
+
+	column 'Event Date'
+		dataType: dateTime
+		formatString: d MMM yyyy
+		lineageTag: 69e50622-697a-5f89-9c64-d20c08047b9f
+		summarizeBy: none
+		sourceColumn: event_date
+
+	column 'Origin Time'
+		dataType: dateTime
+		formatString: d MMM yyyy HH:mm
+		lineageTag: b1f72d2e-b76d-55aa-ba6e-adf4b708d436
+		summarizeBy: none
+		sourceColumn: origin_time
+
+	column 'Magnitude'
+		dataType: double
+		formatString: 0.0
+		lineageTag: 01b9d63d-c27d-5e6f-b7bf-bbc91534f8fb
+		summarizeBy: none
+		sourceColumn: magnitude
+
+	column 'Depth km'
+		dataType: double
+		formatString: #,0.0
+		lineageTag: 64e09453-d309-5dbb-b581-068e732d919c
+		summarizeBy: none
+		sourceColumn: depth_km
+
+	column 'Shaking Source'
+		dataType: string
+		lineageTag: c8edbe39-bac5-5621-947d-7599e125df46
+		summarizeBy: none
+		sourceColumn: mmi_source
+
+	column 'Shaking Version'
+		dataType: string
+		lineageTag: 210f88c1-0d00-5e8a-97b6-a00f965c92a6
+		summarizeBy: none
+		sourceColumn: shaking_version
+
+	column 'Exposure Basis'
+		dataType: string
+		lineageTag: f54b93e3-77f8-5224-afb9-8c5d9578dc3a
+		summarizeBy: none
+		sourceColumn: exposure_basis
+
+	partition dim_event = m
+		mode: import
+		source =
+				let
+					Source = Parquet.Document(File.Contents(RepoRoot & "\.local\data\powerbi\dim_event.parquet"))
+				in
+					Source

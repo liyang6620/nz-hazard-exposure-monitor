@@ -1,0 +1,73 @@
+table fct_map
+	lineageTag: b63d6997-5912-58d2-afb0-2d7604bee559
+
+	column 'Event ID'
+		dataType: string
+		isHidden
+		lineageTag: f9698c14-2f2b-59d1-a86f-b0b9937aaa00
+		summarizeBy: none
+		sourceColumn: event_id
+
+	column 'H3 Cell'
+		dataType: string
+		isHidden
+		lineageTag: 7c395725-f033-5e5c-a455-a960959b33a1
+		summarizeBy: none
+		sourceColumn: h3_cell
+
+	column 'Band Key'
+		dataType: int64
+		isHidden
+		lineageTag: 3db16408-4bde-5c4f-8ecd-99e830ba3be0
+		summarizeBy: none
+		sourceColumn: band_key
+
+	column 'MMI'
+		dataType: double
+		isHidden
+		formatString: 0.0
+		lineageTag: 92133c70-dc6b-591c-8477-d6dcf0f5a9f2
+		summarizeBy: none
+		sourceColumn: mmi
+
+	column 'Buildings'
+		dataType: int64
+		isHidden
+		formatString: #,0
+		lineageTag: a4a2b5b3-b9cd-5c42-aebf-9885695f913c
+		summarizeBy: none
+		sourceColumn: buildings
+
+	column 'People'
+		dataType: double
+		isHidden
+		formatString: #,0
+		lineageTag: 6a8268f7-0159-589d-8f97-944d5e4bd635
+		summarizeBy: none
+		sourceColumn: people
+
+	column 'Latitude'
+		dataType: double
+		isHidden
+		formatString: 0.000
+		dataCategory: Latitude
+		lineageTag: 1effcdf7-85f6-55da-acf6-573144b60c34
+		summarizeBy: none
+		sourceColumn: latitude
+
+	column 'Longitude'
+		dataType: double
+		isHidden
+		formatString: 0.000
+		dataCategory: Longitude
+		lineageTag: dbd465a6-6d3f-5cfb-8467-c9fb991ab5ad
+		summarizeBy: none
+		sourceColumn: longitude
+
+	partition fct_map = m
+		mode: import
+		source =
+				let
+					Source = Parquet.Document(File.Contents(RepoRoot & "\.local\data\powerbi\fct_map.parquet"))
+				in
+					Source
