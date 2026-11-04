@@ -48,7 +48,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'AGE AT SNAPSHOT / HOURS'"
+                  "Value": "'AGE OF LOCAL RUN / HOURS'"
                 }
               }
             }

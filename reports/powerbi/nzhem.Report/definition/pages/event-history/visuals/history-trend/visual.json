@@ -10,29 +10,47 @@
     "tabOrder": 1
   },
   "visual": {
-    "visualType": "columnChart",
+    "visualType": "scatterChart",
     "drillFilterOtherVisuals": true,
     "query": {
       "queryState": {
-        "Category": {
+        "X": {
           "projections": [
             {
               "field": {
-                "Column": {
+                "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "dim_event"
+                      "Entity": "_Measures"
                     }
                   },
-                  "Property": "Event Date"
+                  "Property": "Timeline Year"
                 }
               },
-              "queryRef": "dim_event.Event Date",
-              "nativeQueryRef": "Event Date"
+              "queryRef": "_Measures.Timeline Year",
+              "nativeQueryRef": "Timeline Year"
             }
           ]
         },
         "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Magnitude"
+                }
+              },
+              "queryRef": "_Measures.Magnitude",
+              "nativeQueryRef": "Magnitude"
+            }
+          ]
+        },
+        "Size": {
           "projections": [
             {
               "field": {
@@ -47,6 +65,56 @@
               },
               "queryRef": "_Measures.Exposed Buildings",
               "nativeQueryRef": "Exposed Buildings"
+            }
+          ]
+        },
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_event"
+                    }
+                  },
+                  "Property": "Event"
+                }
+              },
+              "queryRef": "dim_event.Event",
+              "nativeQueryRef": "Event"
+            }
+          ]
+        },
+        "Tooltips": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_event"
+                    }
+                  },
+                  "Property": "Event Date"
+                }
+              },
+              "queryRef": "dim_event.Event Date",
+              "nativeQueryRef": "Event Date"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Exposed Population"
+                }
+              },
+              "queryRef": "_Measures.Exposed Population",
+              "nativeQueryRef": "Exposed Population"
             }
           ]
         }
@@ -66,7 +134,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'EXPOSURE BY EVENT DATE'"
+                  "Value": "'EVENT TIME × MAGNITUDE  /  BUBBLE AREA = EXPOSED BUILDINGS'"
                 }
               }
             }

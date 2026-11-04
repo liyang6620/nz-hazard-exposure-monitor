@@ -28,6 +28,14 @@ table dim_event
 		summarizeBy: none
 		sourceColumn: origin_time
 
+	column 'Timeline Year'
+		dataType: double
+		isHidden
+		formatString: 0.0
+		lineageTag: a29fbea8-aede-5339-b265-dc8cfddb2f79
+		summarizeBy: none
+		sourceColumn: timeline_year
+
 	column 'Magnitude'
 		dataType: double
 		formatString: 0.0

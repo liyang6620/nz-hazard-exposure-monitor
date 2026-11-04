@@ -5,7 +5,7 @@ implicit aggregations. They are retained under `rejected-v1/` as historical
 evidence only and do not demonstrate acceptance of the redesigned report.
 
 The replacement PBIP contains five specified pages, 61 visual definitions,
-11 data tables and 20 explicit measures. The model disables implicit measures,
+11 data tables and 21 explicit measures. The model disables implicit measures,
 hides source keys and numeric columns, and uses the paper/ink/MMI theme. The
 MMI threshold selects 4–8 with 6 as the default. `check_powerbi_project.py`
 passed, including PBIR JSON schema validation. `check_powerbi_snapshot.py`

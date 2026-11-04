@@ -61,6 +61,12 @@ table _Measures
 		displayFolder: 03 Events
 		lineageTag: d24d2d1e-378a-56f2-9f3a-47ffc7e27584
 
+	/// Fractional calendar year of the earthquake origin, for the timeline X axis.
+	measure 'Timeline Year' = MAX(dim_event[Timeline Year])
+		formatString: 0.0
+		displayFolder: 03 Events
+		lineageTag: a7b9376d-c3fd-5d69-a585-ab4c815a4853
+
 	/// Station-weighted mean absolute error, recomputed from valid stations rather than summed event MAEs.
 	measure 'Estimated MMI MAE' = DIVIDE(SUM(fct_validation[Absolute Error]), COUNTROWS(fct_validation))
 		formatString: 0.000
@@ -79,8 +85,8 @@ table _Measures
 		displayFolder: 04 Quality
 		lineageTag: ad02e995-e5a8-5b48-aaeb-fc3f66be368a
 
-	/// Age of the last local run at snapshot creation, in hours.
-	measure 'Hours Since Last Run' = DATEDIFF(MAX(fct_health[Last Run]), MAX(fct_health[Snapshot At]), HOUR)
+	/// Age of the last local run at report viewing time, in hours.
+	measure 'Hours Since Last Run' = DATEDIFF(MAX(fct_health[Last Run]), NOW(), HOUR)
 		formatString: #,0
 		displayFolder: 04 Quality
 		lineageTag: 6aaba7d9-5893-54d1-8686-ff6d20d4a6e6

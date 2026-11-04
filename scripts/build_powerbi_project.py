@@ -34,6 +34,7 @@ TABLES = {
         ("Event", "event_name", "string", False, None, None),
         ("Event Date", "event_date", "dateTime", False, "d MMM yyyy", None),
         ("Origin Time", "origin_time", "dateTime", False, "d MMM yyyy HH:mm", None),
+        ("Timeline Year", "timeline_year", "double", True, "0.0", None),
         ("Magnitude", "magnitude", "double", False, "0.0", None),
         ("Depth km", "depth_km", "double", False, "#,0.0", None),
         ("Shaking Source", "mmi_source", "string", False, None, None),
@@ -182,6 +183,13 @@ MEASURES = [
         "Number of distinct historical replay events in filter context.",
     ),
     (
+        "Timeline Year",
+        "MAX(dim_event[Timeline Year])",
+        "0.0",
+        "03 Events",
+        "Fractional calendar year of the earthquake origin, for the timeline X axis.",
+    ),
+    (
         "Estimated MMI MAE",
         "DIVIDE(SUM(fct_validation[Absolute Error]), COUNTROWS(fct_validation))",
         "0.000",
@@ -204,10 +212,10 @@ MEASURES = [
     ),
     (
         "Hours Since Last Run",
-        "DATEDIFF(MAX(fct_health[Last Run]), MAX(fct_health[Snapshot At]), HOUR)",
+        "DATEDIFF(MAX(fct_health[Last Run]), NOW(), HOUR)",
         "#,0",
         "04 Quality",
-        "Age of the last local run at snapshot creation, in hours.",
+        "Age of the last local run at report viewing time, in hours.",
     ),
     (
         "Failed Runs",
@@ -802,16 +810,24 @@ def build_report() -> None:
         card("history-events", "Event Count", "EVENTS", 48, 260),
         card("history-buildings", "Exposed Buildings", "EVENT-BUILDING EXPOSURES", 348, 260),
         card("history-mmi", "Max MMI", "HIGHEST MMI", 648, 260),
-        chart(
+        visual(
             "history-trend",
-            "columnChart",
-            "EXPOSURE BY EVENT DATE",
+            "scatterChart",
             48,
             420,
             860,
             394,
-            ("dim_event", "Event Date", False),
-            ["Exposed Buildings"],
+            {
+                "X": [("_Measures", "Timeline Year", True)],
+                "Y": [("_Measures", "Magnitude", True)],
+                "Size": [("_Measures", "Exposed Buildings", True)],
+                "Category": [("dim_event", "Event", False)],
+                "Tooltips": [
+                    ("dim_event", "Event Date", False),
+                    ("_Measures", "Exposed Population", True),
+                ],
+            },
+            "EVENT TIME × MAGNITUDE  /  BUBBLE AREA = EXPOSED BUILDINGS",
         ),
         visual(
             "history-table",
@@ -835,13 +851,13 @@ def build_report() -> None:
     build_page(
         "event-history",
         "Event History",
-        "Earthquakes in local New Zealand time; magnitude is shown beside thresholded exposure.",
+        "Event time along the horizontal axis, magnitude vertically, bubble size by thresholded building exposure.",
         history,
     )
 
     quality = [
         card("last-run", "Last Successful Run", "LAST LOCAL RUN", 48, 150, 360),
-        card("hours", "Hours Since Last Run", "AGE AT SNAPSHOT / HOURS", 420, 150, 292),
+        card("hours", "Hours Since Last Run", "AGE OF LOCAL RUN / HOURS", 420, 150, 292),
         card("failures", "Failed Runs", "RECORDED FAILURES", 724, 150, 292),
         card("stations", "Validation Stations", "VALID STATIONS", 1028, 150, 364),
         card("mae", "Estimated MMI MAE", "STATION-WEIGHTED MAE", 48, 310, 360),

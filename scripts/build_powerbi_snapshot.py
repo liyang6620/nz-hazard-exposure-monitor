@@ -138,6 +138,7 @@ def main() -> None:
                    ELSE event_name END AS event_name,
                CAST(origin_time AS DATE) AS event_date,
                origin_time,
+               year(origin_time) + (dayofyear(origin_time) - 1) / 366.0 AS timeline_year,
                {magnitude_expression} AS magnitude,
                depth_km,
                mmi_source, shaking_version,

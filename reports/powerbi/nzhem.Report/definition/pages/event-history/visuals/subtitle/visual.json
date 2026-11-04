@@ -20,7 +20,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "Earthquakes in local New Zealand time; magnitude is shown beside thresholded exposure.",
+                    "value": "Event time along the horizontal axis, magnitude vertically, bubble size by thresholded building exposure.",
                     "textStyle": {
                       "fontFamily": "IBM Plex Sans",
                       "fontSize": "12pt",
