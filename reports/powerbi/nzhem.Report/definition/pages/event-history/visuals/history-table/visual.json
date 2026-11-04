@@ -38,11 +38,11 @@
                       "Entity": "dim_event"
                     }
                   },
-                  "Property": "Event Date"
+                  "Property": "Event Date (NZ)"
                 }
               },
-              "queryRef": "dim_event.Event Date",
-              "nativeQueryRef": "Event Date"
+              "queryRef": "dim_event.Event Date (NZ)",
+              "nativeQueryRef": "Event Date (NZ)"
             },
             {
               "field": {

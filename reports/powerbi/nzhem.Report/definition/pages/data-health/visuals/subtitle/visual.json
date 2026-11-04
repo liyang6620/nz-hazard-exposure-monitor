@@ -22,7 +22,7 @@
                   {
                     "value": "Local gold and SQLite snapshot; this page does not claim live Azure health.",
                     "textStyle": {
-                      "fontFamily": "IBM Plex Sans",
+                      "fontFamily": "Segoe UI",
                       "fontSize": "12pt",
                       "color": "#171815"
                     }

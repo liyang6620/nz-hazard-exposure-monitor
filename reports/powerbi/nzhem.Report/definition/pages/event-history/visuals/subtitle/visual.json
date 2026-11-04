@@ -22,7 +22,7 @@
                   {
                     "value": "Event time along the horizontal axis, magnitude vertically, bubble size by thresholded building exposure.",
                     "textStyle": {
-                      "fontFamily": "IBM Plex Sans",
+                      "fontFamily": "Segoe UI",
                       "fontSize": "12pt",
                       "color": "#171815"
                     }

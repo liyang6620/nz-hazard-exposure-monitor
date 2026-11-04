@@ -35,23 +35,18 @@ def export(connection: duckdb.DuckDBPyConnection, name: str, query: str) -> int:
 
 
 def latest_taumarunui_magnitude() -> float | None:
-    manifest_path = ROOT / ".local/data/web/data/manifest.json"
-    if not manifest_path.exists():
-        return None
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    generation = manifest.get("generation_id")
-    if not isinstance(generation, str) or not generation.isalnum():
-        return None
-    summary_path = (
-        manifest_path.parent / "generations" / generation / "replays/2026p776286/summary.json"
-    )
-    if not summary_path.exists():
-        return None
-    summary = json.loads(summary_path.read_text(encoding="utf-8"))
-    magnitude = summary.get("magnitude")
-    if summary.get("event_id") != "2026p776286" or not isinstance(magnitude, int | float):
-        return None
-    return float(magnitude) if math.isfinite(magnitude) else None
+    generations = ROOT / ".local/data/web/data/generations"
+    candidates = sorted(generations.glob("*/replays/2026p776286/summary.json"), reverse=True)
+    for summary_path in candidates:
+        summary = json.loads(summary_path.read_text(encoding="utf-8"))
+        magnitude = summary.get("magnitude")
+        if (
+            summary.get("event_id") == "2026p776286"
+            and isinstance(magnitude, int | float)
+            and math.isfinite(magnitude)
+        ):
+            return round(float(magnitude), 1)
+    return None
 
 
 def main() -> None:
@@ -137,6 +132,7 @@ def main() -> None:
                    WHEN '2026p776286' THEN 'Taumarunui, Oct 2026'
                    ELSE event_name END AS event_name,
                CAST(origin_time AS DATE) AS event_date,
+               CAST(day(origin_time) AS VARCHAR) || ' ' || strftime(origin_time, '%b %Y') AS event_date_label,
                origin_time,
                year(origin_time) + (dayofyear(origin_time) - 1) / 366.0 AS timeline_year,
                {magnitude_expression} AS magnitude,

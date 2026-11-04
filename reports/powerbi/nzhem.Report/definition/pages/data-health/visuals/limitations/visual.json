@@ -22,7 +22,7 @@
                   {
                     "value": "LOCAL SNAPSHOT ONLY. No policy or insured-value data are used. MAE is station-weighted and indicative, not an actuarial loss estimate. Building lifecycle dates are approximate; all ten historical replays use current outlines. Water cells and the Chatham Islands are outside the mapped exposure model.",
                     "textStyle": {
-                      "fontFamily": "IBM Plex Sans",
+                      "fontFamily": "Segoe UI",
                       "fontSize": "12pt",
                       "color": "#171815"
                     }

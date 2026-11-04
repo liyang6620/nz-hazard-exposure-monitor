@@ -23,6 +23,13 @@ def main() -> None:
         raise RuntimeError("Source RepoRoot expression changed; inspect before local substitution")
     local_root = str(ROOT)
     expression.write_text(content.replace(marker, f'Value = "{local_root}"'), encoding="utf-8")
+    for partition in (DESTINATION / "nzhem.SemanticModel/definition/tables").glob("*.tmdl"):
+        source = partition.read_text(encoding="utf-8")
+        source = source.replace(
+            'RepoRoot & "\\.local\\data\\powerbi\\',
+            f'"{local_root}\\.local\\data\\powerbi\\',
+        )
+        partition.write_text(source, encoding="utf-8")
     print("Prepared ignored Power BI Desktop copy; source-controlled PBIP is unchanged")
 
 

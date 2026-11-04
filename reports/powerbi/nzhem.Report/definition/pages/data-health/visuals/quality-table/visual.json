@@ -32,20 +32,6 @@
             },
             {
               "field": {
-                "Column": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "dim_event"
-                    }
-                  },
-                  "Property": "Shaking Source"
-                }
-              },
-              "queryRef": "dim_event.Shaking Source",
-              "nativeQueryRef": "Shaking Source"
-            },
-            {
-              "field": {
                 "Measure": {
                   "Expression": {
                     "SourceRef": {

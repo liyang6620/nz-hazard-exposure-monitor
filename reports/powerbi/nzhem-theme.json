@@ -12,22 +12,22 @@
   "tableAccent": "#171815",
   "textClasses": {
     "title": {
-      "fontFace": "IBM Plex Sans",
+      "fontFace": "Segoe UI",
       "color": "#171815",
       "fontSize": 18
     },
     "header": {
-      "fontFace": "IBM Plex Sans",
+      "fontFace": "Segoe UI",
       "color": "#171815",
       "fontSize": 12
     },
     "label": {
-      "fontFace": "IBM Plex Sans",
+      "fontFace": "Segoe UI",
       "color": "#171815",
       "fontSize": 10
     },
     "callout": {
-      "fontFace": "IBM Plex Mono",
+      "fontFace": "Consolas",
       "color": "#171815",
       "fontSize": 28
     }
@@ -56,7 +56,7 @@
         ],
         "title": [
           {
-            "fontFace": "IBM Plex Sans",
+            "fontFace": "Segoe UI",
             "fontSize": 11,
             "fontColor": {
               "solid": {

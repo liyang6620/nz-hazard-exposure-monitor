@@ -22,7 +22,7 @@
                   {
                     "value": "Select one earthquake. Counts use the current building stock and 2023 population (as-if-today).",
                     "textStyle": {
-                      "fontFamily": "IBM Plex Sans",
+                      "fontFamily": "Segoe UI",
                       "fontSize": "12pt",
                       "color": "#171815"
                     }

@@ -22,7 +22,7 @@
                   {
                     "value": "Ten fixed earthquakes replayed against today's buildings and the 2023 population; totals count repeat exposure.",
                     "textStyle": {
-                      "fontFamily": "IBM Plex Sans",
+                      "fontFamily": "Segoe UI",
                       "fontSize": "12pt",
                       "color": "#171815"
                     }

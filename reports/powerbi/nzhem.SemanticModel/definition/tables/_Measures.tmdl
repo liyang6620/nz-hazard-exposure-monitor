@@ -80,8 +80,8 @@ table _Measures
 		lineageTag: 983c5ba3-ef3c-5f88-97c0-704ed887573f
 
 	/// Last successful local SQLite housekeeping run captured by the snapshot; not Azure live status.
-	measure 'Last Successful Run' = MAX(fct_health[Last Run])
-		formatString: d MMM yyyy HH:mm
+	measure 'Last Successful Run' = FORMAT(MAX(fct_health[Last Run]), "d MMM yyyy HH:mm", "en-NZ")
+		formatString: @
 		displayFolder: 04 Quality
 		lineageTag: ad02e995-e5a8-5b48-aaeb-fc3f66be368a
 

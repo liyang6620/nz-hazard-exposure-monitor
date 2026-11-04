@@ -22,7 +22,7 @@
                   {
                     "value": "Cell-to-region attribution follows the majority building location; boundaries are approximate.",
                     "textStyle": {
-                      "fontFamily": "IBM Plex Sans",
+                      "fontFamily": "Segoe UI",
                       "fontSize": "12pt",
                       "color": "#171815"
                     }

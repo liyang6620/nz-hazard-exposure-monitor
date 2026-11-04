@@ -63,20 +63,7 @@
             "mode": {
               "expr": {
                 "Literal": {
-                  "Value": "'Single'"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "slider": [
-        {
-          "properties": {
-            "show": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
+                  "Value": "'Dropdown'"
                 }
               }
             }

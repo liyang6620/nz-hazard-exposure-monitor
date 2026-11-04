@@ -33,6 +33,7 @@ TABLES = {
         ("Event ID", "event_id", "string", True, None, None),
         ("Event", "event_name", "string", False, None, None),
         ("Event Date", "event_date", "dateTime", False, "d MMM yyyy", None),
+        ("Event Date (NZ)", "event_date_label", "string", False, None, None),
         ("Origin Time", "origin_time", "dateTime", False, "d MMM yyyy HH:mm", None),
         ("Timeline Year", "timeline_year", "double", True, "0.0", None),
         ("Magnitude", "magnitude", "double", False, "0.0", None),
@@ -205,8 +206,8 @@ MEASURES = [
     ),
     (
         "Last Successful Run",
-        "MAX(fct_health[Last Run])",
-        "d MMM yyyy HH:mm",
+        'FORMAT(MAX(fct_health[Last Run]), "d MMM yyyy HH:mm", "en-NZ")',
+        "@",
         "04 Quality",
         "Last successful local SQLite housekeeping run captured by the snapshot; not Azure live status.",
     ),
@@ -368,6 +369,34 @@ def visual(
         "visual": {"visualType": kind, "drillFilterOtherVisuals": True},
     }
     inner = result["visual"]
+    if kind == "card":
+        inner["objects"] = {
+            "labels": [
+                {
+                    "properties": {
+                        "labelDisplayUnits": {"expr": {"Literal": {"Value": "1D"}}},
+                        **(
+                            {"fontSize": {"expr": {"Literal": {"Value": "18D"}}}}
+                            if name == "last-run"
+                            else {}
+                        ),
+                    }
+                }
+            ]
+        }
+    elif kind in {"clusteredBarChart", "clusteredColumnChart", "columnChart"} or name in {
+        "history-trend",
+        "regional-map",
+    }:
+        inner["objects"] = {
+            "dataPoint": [
+                {
+                    "properties": {
+                        "fill": {"solid": {"color": {"expr": {"Literal": {"Value": "'#171815'"}}}}}
+                    }
+                }
+            ]
+        }
     if roles:
         inner["query"] = {
             "queryState": {
@@ -404,7 +433,7 @@ def visual(
                                     {
                                         "value": text,
                                         "textStyle": {
-                                            "fontFamily": "IBM Plex Sans",
+                                            "fontFamily": "Segoe UI",
                                             "fontSize": font_size,
                                             "color": "#171815",
                                         },
@@ -456,9 +485,9 @@ def build_page(slug: str, title: str, subtitle: str, items: list[dict[str, objec
             "rule",
             "textbox",
             48,
-            824,
+            818,
             1344,
-            24,
+            32,
             text="NZ HAZARD EXPOSURE MONITOR  /  AS-IF-TODAY REPLAY  /  2023 POPULATION",
         ),
     )
@@ -512,8 +541,7 @@ def threshold_slicer() -> dict[str, object]:
         "MMI THRESHOLD",
     )
     item["visual"]["objects"] = {
-        "data": [{"properties": {"mode": {"expr": {"Literal": {"Value": "'Single'"}}}}}],
-        "slider": [{"properties": {"show": {"expr": {"Literal": {"Value": "true"}}}}}],
+        "data": [{"properties": {"mode": {"expr": {"Literal": {"Value": "'Dropdown'"}}}}}],
         "selection": [
             {"properties": {"strictSingleSelect": {"expr": {"Literal": {"Value": "true"}}}}}
         ],
@@ -634,7 +662,7 @@ def build_report() -> None:
             "scatterChart",
             48,
             392,
-            760,
+            708,
             428,
             {
                 "X": [("_Measures", "Map Longitude", True)],
@@ -665,9 +693,9 @@ def build_report() -> None:
             "regions",
             "clusteredBarChart",
             "REGIONS BY EXPOSED BUILDINGS",
-            832,
+            780,
             392,
-            560,
+            612,
             428,
             ("dim_region", "Region", False),
             ["Exposed Buildings"],
@@ -685,7 +713,7 @@ def build_report() -> None:
         card("events", "Event Count", "HISTORICAL EVENTS", 48, 146),
         card("total-buildings", "Exposed Buildings", "EVENT-BUILDING EXPOSURES", 348, 146),
         card("total-people", "Exposed Population", "EVENT-PEOPLE EXPOSURES", 648, 146),
-        card("peak-mmi", "Max MMI", "HIGHEST MMI", 948, 146),
+        card("peak-mmi", "Max MMI", "HIGHEST MMI", 948, 146, 150),
         chart(
             "event-buildings",
             "clusteredBarChart",
@@ -823,7 +851,7 @@ def build_report() -> None:
                 "Size": [("_Measures", "Exposed Buildings", True)],
                 "Category": [("dim_event", "Event", False)],
                 "Tooltips": [
-                    ("dim_event", "Event Date", False),
+                    ("dim_event", "Event Date (NZ)", False),
                     ("_Measures", "Exposed Population", True),
                 ],
             },
@@ -839,7 +867,7 @@ def build_report() -> None:
             {
                 "Values": [
                     ("dim_event", "Event", False),
-                    ("dim_event", "Event Date", False),
+                    ("dim_event", "Event Date (NZ)", False),
                     ("_Measures", "Magnitude", True),
                     ("_Measures", "Exposed Buildings", True),
                     ("_Measures", "Exposed Population", True),
@@ -882,7 +910,6 @@ def build_report() -> None:
             {
                 "Values": [
                     ("dim_event", "Event", False),
-                    ("dim_event", "Shaking Source", False),
                     ("_Measures", "Validation Stations", True),
                     ("_Measures", "Estimated MMI MAE", True),
                 ]
@@ -963,10 +990,10 @@ def main() -> None:
         "foreground": "#171815",
         "tableAccent": "#171815",
         "textClasses": {
-            "title": {"fontFace": "IBM Plex Sans", "color": "#171815", "fontSize": 18},
-            "header": {"fontFace": "IBM Plex Sans", "color": "#171815", "fontSize": 12},
-            "label": {"fontFace": "IBM Plex Sans", "color": "#171815", "fontSize": 10},
-            "callout": {"fontFace": "IBM Plex Mono", "color": "#171815", "fontSize": 28},
+            "title": {"fontFace": "Segoe UI", "color": "#171815", "fontSize": 18},
+            "header": {"fontFace": "Segoe UI", "color": "#171815", "fontSize": 12},
+            "label": {"fontFace": "Segoe UI", "color": "#171815", "fontSize": 10},
+            "callout": {"fontFace": "Consolas", "color": "#171815", "fontSize": 28},
         },
         "visualStyles": {
             "*": {
@@ -975,7 +1002,7 @@ def main() -> None:
                     "border": [{"show": True, "color": {"solid": {"color": "#D5D2C9"}}}],
                     "title": [
                         {
-                            "fontFace": "IBM Plex Sans",
+                            "fontFace": "Segoe UI",
                             "fontSize": 11,
                             "fontColor": {"solid": {"color": "#171815"}},
                         }
@@ -985,7 +1012,7 @@ def main() -> None:
         },
     }
     write(PBIP / "nzhem-theme.json", theme)
-    write(REPORT / "StaticResources/RegisteredResources/nzhem-theme.json", theme)
+    write(PBIP / "nzhem.Report/StaticResources/RegisteredResources/nzhem-theme.json", theme)
     report_path = REPORT / "report.json"
     report = json.loads(report_path.read_text(encoding="utf-8"))
     report["themeCollection"]["customTheme"] = {
