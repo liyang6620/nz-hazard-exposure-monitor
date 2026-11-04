@@ -1,0 +1,165 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "history-trend",
+  "position": {
+    "x": 48,
+    "y": 420,
+    "z": 1,
+    "width": 860,
+    "height": 394,
+    "tabOrder": 1
+  },
+  "visual": {
+    "visualType": "scatterChart",
+    "drillFilterOtherVisuals": true,
+    "objects": {
+      "dataPoint": [
+        {
+          "properties": {
+            "fill": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#171815'"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "query": {
+      "queryState": {
+        "X": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Timeline Year"
+                }
+              },
+              "queryRef": "_Measures.Timeline Year",
+              "nativeQueryRef": "Timeline Year"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Magnitude"
+                }
+              },
+              "queryRef": "_Measures.Magnitude",
+              "nativeQueryRef": "Magnitude"
+            }
+          ]
+        },
+        "Size": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Exposed Buildings"
+                }
+              },
+              "queryRef": "_Measures.Exposed Buildings",
+              "nativeQueryRef": "Exposed Buildings"
+            }
+          ]
+        },
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_event"
+                    }
+                  },
+                  "Property": "Event"
+                }
+              },
+              "queryRef": "dim_event.Event",
+              "nativeQueryRef": "Event"
+            }
+          ]
+        },
+        "Tooltips": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_event"
+                    }
+                  },
+                  "Property": "Event Date (NZ)"
+                }
+              },
+              "queryRef": "dim_event.Event Date (NZ)",
+              "nativeQueryRef": "Event Date (NZ)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Exposed Population"
+                }
+              },
+              "queryRef": "_Measures.Exposed Population",
+              "nativeQueryRef": "Exposed Population"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'EVENT TIME × MAGNITUDE  /  BUBBLE AREA = EXPOSED BUILDINGS'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

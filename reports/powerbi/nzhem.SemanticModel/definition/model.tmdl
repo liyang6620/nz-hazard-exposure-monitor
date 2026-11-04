@@ -1,18 +1,23 @@
 model Model
 	culture: en-NZ
 	defaultPowerBIDataSourceVersion: powerBI_V3
+	discourageImplicitMeasures
 	sourceQueryCulture: en-NZ
 	dataAccessOptions
 		returnErrorValuesAsNull
 
-annotation PBI_QueryOrder = ["Event Summary","Exposure Cells","Method Notes","RepoRoot"]
-
+annotation __PBI_TimeIntelligenceEnabled = 0
 annotation PBI_ProTooling = ["DevMode"]
 
-annotation __PBI_TimeIntelligenceEnabled = 1
-
-ref table 'Event Summary'
-ref table 'Exposure Cells'
-ref table 'Method Notes'
-ref table DateTableTemplate_4ed199fe-c5e9-44dd-bf30-87beb14b8158
-ref table LocalDateTable_cf046424-2105-4519-9455-b5ada5e33890
+ref table dim_event
+ref table dim_region
+ref table dim_date
+ref table dim_mmi_band
+ref table 'MMI Threshold'
+ref table fct_event_summary
+ref table fct_exposure
+ref table fct_map
+ref table fct_accumulation
+ref table fct_validation
+ref table fct_health
+ref table _Measures

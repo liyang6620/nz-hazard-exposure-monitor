@@ -1,0 +1,48 @@
+table fct_health
+	lineageTag: 36902e71-225e-59a7-90f0-4c8bc1661293
+
+	column 'Snapshot At'
+		dataType: dateTime
+		isHidden
+		formatString: d MMM yyyy HH:mm
+		lineageTag: 27e2fbe9-307a-599b-be80-eae8ad212d52
+		summarizeBy: none
+		sourceColumn: snapshot_at
+
+	column 'Last Run'
+		dataType: dateTime
+		isHidden
+		formatString: d MMM yyyy HH:mm
+		lineageTag: 68ae4292-74e8-5207-8aac-f7b768d301d1
+		summarizeBy: none
+		sourceColumn: last_successful_run
+
+	column 'Failed Runs'
+		dataType: int64
+		isHidden
+		formatString: #,0
+		lineageTag: f5ed3761-2f2e-54ad-810a-449db8c91771
+		summarizeBy: none
+		sourceColumn: failed_runs
+
+	column 'Recorded Runs'
+		dataType: int64
+		isHidden
+		formatString: #,0
+		lineageTag: b53d51fa-1e64-5c97-9f35-dcc11bf54578
+		summarizeBy: none
+		sourceColumn: recorded_runs
+
+	column 'Scope'
+		dataType: string
+		lineageTag: bbccc48a-622d-57bf-a73f-5237c2162fd3
+		summarizeBy: none
+		sourceColumn: scope
+
+	partition fct_health = m
+		mode: import
+		source =
+				let
+					Source = Parquet.Document(File.Contents(RepoRoot & "\.local\data\powerbi\fct_health.parquet"))
+				in
+					Source

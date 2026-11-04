@@ -1,0 +1,41 @@
+table dim_date
+	lineageTag: 3483e364-c1ee-5a16-9950-ef70a1961302
+	dataCategory: Time
+
+	column 'Date'
+		dataType: dateTime
+		isKey
+		formatString: d MMM yyyy
+		lineageTag: b785453b-94cd-5f32-835b-b00f5e0f9ca9
+		summarizeBy: none
+		sourceColumn: date_value
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Year'
+		dataType: int64
+		formatString: 0
+		lineageTag: e99989df-1c10-5690-a508-79f21561b462
+		summarizeBy: none
+		sourceColumn: year
+
+	column 'Month Number'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 39993a5c-8bc9-5a65-ad74-3400618f8e04
+		summarizeBy: none
+		sourceColumn: month_number
+
+	column 'Month'
+		dataType: string
+		lineageTag: 572201a4-360c-5572-9e7a-934e31cec690
+		summarizeBy: none
+		sourceColumn: month_label
+
+	partition dim_date = m
+		mode: import
+		source =
+				let
+					Source = Parquet.Document(File.Contents(RepoRoot & "\.local\data\powerbi\dim_date.parquet"))
+				in
+					Source

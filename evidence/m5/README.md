@@ -1,23 +1,44 @@
-# M5 Power BI evidence
+# M5 Power BI redesign evidence
 
-Power BI Desktop 2.155.756.0 opened the PBIP project and refreshed both real
-M3 Parquet tables on 2026-10-25 after `RepoRoot` was set locally to the
-absolute repository path. That machine-specific value was restored to the
-source-controlled relative placeholder before commit. The five pages rendered
-nonblank data and were captured individually:
+The prior five-page PDF and screenshots were rejected. They remain in
+`rejected-v1/` as historical evidence only. The replacement report was refreshed
+in Power BI Desktop 2.155.385.0 on 4 Nov 2026 without Microsoft sign-in or
+Power BI Service publication.
 
-- `powerbi-overview.png`
-- `powerbi-event-explorer.png`
-- `powerbi-population-exposure.png`
-- `powerbi-buildings-footprint.png`
-- `powerbi-method-quality.png`
+## Deliverables
 
-`nzhem-powerbi-report.pdf` is the exported five-page report (275,462 bytes).
-`pdfinfo` reports five pages at 996 x 576 points. The final Method and quality page uses a static
-imported notes table so the policy-data, interpretation, and building-date
-limitations remain visible in both Power BI Desktop and PDF export.
+- [Five-page PDF](nzhem-powerbi-report.pdf)
+- [Event Overview](event-overview.png)
+- [Event Comparison](event-comparison.png)
+- [Regional Exposure](regional-exposure.png)
+- [Event History](event-history.png)
+- [Data Health](data-health.png)
+- [Model size and validation](model-size.md)
 
-No Microsoft account was used, no report was published, and no license or
-privacy terms were accepted. A clipboard permission prompt raised by the
-embedded Power BI WebView was dismissed without granting access. The required
-two-minute walkthrough remains an owner action.
+The PDF is a Power BI Desktop export. Desktop printed its unrelated auto-recovery
+banner above every page; `finalize_powerbi_pdf.py` cropped 43 PDF points from
+the top of each page. The five images are rendered from that final PDF, showing
+only the report canvas.
+
+## Checks
+
+The PBIP has five pages, 61 visual definitions, 11 source tables plus the
+`_Measures` table, 21 explicit measures and nine one-way relationships. Implicit
+measures are discouraged. Keys and source numeric columns are hidden. The MMI
+threshold supports 4-8 with default 6 through a single-select dropdown;
+Desktop's native numeric slider did not preserve the single selected value
+needed by the threshold measures.
+
+`check_powerbi_project.py` passed PBIR schema validation. The bounded snapshot
+was built with DuckDB limited to 512 MB and one thread. `check_powerbi_snapshot.py`
+reconciled all ten events' MMI 6+ buildings and population to M3 gold with no
+orphan region keys. C-drive free space remained above 20 GiB.
+
+In Desktop, Kaikōura at threshold 6 showed M7.8, max MMI 8.4, 78,564 buildings
+and 83,276 people. Changing the threshold to 7 changed exposed buildings to
+9,720; it was returned to 6 before export. The Taumarunui history magnitude is
+5.7, based on the local newer GeoNet revision of 5.66. Data Health reports the
+station-weighted MAE of 1.049, not a sum of event errors.
+
+The report is a local gold/SQLite snapshot, not live Azure health. Its MMI map
+is an offline longitude/latitude H3 scatter plot, not a geographic basemap.

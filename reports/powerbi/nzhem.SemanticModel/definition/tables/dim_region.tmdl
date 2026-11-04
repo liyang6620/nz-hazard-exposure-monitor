@@ -1,0 +1,46 @@
+table dim_region
+	lineageTag: 856a436f-3223-560b-b81f-f35b97fe1f09
+
+	column 'Region Key'
+		dataType: string
+		isHidden
+		lineageTag: 7733af37-2c5a-54ce-a7d8-a70bff10d305
+		summarizeBy: none
+		sourceColumn: region_key
+
+	column 'Region'
+		dataType: string
+		lineageTag: a255c007-d73c-567d-9689-5f535d44cda3
+		summarizeBy: none
+		sourceColumn: region_name
+
+	column 'Territorial Authority'
+		dataType: string
+		lineageTag: ec5308a1-14e3-5bff-b74f-809ef6a822a5
+		summarizeBy: none
+		sourceColumn: territorial_authority
+
+	column 'Region Buildings'
+		dataType: int64
+		isHidden
+		formatString: #,0
+		lineageTag: afa8c41d-3d8a-5f10-8abe-93e72f5fcdcd
+		summarizeBy: none
+		sourceColumn: region_buildings
+
+	hierarchy 'Region to Authority'
+		lineageTag: f492a8b6-7be7-5ead-8b07-5bc999f18840
+		level Region
+			lineageTag: 2af30349-d24e-53c8-8d63-f0fa807cda1e
+			column: Region
+		level 'Territorial Authority'
+			lineageTag: 371977e6-9b62-502f-814c-8cdbb7a8b4e2
+			column: 'Territorial Authority'
+
+	partition dim_region = m
+		mode: import
+		source =
+				let
+					Source = Parquet.Document(File.Contents(RepoRoot & "\.local\data\powerbi\dim_region.parquet"))
+				in
+					Source

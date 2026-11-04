@@ -1,0 +1,132 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "h3-map",
+  "position": {
+    "x": 48,
+    "y": 392,
+    "z": 1,
+    "width": 708,
+    "height": 428,
+    "tabOrder": 1
+  },
+  "visual": {
+    "visualType": "scatterChart",
+    "drillFilterOtherVisuals": true,
+    "query": {
+      "queryState": {
+        "X": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Map Longitude"
+                }
+              },
+              "queryRef": "_Measures.Map Longitude",
+              "nativeQueryRef": "Map Longitude"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Map Latitude"
+                }
+              },
+              "queryRef": "_Measures.Map Latitude",
+              "nativeQueryRef": "Map Latitude"
+            }
+          ]
+        },
+        "Size": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Map Buildings"
+                }
+              },
+              "queryRef": "_Measures.Map Buildings",
+              "nativeQueryRef": "Map Buildings"
+            }
+          ]
+        },
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fct_map"
+                    }
+                  },
+                  "Property": "H3 Cell"
+                }
+              },
+              "queryRef": "fct_map.H3 Cell",
+              "nativeQueryRef": "H3 Cell"
+            }
+          ]
+        },
+        "Series": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_mmi_band"
+                    }
+                  },
+                  "Property": "MMI Band"
+                }
+              },
+              "queryRef": "dim_mmi_band.MMI Band",
+              "nativeQueryRef": "MMI Band"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'H3 EXPOSURE POINTS  /  LONGITUDE × LATITUDE'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

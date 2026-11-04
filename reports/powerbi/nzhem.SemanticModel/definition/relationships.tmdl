@@ -1,8 +1,44 @@
-relationship 'Event Summary to Exposure Cells'
-	fromColumn: 'Exposure Cells'.event_id
-	toColumn: 'Event Summary'.event_id
+relationship 'fd147f19-a777-55f4-91ed-49d3a9de6746'
+	crossFilteringBehavior: oneDirection
+	fromColumn: fct_event_summary.'Event ID'
+	toColumn: dim_event.'Event ID'
 
-relationship 0417521f-7c15-4305-8814-c0691ab923e3
-	joinOnDateBehavior: datePartOnly
-	fromColumn: 'Event Summary'.origin_time
-	toColumn: LocalDateTable_cf046424-2105-4519-9455-b5ada5e33890.Date
+relationship 'e87c7e2d-7c77-58a8-8563-c185520ef18f'
+	crossFilteringBehavior: oneDirection
+	fromColumn: fct_event_summary.'Event Date'
+	toColumn: dim_date.'Date'
+
+relationship 'a9bb44b6-6995-5e62-bb19-b267d6f5b53a'
+	crossFilteringBehavior: oneDirection
+	fromColumn: fct_exposure.'Event ID'
+	toColumn: dim_event.'Event ID'
+
+relationship '6d4f7d07-9ac6-59ea-92e9-7a84c9d0dfc5'
+	crossFilteringBehavior: oneDirection
+	fromColumn: fct_exposure.'Region Key'
+	toColumn: dim_region.'Region Key'
+
+relationship 'e6eb1842-1354-50bd-9577-61d3f822b933'
+	crossFilteringBehavior: oneDirection
+	fromColumn: fct_exposure.'Band Key'
+	toColumn: dim_mmi_band.'Band Key'
+
+relationship '93276698-8a5f-5e38-b0eb-3081f9d84f51'
+	crossFilteringBehavior: oneDirection
+	fromColumn: fct_map.'Event ID'
+	toColumn: dim_event.'Event ID'
+
+relationship '30edd3c2-3c2a-5739-88d4-0f3e429b4637'
+	crossFilteringBehavior: oneDirection
+	fromColumn: fct_map.'Band Key'
+	toColumn: dim_mmi_band.'Band Key'
+
+relationship '0e703d7d-a653-5a31-86f1-2592d4e9dfff'
+	crossFilteringBehavior: oneDirection
+	fromColumn: fct_accumulation.'Region Key'
+	toColumn: dim_region.'Region Key'
+
+relationship '119b6bc3-08ce-5522-8de5-c622668e0201'
+	crossFilteringBehavior: oneDirection
+	fromColumn: fct_validation.'Event ID'
+	toColumn: dim_event.'Event ID'
