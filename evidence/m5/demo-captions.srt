@@ -1,0 +1,19 @@
+1
+00:00:00,000 --> 00:00:24,000
+Event Overview: Kaikōura M7.8, with 78,564 buildings and 83,276 people in MMI 6+ shaking.
+
+2
+00:00:24,000 --> 00:00:48,000
+Event Comparison: seven of ten historical replays show damaging shaking at the default MMI 6 threshold.
+
+3
+00:00:48,000 --> 00:01:12,000
+Regional Exposure: compare regions and districts, plus repeat exposure across ten replays.
+
+4
+00:01:12,000 --> 00:01:36,000
+Event History: the chronology follows earthquake origin time in New Zealand local time.
+
+5
+00:01:36,000 --> 00:02:00,000
+Data Health: Azure operations are a read-only refresh snapshot; estimated MMI error is station-weighted.

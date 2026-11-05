@@ -3,10 +3,10 @@
   "name": "region-table",
   "position": {
     "x": 732,
-    "y": 606,
+    "y": 402,
     "z": 1,
     "width": 660,
-    "height": 208,
+    "height": 412,
     "tabOrder": 1
   },
   "visual": {
@@ -126,7 +126,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'REGIONAL DETAIL / REPEAT EXPOSURE ACROSS 10 REPLAYS'"
+                  "Value": "'REGION / DISTRICT RANKING AND REPEAT EXPOSURE'"
                 }
               }
             }

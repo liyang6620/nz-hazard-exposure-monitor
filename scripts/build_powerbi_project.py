@@ -582,7 +582,14 @@ def add(page: Path, item: dict[str, object]) -> None:
     write(page / "visuals" / item["name"] / "visual.json", item)
 
 
-def build_page(slug: str, title: str, subtitle: str, items: list[dict[str, object]]) -> None:
+def build_page(
+    slug: str,
+    title: str,
+    subtitle: str,
+    items: list[dict[str, object]],
+    *,
+    header_width: int = 1344,
+) -> None:
     page = REPORT / "pages" / slug
     write(
         page / "page.json",
@@ -607,8 +614,8 @@ def build_page(slug: str, title: str, subtitle: str, items: list[dict[str, objec
             },
         },
     )
-    add(page, visual("heading", "textbox", 48, 24, 1344, 60, text=title.upper()))
-    add(page, visual("subtitle", "textbox", 48, 82, 1344, 36, text=subtitle))
+    add(page, visual("heading", "textbox", 48, 24, header_width, 60, text=title.upper()))
+    add(page, visual("subtitle", "textbox", 48, 82, header_width, 36, text=subtitle))
     add(
         page,
         visual(
@@ -856,8 +863,10 @@ def build_report() -> None:
         overview,
     )
 
+    comparison_threshold = threshold_slicer()
+    comparison_threshold["position"]["y"] = 40
     comparison = [
-        threshold,
+        comparison_threshold,
         card("events", "Event Count", "HISTORICAL EVENTS", 48, 146, 324),
         card(
             "largest-buildings", "Largest Event Exposure", "LARGEST EVENT EXPOSURE", 388, 146, 324
@@ -934,6 +943,7 @@ def build_report() -> None:
         "Event Comparison",
         "Ten fixed earthquakes replayed against today's buildings and the 2023 population.",
         comparison,
+        header_width=1040,
     )
 
     regional = [
@@ -953,17 +963,6 @@ def build_report() -> None:
         ),
         card(
             "strong-cells", "Buildings in Strong Cells", "BUILDINGS IN MMI 6+ CELLS", 1068, 244, 324
-        ),
-        chart(
-            "region-ranking",
-            "clusteredBarChart",
-            "REGION / TERRITORIAL AUTHORITY RANKING",
-            732,
-            402,
-            660,
-            190,
-            ("dim_region", "Territorial Authority", False),
-            ["Exposed Buildings"],
         ),
         map_axes(
             visual(
@@ -989,9 +988,9 @@ def build_report() -> None:
                         "region-table",
                         "pivotTable",
                         732,
-                        606,
+                        402,
                         660,
-                        208,
+                        412,
                         {
                             "Rows": [
                                 ("dim_region", "Region", False),
@@ -1003,7 +1002,7 @@ def build_report() -> None:
                                 ("_Measures", "Accumulated Building Exposures", True),
                             ],
                         },
-                        "REGIONAL DETAIL / REPEAT EXPOSURE ACROSS 10 REPLAYS",
+                        "REGION / DISTRICT RANKING AND REPEAT EXPOSURE",
                     ),
                     "_Measures",
                     "Exposed Buildings",

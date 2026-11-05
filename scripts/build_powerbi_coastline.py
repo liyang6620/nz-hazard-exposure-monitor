@@ -63,7 +63,10 @@ def main() -> None:
     )
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT.write_text(svg, encoding="utf-8")
-    print(f"Coastline SVG generated from {len(files)} Stats NZ SA1 source pages; {len(polygons)} land polygons, {OUTPUT.stat().st_size} bytes")
+    print(
+        f"Coastline SVG generated from {len(files)} Stats NZ SA1 source pages; "
+        f"{len(polygons)} land polygons, {OUTPUT.stat().st_size} bytes"
+    )
 
 
 if __name__ == "__main__":
