@@ -28,7 +28,7 @@ jobs:
       TF_VAR_notification_email: ${{ secrets.NOTIFICATION_EMAIL }}
       TF_VAR_github_principal_id: ${{ secrets.AZURE_GITHUB_PRINCIPAL_ID }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: azure/login@v2
         if: env.ARM_CLIENT_ID != ''
         with:
