@@ -43,7 +43,7 @@ website. Only Azure currently publishes to the private ArcGIS layer. The browser
 uses LINZ LDS topographic tiles with a public tile key and never receives
 server-side ArcGIS, OpenAI or approval secrets. See the
 [method](docs/methodology.md), [operations runbook](docs/runbook.md) and
-[five-minute demo](docs/interview-demo.md).
+[five-minute interview demo script](docs/interview-demo.md).
 
 ## Current status
 
@@ -61,9 +61,9 @@ documents the poison-queue drill, unchanged gold hashes, TEST-mail rejection
 and hourly telemetry. Action Group email delivery and the NZD 1 natural budget
 stop drill remain open; the student subscription rejected Azure's built-in
 Action Group test. M5 Power BI acceptance was reopened after the old report
-was rejected; the replacement five-page PBIP awaits Desktop rendering,
-screenshots and PDF verification. The owner's two-minute walkthrough is also
-pending. M7 Snowflake work remains deferred.
+was rejected; the revised five-page PBIP, screenshots and PDF are in PR #59
+for review. The owner cancelled M5 and M8 video deliverables. M7 Snowflake
+work remains deferred.
 
 ## Important limitations
 

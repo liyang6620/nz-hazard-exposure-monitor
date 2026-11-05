@@ -1,18 +1,31 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
-  "name": "stations",
+  "name": "largest-buildings",
   "position": {
-    "x": 1028,
-    "y": 150,
+    "x": 388,
+    "y": 146,
     "z": 1,
-    "width": 364,
-    "height": 122,
+    "width": 324,
+    "height": 112,
     "tabOrder": 1
   },
   "visual": {
     "visualType": "card",
     "drillFilterOtherVisuals": true,
     "objects": {
+      "categoryLabels": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
       "labels": [
         {
           "properties": {
@@ -39,11 +52,11 @@
                       "Entity": "_Measures"
                     }
                   },
-                  "Property": "Validation Stations"
+                  "Property": "Largest Event Exposure"
                 }
               },
-              "queryRef": "_Measures.Validation Stations",
-              "nativeQueryRef": "Validation Stations"
+              "queryRef": "_Measures.Largest Event Exposure",
+              "nativeQueryRef": "Largest Event Exposure"
             }
           ]
         }
@@ -63,7 +76,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'VALID STATIONS'"
+                  "Value": "'LARGEST EVENT EXPOSURE'"
                 }
               }
             }

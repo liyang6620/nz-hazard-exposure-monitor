@@ -9,7 +9,7 @@ GeoNet M5.0 event reached the site 32 minutes 9 seconds after origin.
 
 The [README](../../README.md) now opens with the product and live URL and
 includes the two-host architecture. The
-[five-minute demonstration](../../docs/interview-demo.md) uses public,
+[five-minute interview demonstration script](../../docs/interview-demo.md) uses public,
 read-only pages. [ADR 0003](../../docs/adr/0003-student-subscription-acceptance-boundaries.md)
 reflects the completed ArcGIS and poison-queue handover; [ADR 0005](../../docs/adr/0005-azure-hourly-publication-and-telemetry.md)
 records the hourly timer, Flex deployment gate and telemetry decision.

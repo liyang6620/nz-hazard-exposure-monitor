@@ -1,0 +1,20 @@
+table fct_source
+	lineageTag: a45f2692-f8c4-572b-b554-8b4820bc1a85
+
+	column 'Shaking Source'
+		dataType: string
+		lineageTag: 6059bda3-f020-5aa2-a0a0-f2b60f9c64c9
+		summarizeBy: none
+		sourceColumn: shaking_source
+
+	column 'Event Count'
+		dataType: int64
+		isHidden
+		formatString: #,0
+		lineageTag: db1e19ae-02ab-5abc-bd22-7ee55ba28e9f
+		summarizeBy: none
+		sourceColumn: event_count
+
+	partition fct_source = m
+		mode: import
+		source = Parquet.Document(File.Contents(RepoRoot & "\.local\data\powerbi\fct_source.parquet"))

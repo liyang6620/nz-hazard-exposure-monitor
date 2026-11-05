@@ -2,15 +2,15 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
   "name": "source",
   "position": {
-    "x": 420,
-    "y": 310,
+    "x": 484,
+    "y": 284,
     "z": 1,
-    "width": 480,
-    "height": 236,
+    "width": 420,
+    "height": 410,
     "tabOrder": 1
   },
   "visual": {
-    "visualType": "columnChart",
+    "visualType": "clusteredBarChart",
     "drillFilterOtherVisuals": true,
     "objects": {
       "dataPoint": [
@@ -40,13 +40,13 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "dim_event"
+                      "Entity": "fct_source"
                     }
                   },
                   "Property": "Shaking Source"
                 }
               },
-              "queryRef": "dim_event.Shaking Source",
+              "queryRef": "fct_source.Shaking Source",
               "nativeQueryRef": "Shaking Source"
             }
           ]
@@ -61,14 +61,32 @@
                       "Entity": "_Measures"
                     }
                   },
-                  "Property": "Event Count"
+                  "Property": "Shaking Source Events"
                 }
               },
-              "queryRef": "_Measures.Event Count",
-              "nativeQueryRef": "Event Count"
+              "queryRef": "_Measures.Shaking Source Events",
+              "nativeQueryRef": "Shaking Source Events"
             }
           ]
         }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "_Measures"
+                  }
+                },
+                "Property": "Shaking Source Events"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": false
       }
     },
     "visualContainerObjects": {
@@ -85,7 +103,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'SHAKING SOURCE / EVENT COUNT'"
+                  "Value": "'RECENT SHAKING SOURCE'"
                 }
               }
             }

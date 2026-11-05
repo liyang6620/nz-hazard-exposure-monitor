@@ -20,4 +20,6 @@ ref table fct_map
 ref table fct_accumulation
 ref table fct_validation
 ref table fct_health
+ref table fct_status
+ref table fct_source
 ref table _Measures

@@ -5,7 +5,7 @@
     "x": 48,
     "y": 82,
     "z": 1,
-    "width": 1344,
+    "width": 1040,
     "height": 36,
     "tabOrder": 1
   },
@@ -20,7 +20,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "Ten fixed earthquakes replayed against today's buildings and the 2023 population; totals count repeat exposure.",
+                    "value": "Ten fixed earthquakes replayed against today's buildings and the 2023 population.",
                     "textStyle": {
                       "fontFamily": "Segoe UI",
                       "fontSize": "12pt",

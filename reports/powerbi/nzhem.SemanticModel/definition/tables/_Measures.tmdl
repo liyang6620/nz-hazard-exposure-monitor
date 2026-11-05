@@ -79,23 +79,65 @@ table _Measures
 		displayFolder: 04 Quality
 		lineageTag: 983c5ba3-ef3c-5f88-97c0-704ed887573f
 
-	/// Last successful local SQLite housekeeping run captured by the snapshot; not Azure live status.
+	/// Last successful Azure housekeeping run captured in the read-only snapshot.
 	measure 'Last Successful Run' = FORMAT(MAX(fct_health[Last Run]), "d MMM yyyy HH:mm", "en-NZ")
 		formatString: @
 		displayFolder: 04 Quality
 		lineageTag: ad02e995-e5a8-5b48-aaeb-fc3f66be368a
 
-	/// Age of the last local run at report viewing time, in hours.
-	measure 'Hours Since Last Run' = DATEDIFF(MAX(fct_health[Last Run]), NOW(), HOUR)
+	/// Age of the last Azure housekeeping run at snapshot time, in hours; not live.
+	measure 'Hours Since Last Run' = DATEDIFF(MAX(fct_health[Last Run]), MAX(fct_health[Snapshot At]), HOUR)
 		formatString: #,0
 		displayFolder: 04 Quality
 		lineageTag: 6aaba7d9-5893-54d1-8686-ff6d20d4a6e6
 
-	/// Recorded failed local housekeeping runs in the snapshot.
+	/// Failed Azure housekeeping runs in the read-only snapshot.
 	measure 'Failed Runs' = SUM(fct_health[Failed Runs])
 		formatString: #,0
 		displayFolder: 04 Quality
 		lineageTag: a00ad122-e7e7-5829-9779-64c518515fc4
+
+	/// Approximate Azure poison-queue depth at snapshot time, including acceptance-drill messages.
+	measure 'Poison Messages' = SUM(fct_health[Poison Messages])
+		formatString: #,0
+		displayFolder: 04 Quality
+		lineageTag: 24c78941-473e-5463-ae46-c86209ce9d8e
+
+	/// Recent monitored events by terminal assessment state in the published site index.
+	measure 'Live Event Count' = SUM(fct_status[Event Count])
+		formatString: #,0
+		displayFolder: 04 Quality
+		lineageTag: 1302bd28-c966-5406-9485-67efe3994852
+
+	/// Recent monitored events by published shaking source.
+	measure 'Shaking Source Events' = SUM(fct_source[Event Count])
+		formatString: #,0
+		displayFolder: 04 Quality
+		lineageTag: 4dd92e05-f65d-5458-9580-dff2f1296e34
+
+	/// Largest building exposure in a single replay at the selected MMI threshold.
+	measure 'Largest Event Exposure' = MAXX(VALUES(dim_event[Event ID]), [Exposed Buildings])
+		formatString: #,0
+		displayFolder: 03 Events
+		lineageTag: dc631f6e-b294-5547-a914-45046f5d5675
+
+	/// Event name associated with the largest single-event building exposure.
+	measure 'Largest Exposure Event' = VAR ranked = TOPN(1, VALUES(dim_event[Event ID]), [Exposed Buildings], DESC, dim_event[Event ID], ASC) RETURN CONCATENATEX(ranked, CALCULATE(SELECTEDVALUE(dim_event[Event])), ", ")
+		formatString: @
+		displayFolder: 03 Events
+		lineageTag: f618b8cc-e928-54d3-93ae-fcc62178c6d9
+
+	/// Number of replay events reaching MMI 6 in a populated cell.
+	measure 'Events with Damaging Shaking' = COUNTROWS(FILTER(VALUES(dim_event[Event ID]), CALCULATE([Max MMI]) >= 6))
+		formatString: #,0
+		displayFolder: 03 Events
+		lineageTag: 6c0fdee9-e468-5b71-9b3e-fcd3344ed7b5
+
+	/// Describes whether the denominator covers a selected region or the national stock.
+	measure 'Share of Stock Title' = IF(HASONEVALUE(dim_region[Region]), "Share of region stock", "Share of national stock")
+		formatString: @
+		displayFolder: 02 Regions
+		lineageTag: 1af9639d-3774-5e75-b44a-8084d23bab6a
 
 	/// Current buildings at H3 resolution 6 for map bubble size.
 	measure 'Map Buildings' = SUM(fct_map[Buildings])

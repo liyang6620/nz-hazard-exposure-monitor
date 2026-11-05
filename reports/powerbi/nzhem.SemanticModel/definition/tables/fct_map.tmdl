@@ -66,8 +66,4 @@ table fct_map
 
 	partition fct_map = m
 		mode: import
-		source =
-				let
-					Source = Parquet.Document(File.Contents(RepoRoot & "\.local\data\powerbi\fct_map.parquet"))
-				in
-					Source
+		source = Parquet.Document(File.Contents(RepoRoot & "\.local\data\powerbi\fct_map.parquet"))

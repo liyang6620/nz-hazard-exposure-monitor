@@ -34,6 +34,12 @@ table dim_event
 		summarizeBy: none
 		sourceColumn: origin_time
 
+	column 'Origin Time NZ'
+		dataType: string
+		lineageTag: e39112d9-073c-59c2-86df-1f56075b8d53
+		summarizeBy: none
+		sourceColumn: origin_time_label
+
 	column 'Timeline Year'
 		dataType: double
 		isHidden
@@ -76,8 +82,4 @@ table dim_event
 
 	partition dim_event = m
 		mode: import
-		source =
-				let
-					Source = Parquet.Document(File.Contents(RepoRoot & "\.local\data\powerbi\dim_event.parquet"))
-				in
-					Source
+		source = Parquet.Document(File.Contents(RepoRoot & "\.local\data\powerbi\dim_event.parquet"))

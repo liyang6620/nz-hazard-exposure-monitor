@@ -29,6 +29,11 @@
           "name": "nzhem-theme.json",
           "path": "nzhem-theme.json",
           "type": "CustomTheme"
+        },
+        {
+          "name": "nz-coastline.svg",
+          "path": "nz-coastline.svg",
+          "type": "Image"
         }
       ]
     }

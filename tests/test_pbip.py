@@ -1,6 +1,9 @@
 import json
+from datetime import datetime
 from pathlib import Path
 
+import pytest
+from scripts.build_powerbi_snapshot import utc_naive
 from scripts.check_pbip_portability import find_local_paths
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -34,7 +37,7 @@ def test_pbip_project_has_five_pages_and_local_only_sources() -> None:
     model_text = "\n".join(path.read_text(encoding="utf-8") for path in model_root.rglob("*.tmdl"))
     assert "File.Contents" in model_text
     assert "https://" not in model_text
-    assert 'Value = "..\\\\.."' in model_text
+    assert 'expression RepoRoot = "..\\\\.."' in model_text
     assert "discourageImplicitMeasures" in model_text
     assert "dataCategory: Time" in model_text
     assert "crossFilteringBehavior: oneDirection" in model_text
@@ -47,6 +50,18 @@ def test_pbip_project_has_five_pages_and_local_only_sources() -> None:
     assert "C:/Users/" not in combined_text
     assert "C:\\\\Users\\\\" not in combined_text
     assert find_local_paths(PBIP_ROOT) == []
-    assert "No policy or insured-value data" in combined_text
+    assert "READ-ONLY AZURE SNAPSHOT" in combined_text
     assert "not an actuarial loss estimate" in combined_text
-    assert "Building lifecycle dates are approximate" in combined_text
+    assert "Historical replays use current building outlines and 2023 population" in combined_text
+
+
+def test_powerbi_health_timestamps_keep_utc_hour() -> None:
+    assert utc_naive("2026-11-05T11:00:02Z") == datetime(2026, 11, 5, 11, 0, 2)
+    assert utc_naive("2026-11-06T00:00:02+13:00") == datetime(2026, 11, 5, 11, 0, 2)
+    with pytest.raises(ValueError, match="timezone"):
+        utc_naive("2026-11-05T11:00:02")
+
+    measures = (PBIP_ROOT / "nzhem.SemanticModel/definition/tables/_Measures.tmdl").read_text(
+        encoding="utf-8"
+    )
+    assert "DATEDIFF(MAX(fct_health[Last Run]), MAX(fct_health[Snapshot At]), HOUR)" in measures

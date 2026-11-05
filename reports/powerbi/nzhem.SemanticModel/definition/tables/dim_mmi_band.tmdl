@@ -25,8 +25,4 @@ table dim_mmi_band
 
 	partition dim_mmi_band = m
 		mode: import
-		source =
-				let
-					Source = Parquet.Document(File.Contents(RepoRoot & "\.local\data\powerbi\dim_mmi_band.parquet"))
-				in
-					Source
+		source = Parquet.Document(File.Contents(RepoRoot & "\.local\data\powerbi\dim_mmi_band.parquet"))

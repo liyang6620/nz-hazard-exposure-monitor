@@ -2,7 +2,7 @@
 
 The prior five-page PDF and screenshots were rejected. They remain in
 `rejected-v1/` as historical evidence only. The replacement report was refreshed
-in Power BI Desktop 2.155.385.0 on 4 Nov 2026 without Microsoft sign-in or
+in Power BI Desktop 2.155.385.0 on 6 Nov 2026 without Microsoft sign-in or
 Power BI Service publication.
 
 ## Deliverables
@@ -22,8 +22,8 @@ only the report canvas.
 
 ## Checks
 
-The PBIP has five pages, 61 visual definitions, 11 source tables plus the
-`_Measures` table, 21 explicit measures and nine one-way relationships. Implicit
+The PBIP has five pages, 62 visual definitions, 13 source tables plus the
+`_Measures` table, 28 explicit measures and nine one-way relationships. Implicit
 measures are discouraged. Keys and source numeric columns are hidden. The MMI
 threshold supports 4-8 with default 6 through a single-select dropdown;
 Desktop's native numeric slider did not preserve the single selected value
@@ -40,5 +40,15 @@ and 83,276 people. Changing the threshold to 7 changed exposed buildings to
 5.7, based on the local newer GeoNet revision of 5.66. Data Health reports the
 station-weighted MAE of 1.049, not a sum of event errors.
 
-The report is a local gold/SQLite snapshot, not live Azure health. Its MMI map
-is an offline longitude/latitude H3 scatter plot, not a geographic basemap.
+Data Health uses a read-only Azure gold/runtime snapshot captured before the
+Desktop refresh; it is not a live dashboard. Its MMI map is an offline
+longitude/latitude H3 scatter plot over a locally generated coastline image,
+not a service-backed basemap. The regional page combines that map with a
+full-height region/district ranking table; the table supports drill-down.
+
+The 6 Nov NZDT read-only snapshot captured Azure's latest successful
+housekeeping completion at 5 Nov 2026 12:00:02 UTC, alongside the public
+manifest generated at 12:00:02 UTC. Data Health stores UTC clock time without
+timezone conversion and calculates age at snapshot time, not at viewing time.
+The poison-queue depth of 27 includes acceptance-drill messages; the queue does
+not label those messages separately, so no unverified split is presented.

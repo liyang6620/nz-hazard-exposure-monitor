@@ -34,8 +34,4 @@ table dim_date
 
 	partition dim_date = m
 		mode: import
-		source =
-				let
-					Source = Parquet.Document(File.Contents(RepoRoot & "\.local\data\powerbi\dim_date.parquet"))
-				in
-					Source
+		source = Parquet.Document(File.Contents(RepoRoot & "\.local\data\powerbi\dim_date.parquet"))

@@ -2,17 +2,30 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
   "name": "strong-cells",
   "position": {
-    "x": 948,
+    "x": 1068,
     "y": 244,
     "z": 1,
-    "width": 292,
-    "height": 122,
+    "width": 324,
+    "height": 112,
     "tabOrder": 1
   },
   "visual": {
     "visualType": "card",
     "drillFilterOtherVisuals": true,
     "objects": {
+      "categoryLabels": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
       "labels": [
         {
           "properties": {
