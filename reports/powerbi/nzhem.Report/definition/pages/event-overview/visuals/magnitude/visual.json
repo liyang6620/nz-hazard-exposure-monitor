@@ -5,14 +5,27 @@
     "x": 48,
     "y": 248,
     "z": 1,
-    "width": 292,
-    "height": 122,
+    "width": 324,
+    "height": 112,
     "tabOrder": 1
   },
   "visual": {
     "visualType": "card",
     "drillFilterOtherVisuals": true,
     "objects": {
+      "categoryLabels": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
       "labels": [
         {
           "properties": {
@@ -63,7 +76,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'PEAK MAGNITUDE'"
+                  "Value": "'MAGNITUDE'"
                 }
               }
             }

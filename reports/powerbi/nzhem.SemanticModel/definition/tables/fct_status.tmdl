@@ -1,0 +1,20 @@
+table fct_status
+	lineageTag: 6bf5b151-741b-5e66-b93e-679d8e53ea80
+
+	column 'Assessment Status'
+		dataType: string
+		lineageTag: 1342f3ec-26cb-5ce1-b611-cc23fc2669ab
+		summarizeBy: none
+		sourceColumn: assessment_status
+
+	column 'Event Count'
+		dataType: int64
+		isHidden
+		formatString: #,0
+		lineageTag: 37a446c2-9073-5294-821f-735a503ef229
+		summarizeBy: none
+		sourceColumn: event_count
+
+	partition fct_status = m
+		mode: import
+		source = Parquet.Document(File.Contents(RepoRoot & "\.local\data\powerbi\fct_status.parquet"))

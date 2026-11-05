@@ -35,6 +35,7 @@ TABLES = {
         ("Event Date", "event_date", "dateTime", False, "d MMM yyyy", None),
         ("Event Date (NZ)", "event_date_label", "string", False, None, None),
         ("Origin Time", "origin_time", "dateTime", False, "d MMM yyyy HH:mm", None),
+        ("Origin Time NZ", "origin_time_label", "string", False, None, None),
         ("Timeline Year", "timeline_year", "double", True, "0.0", None),
         ("Magnitude", "magnitude", "double", False, "0.0", None),
         ("Depth km", "depth_km", "double", False, "#,0.0", None),
@@ -108,7 +109,16 @@ TABLES = {
         ("Last Run", "last_successful_run", "dateTime", True, "d MMM yyyy HH:mm", None),
         ("Failed Runs", "failed_runs", "int64", True, "#,0", None),
         ("Recorded Runs", "recorded_runs", "int64", True, "#,0", None),
+        ("Poison Messages", "poison_messages", "int64", True, "#,0", None),
         ("Scope", "scope", "string", False, None, None),
+    ],
+    "fct_status": [
+        ("Assessment Status", "assessment_status", "string", False, None, None),
+        ("Event Count", "event_count", "int64", True, "#,0", None),
+    ],
+    "fct_source": [
+        ("Shaking Source", "shaking_source", "string", False, None, None),
+        ("Event Count", "event_count", "int64", True, "#,0", None),
     ],
 }
 
@@ -209,21 +219,70 @@ MEASURES = [
         'FORMAT(MAX(fct_health[Last Run]), "d MMM yyyy HH:mm", "en-NZ")',
         "@",
         "04 Quality",
-        "Last successful local SQLite housekeeping run captured by the snapshot; not Azure live status.",
+        "Last successful Azure housekeeping run captured in the read-only snapshot.",
     ),
     (
         "Hours Since Last Run",
-        "DATEDIFF(MAX(fct_health[Last Run]), NOW(), HOUR)",
+        "DATEDIFF(MAX(fct_health[Last Run]), UTCNOW(), HOUR)",
         "#,0",
         "04 Quality",
-        "Age of the last local run at report viewing time, in hours.",
+        "Age of the last Azure housekeeping run at report viewing time, in hours.",
     ),
     (
         "Failed Runs",
         "SUM(fct_health[Failed Runs])",
         "#,0",
         "04 Quality",
-        "Recorded failed local housekeeping runs in the snapshot.",
+        "Failed Azure housekeeping runs in the read-only snapshot.",
+    ),
+    (
+        "Poison Messages",
+        "SUM(fct_health[Poison Messages])",
+        "#,0",
+        "04 Quality",
+        "Approximate number of messages in the Azure poison queue at snapshot time.",
+    ),
+    (
+        "Live Event Count",
+        "SUM(fct_status[Event Count])",
+        "#,0",
+        "04 Quality",
+        "Recent monitored events by terminal assessment state in the published site index.",
+    ),
+    (
+        "Shaking Source Events",
+        "SUM(fct_source[Event Count])",
+        "#,0",
+        "04 Quality",
+        "Recent monitored events by published shaking source.",
+    ),
+    (
+        "Largest Event Exposure",
+        "MAXX(VALUES(dim_event[Event ID]), [Exposed Buildings])",
+        "#,0",
+        "03 Events",
+        "Largest building exposure in a single replay at the selected MMI threshold.",
+    ),
+    (
+        "Largest Exposure Event",
+        'VAR ranked = TOPN(1, VALUES(dim_event[Event ID]), [Exposed Buildings], DESC, dim_event[Event ID], ASC) RETURN CONCATENATEX(ranked, CALCULATE(SELECTEDVALUE(dim_event[Event])), ", ")',
+        "@",
+        "03 Events",
+        "Event name associated with the largest single-event building exposure.",
+    ),
+    (
+        "Events with Damaging Shaking",
+        "COUNTROWS(FILTER(VALUES(dim_event[Event ID]), CALCULATE([Max MMI]) >= 6))",
+        "#,0",
+        "03 Events",
+        "Number of replay events reaching MMI 6 in a populated cell.",
+    ),
+    (
+        "Share of Stock Title",
+        'IF(HASONEVALUE(dim_region[Region]), "Share of region stock", "Share of national stock")',
+        "@",
+        "02 Regions",
+        "Describes whether the denominator covers a selected region or the national stock.",
     ),
     (
         "Map Buildings",
@@ -302,11 +361,7 @@ def table_tmdl(name: str, columns: list[tuple[str, str, str, bool, str | None, s
     lines += [
         f"\tpartition {quoted} = m",
         "\t\tmode: import",
-        "\t\tsource =",
-        "\t\t\t\tlet",
-        f'\t\t\t\t\tSource = Parquet.Document(File.Contents(RepoRoot & "\\.local\\data\\powerbi\\{filename}.parquet"))',
-        "\t\t\t\tin",
-        "\t\t\t\t\tSource",
+        f'\t\tsource = Parquet.Document(File.Contents(RepoRoot & "\\.local\\data\\powerbi\\{filename}.parquet"))',
         "",
     ]
     return "\n".join(lines)
@@ -371,6 +426,7 @@ def visual(
     inner = result["visual"]
     if kind == "card":
         inner["objects"] = {
+            "categoryLabels": [{"properties": {"show": {"expr": {"Literal": {"Value": "false"}}}}}],
             "labels": [
                 {
                     "properties": {
@@ -382,7 +438,7 @@ def visual(
                         ),
                     }
                 }
-            ]
+            ],
         }
     elif kind in {"clusteredBarChart", "clusteredColumnChart", "columnChart"} or name in {
         "history-trend",
@@ -448,6 +504,80 @@ def visual(
     return result
 
 
+def sort_visual(
+    item: dict[str, object], table: str, name: str, *, descending: bool = True, measure: bool = True
+) -> dict[str, object]:
+    item["visual"]["query"]["sortDefinition"] = {
+        "sort": [
+            {
+                "field": field(table, name, measure)["field"],
+                "direction": "Descending" if descending else "Ascending",
+            }
+        ],
+        "isDefaultSort": False,
+    }
+    return item
+
+
+def no_totals(item: dict[str, object]) -> dict[str, object]:
+    item["visual"].setdefault("objects", {})["total"] = [
+        {"properties": {"totals": {"expr": {"Literal": {"Value": "false"}}}}}
+    ]
+    return item
+
+
+def table_widths(item: dict[str, object], widths: dict[str, int]) -> dict[str, object]:
+    objects = item["visual"].setdefault("objects", {})
+    objects["columnHeaders"] = [{"properties": {}}]
+    objects["columnWidth"] = [
+        {
+            "properties": {"value": {"expr": {"Literal": {"Value": f"{width}D"}}}},
+            "selector": {"metadata": column},
+        }
+        for column, width in widths.items()
+    ]
+    return item
+
+
+def map_axes(item: dict[str, object]) -> dict[str, object]:
+    axes = item["visual"].setdefault("objects", {})
+    for axis, start, end in (("categoryAxis", 160, 185), ("valueAxis", -48.5, -33.5)):
+        axes[axis] = [
+            {
+                "properties": {
+                    "show": {"expr": {"Literal": {"Value": "false"}}},
+                    "start": {"expr": {"Literal": {"Value": f"{start}D"}}},
+                    "end": {"expr": {"Literal": {"Value": f"{end}D"}}},
+                    "showAxisTitle": {"expr": {"Literal": {"Value": "false"}}},
+                    "gridlineShow": {"expr": {"Literal": {"Value": "false"}}},
+                }
+            }
+        ]
+    axes["plotArea"] = [
+        {
+            "properties": {
+                "transparency": {"expr": {"Literal": {"Value": "0D"}}},
+                "image": {
+                    "image": {
+                        "name": {"expr": {"Literal": {"Value": "'nz-coastline.svg'"}}},
+                        "url": {
+                            "expr": {
+                                "ResourcePackageItem": {
+                                    "PackageName": "RegisteredResources",
+                                    "PackageType": 1,
+                                    "ItemName": "nz-coastline.svg",
+                                }
+                            }
+                        },
+                        "scaling": {"expr": {"Literal": {"Value": "'Fill'"}}},
+                    }
+                },
+            }
+        }
+    ]
+    return item
+
+
 def add(page: Path, item: dict[str, object]) -> None:
     write(page / "visuals" / item["name"] / "visual.json", item)
 
@@ -502,7 +632,17 @@ def build_page(slug: str, title: str, subtitle: str, items: list[dict[str, objec
 def card(
     name: str, measure: str, title: str, x: int, y: int, width: int = 292
 ) -> dict[str, object]:
-    return visual(name, "card", x, y, width, 122, {"Values": [("_Measures", measure, True)]}, title)
+    item = visual(name, "card", x, y, width, 112, {"Values": [("_Measures", measure, True)]}, title)
+    if name == "region-share":
+        item["visual"]["visualContainerObjects"]["title"][0]["properties"]["text"] = {
+            "expr": {
+                "Measure": {
+                    "Expression": {"SourceRef": {"Entity": "_Measures"}},
+                    "Property": "Share of Stock Title",
+                }
+            }
+        }
+    return item
 
 
 def chart(
@@ -517,15 +657,19 @@ def chart(
     metrics: list[str],
 ) -> dict[str, object]:
     role = "Y" if kind == "clusteredBarChart" else "Y"
-    return visual(
-        name,
-        kind,
-        x,
-        y,
-        width,
-        height,
-        {"Category": [category], role: [("_Measures", m, True) for m in metrics]},
-        title,
+    return sort_visual(
+        visual(
+            name,
+            kind,
+            x,
+            y,
+            width,
+            height,
+            {"Category": [category], role: [("_Measures", m, True) for m in metrics]},
+            title,
+        ),
+        "_Measures",
+        metrics[0],
     )
 
 
@@ -538,7 +682,7 @@ def threshold_slicer() -> dict[str, object]:
         288,
         96,
         {"Values": [("MMI Threshold", "MMI Threshold", False)]},
-        "MMI THRESHOLD",
+        None,
     )
     item["visual"]["objects"] = {
         "data": [{"properties": {"mode": {"expr": {"Literal": {"Value": "'Dropdown'"}}}}}],
@@ -586,7 +730,7 @@ def event_slicer() -> dict[str, object]:
         400,
         96,
         {"Values": [("dim_event", "Event", False)]},
-        "EVENT",
+        None,
     )
     item["visual"]["objects"] = {
         "data": [{"properties": {"mode": {"expr": {"Literal": {"Value": "'Dropdown'"}}}}}],
@@ -653,41 +797,45 @@ def build_report() -> None:
     overview = [
         selected_event,
         threshold,
-        card("magnitude", "Magnitude", "PEAK MAGNITUDE", 48, 248),
-        card("mmi", "Max MMI", "MAXIMUM MMI", 348, 248),
-        card("buildings", "Exposed Buildings", "EXPOSED BUILDINGS", 648, 248),
-        card("people", "Exposed Population", "EXPOSED PEOPLE", 948, 248),
-        visual(
-            "h3-map",
-            "scatterChart",
-            48,
-            392,
-            708,
-            428,
-            {
-                "X": [("_Measures", "Map Longitude", True)],
-                "Y": [("_Measures", "Map Latitude", True)],
-                "Size": [("_Measures", "Map Buildings", True)],
-                "Category": [("fct_map", "H3 Cell", False)],
-                "Series": [("dim_mmi_band", "MMI Band", False)],
-            },
-            "H3 EXPOSURE POINTS  /  LONGITUDE × LATITUDE",
+        card("magnitude", "Magnitude", "MAGNITUDE", 48, 248, 324),
+        card("mmi", "Max MMI", "MAXIMUM MMI", 388, 248, 324),
+        card("buildings", "Exposed Buildings", "EXPOSED BUILDINGS", 728, 248, 324),
+        card("people", "Exposed Population", "EXPOSED PEOPLE", 1068, 248, 324),
+        map_axes(
+            visual(
+                "h3-map",
+                "scatterChart",
+                48,
+                392,
+                708,
+                428,
+                {
+                    "X": [("_Measures", "Map Longitude", True)],
+                    "Y": [("_Measures", "Map Latitude", True)],
+                    "Size": [("_Measures", "Map Buildings", True)],
+                    "Category": [("fct_map", "H3 Cell", False)],
+                    "Series": [("dim_mmi_band", "MMI Band", False)],
+                },
+                "H3 EXPOSURE POINTS / MMI INTENSITY",
+            )
         ),
-        visual(
-            "event-source",
-            "tableEx",
-            460,
-            142,
-            620,
-            86,
-            {
-                "Values": [
-                    ("dim_event", "Event", False),
-                    ("dim_event", "Shaking Source", False),
-                    ("dim_event", "Exposure Basis", False),
-                ]
-            },
-            "SOURCE AND BASIS",
+        no_totals(
+            visual(
+                "event-source",
+                "tableEx",
+                460,
+                142,
+                620,
+                86,
+                {
+                    "Values": [
+                        ("dim_event", "Event", False),
+                        ("dim_event", "Shaking Source", False),
+                        ("dim_event", "Exposure Basis", False),
+                    ]
+                },
+                "SOURCE AND BASIS",
+            )
         ),
         chart(
             "regions",
@@ -710,18 +858,29 @@ def build_report() -> None:
 
     comparison = [
         threshold,
-        card("events", "Event Count", "HISTORICAL EVENTS", 48, 146),
-        card("total-buildings", "Exposed Buildings", "EVENT-BUILDING EXPOSURES", 348, 146),
-        card("total-people", "Exposed Population", "EVENT-PEOPLE EXPOSURES", 648, 146),
-        card("peak-mmi", "Max MMI", "HIGHEST MMI", 948, 146, 150),
+        card("events", "Event Count", "HISTORICAL EVENTS", 48, 146, 324),
+        card(
+            "largest-buildings", "Largest Event Exposure", "LARGEST EVENT EXPOSURE", 388, 146, 324
+        ),
+        card(
+            "largest-event", "Largest Exposure Event", "EVENT WITH LARGEST EXPOSURE", 728, 146, 324
+        ),
+        card(
+            "damaging-events",
+            "Events with Damaging Shaking",
+            "EVENTS WITH DAMAGING SHAKING",
+            1068,
+            146,
+            324,
+        ),
         chart(
             "event-buildings",
             "clusteredBarChart",
             "BUILDINGS / EVENT",
             48,
-            310,
+            284,
             658,
-            340,
+            240,
             ("dim_event", "Event", False),
             ["Exposed Buildings"],
         ),
@@ -730,90 +889,133 @@ def build_report() -> None:
             "clusteredBarChart",
             "PEOPLE / EVENT",
             730,
-            310,
+            284,
             662,
-            340,
+            240,
             ("dim_event", "Event", False),
             ["Exposed Population"],
         ),
-        visual(
-            "event-comparison-table",
-            "tableEx",
-            48,
-            670,
-            1344,
-            144,
+        table_widths(
+            no_totals(
+                sort_visual(
+                    visual(
+                        "event-comparison-table",
+                        "tableEx",
+                        48,
+                        536,
+                        1344,
+                        278,
+                        {
+                            "Values": [
+                                ("dim_event", "Event", False),
+                                ("_Measures", "Magnitude", True),
+                                ("_Measures", "Max MMI", True),
+                                ("_Measures", "Exposed Buildings", True),
+                                ("_Measures", "Exposed Population", True),
+                            ]
+                        },
+                        "EVENT COMPARISON / SELECT ANY ROW TO CROSS-FILTER",
+                    ),
+                    "_Measures",
+                    "Exposed Buildings",
+                )
+            ),
             {
-                "Values": [
-                    ("dim_event", "Event", False),
-                    ("_Measures", "Magnitude", True),
-                    ("_Measures", "Max MMI", True),
-                    ("_Measures", "Exposed Buildings", True),
-                    ("_Measures", "Exposed Population", True),
-                ]
+                "dim_event.Event": 340,
+                "_Measures.Magnitude": 180,
+                "_Measures.Max MMI": 180,
+                "_Measures.Exposed Buildings": 300,
+                "_Measures.Exposed Population": 300,
             },
-            "EVENT COMPARISON / SELECT ANY ROW TO CROSS-FILTER",
         ),
     ]
     build_page(
         "event-comparison",
         "Event Comparison",
-        "Ten fixed earthquakes replayed against today's buildings and the 2023 population; totals count repeat exposure.",
+        "Ten fixed earthquakes replayed against today's buildings and the 2023 population.",
         comparison,
     )
 
     regional = [
         selected_event,
         threshold,
-        card("region-buildings", "Exposed Buildings", "EXPOSED BUILDINGS", 48, 244),
-        card("region-share", "% Region Buildings Exposed", "SHARE OF REGION STOCK", 348, 244),
-        card("accumulation", "Accumulated Building Exposures", "ACCUMULATED EXPOSURES", 648, 244),
-        card("strong-cells", "Buildings in Strong Cells", "BUILDINGS IN MMI 6+ CELLS", 948, 244),
+        card("region-buildings", "Exposed Buildings", "EXPOSED BUILDINGS", 48, 244, 324),
+        card(
+            "region-share", "% Region Buildings Exposed", "SHARE OF NATIONAL STOCK", 388, 244, 324
+        ),
+        card(
+            "accumulation",
+            "Accumulated Building Exposures",
+            "REPEAT EXPOSURE ACROSS 10 REPLAYS",
+            728,
+            244,
+            324,
+        ),
+        card(
+            "strong-cells", "Buildings in Strong Cells", "BUILDINGS IN MMI 6+ CELLS", 1068, 244, 324
+        ),
         chart(
             "region-ranking",
             "clusteredBarChart",
             "REGION / TERRITORIAL AUTHORITY RANKING",
-            48,
-            402,
-            660,
-            220,
-            ("dim_region", "Territorial Authority", False),
-            ["Exposed Buildings"],
-        ),
-        visual(
-            "regional-map",
-            "scatterChart",
             732,
             402,
             660,
-            220,
-            {
-                "X": [("_Measures", "Regional Map Longitude", True)],
-                "Y": [("_Measures", "Regional Map Latitude", True)],
-                "Size": [("_Measures", "Accumulated Building Exposures", True)],
-                "Category": [("dim_region", "Territorial Authority", False)],
-            },
-            "ACCUMULATION CENTROIDS  /  LONGITUDE × LATITUDE",
+            190,
+            ("dim_region", "Territorial Authority", False),
+            ["Exposed Buildings"],
         ),
-        visual(
-            "region-table",
-            "pivotTable",
-            48,
-            640,
-            1344,
-            174,
+        map_axes(
+            visual(
+                "regional-map",
+                "scatterChart",
+                48,
+                402,
+                660,
+                412,
+                {
+                    "X": [("_Measures", "Regional Map Longitude", True)],
+                    "Y": [("_Measures", "Regional Map Latitude", True)],
+                    "Size": [("_Measures", "Accumulated Building Exposures", True)],
+                    "Category": [("dim_region", "Territorial Authority", False)],
+                },
+                "REPEAT EXPOSURE ACROSS 10 REPLAYS / CENTROIDS",
+            )
+        ),
+        table_widths(
+            no_totals(
+                sort_visual(
+                    visual(
+                        "region-table",
+                        "pivotTable",
+                        732,
+                        606,
+                        660,
+                        208,
+                        {
+                            "Rows": [
+                                ("dim_region", "Region", False),
+                                ("dim_region", "Territorial Authority", False),
+                            ],
+                            "Values": [
+                                ("_Measures", "Exposed Buildings", True),
+                                ("_Measures", "% Region Buildings Exposed", True),
+                                ("_Measures", "Accumulated Building Exposures", True),
+                            ],
+                        },
+                        "REGIONAL DETAIL / REPEAT EXPOSURE ACROSS 10 REPLAYS",
+                    ),
+                    "_Measures",
+                    "Exposed Buildings",
+                )
+            ),
             {
-                "Rows": [
-                    ("dim_region", "Region", False),
-                    ("dim_region", "Territorial Authority", False),
-                ],
-                "Values": [
-                    ("_Measures", "Exposed Buildings", True),
-                    ("_Measures", "% Region Buildings Exposed", True),
-                    ("_Measures", "Accumulated Building Exposures", True),
-                ],
+                "dim_region.Region": 170,
+                "dim_region.Territorial Authority": 170,
+                "_Measures.Exposed Buildings": 95,
+                "_Measures.% Region Buildings Exposed": 95,
+                "_Measures.Accumulated Building Exposures": 110,
             },
-            "REGIONAL DETAIL",
         ),
     ]
     build_page(
@@ -833,17 +1035,25 @@ def build_report() -> None:
             400,
             96,
             {"Values": [("dim_region", "Region", False)]},
-            "REGION",
+            None,
         ),
-        card("history-events", "Event Count", "EVENTS", 48, 260),
-        card("history-buildings", "Exposed Buildings", "EVENT-BUILDING EXPOSURES", 348, 260),
-        card("history-mmi", "Max MMI", "HIGHEST MMI", 648, 260),
+        card("history-events", "Event Count", "EVENTS", 48, 260, 324),
+        card(
+            "history-damaging",
+            "Events with Damaging Shaking",
+            "EVENTS WITH DAMAGING SHAKING",
+            388,
+            260,
+            324,
+        ),
+        card("history-mmi", "Largest Exposure Event", "LARGEST EXPOSURE EVENT", 728, 260, 324),
+        card("history-largest", "Largest Event Exposure", "LARGEST EVENT EXPOSURE", 1068, 260, 324),
         visual(
             "history-trend",
             "scatterChart",
             48,
             420,
-            860,
+            600,
             394,
             {
                 "X": [("_Measures", "Timeline Year", True)],
@@ -857,23 +1067,38 @@ def build_report() -> None:
             },
             "EVENT TIME × MAGNITUDE  /  BUBBLE AREA = EXPOSED BUILDINGS",
         ),
-        visual(
-            "history-table",
-            "tableEx",
-            932,
-            420,
-            460,
-            394,
+        table_widths(
+            no_totals(
+                sort_visual(
+                    visual(
+                        "history-table",
+                        "tableEx",
+                        672,
+                        420,
+                        720,
+                        394,
+                        {
+                            "Values": [
+                                ("dim_event", "Event", False),
+                                ("dim_event", "Origin Time NZ", False),
+                                ("_Measures", "Magnitude", True),
+                                ("_Measures", "Exposed Buildings", True),
+                            ]
+                        },
+                        "EVENT CHRONOLOGY",
+                    ),
+                    "dim_event",
+                    "Origin Time NZ",
+                    descending=False,
+                    measure=False,
+                )
+            ),
             {
-                "Values": [
-                    ("dim_event", "Event", False),
-                    ("dim_event", "Event Date (NZ)", False),
-                    ("_Measures", "Magnitude", True),
-                    ("_Measures", "Exposed Buildings", True),
-                    ("_Measures", "Exposed Population", True),
-                ]
+                "dim_event.Event": 205,
+                "dim_event.Origin Time NZ": 230,
+                "_Measures.Magnitude": 85,
+                "_Measures.Exposed Buildings": 145,
             },
-            "EVENT CHRONOLOGY",
         ),
     ]
     build_page(
@@ -884,49 +1109,67 @@ def build_report() -> None:
     )
 
     quality = [
-        card("last-run", "Last Successful Run", "LAST LOCAL RUN", 48, 150, 360),
-        card("hours", "Hours Since Last Run", "AGE OF LOCAL RUN / HOURS", 420, 150, 292),
-        card("failures", "Failed Runs", "RECORDED FAILURES", 724, 150, 292),
-        card("stations", "Validation Stations", "VALID STATIONS", 1028, 150, 364),
-        card("mae", "Estimated MMI MAE", "STATION-WEIGHTED MAE", 48, 310, 360),
+        card("last-run", "Last Successful Run", "LAST SUCCESSFUL RUN / UTC", 48, 148, 280),
+        card("hours", "Hours Since Last Run", "HOURS SINCE LAST RUN", 340, 148, 252),
+        card("failures", "Failed Runs", "FAILED RUNS", 604, 148, 252),
+        card("poison", "Poison Messages", "POISON MESSAGES", 868, 148, 252),
+        card("mae", "Estimated MMI MAE", "STATION-WEIGHTED MAE", 1132, 148, 260),
+        chart(
+            "status",
+            "clusteredBarChart",
+            "RECENT EVENT STATUS",
+            48,
+            284,
+            420,
+            410,
+            ("fct_status", "Assessment Status", False),
+            ["Live Event Count"],
+        ),
         chart(
             "source",
-            "columnChart",
-            "SHAKING SOURCE / EVENT COUNT",
+            "clusteredBarChart",
+            "RECENT SHAKING SOURCE",
+            484,
+            284,
             420,
-            310,
-            480,
-            236,
-            ("dim_event", "Shaking Source", False),
-            ["Event Count"],
+            410,
+            ("fct_source", "Shaking Source", False),
+            ["Shaking Source Events"],
         ),
-        visual(
-            "quality-table",
-            "tableEx",
-            920,
-            310,
-            472,
-            504,
-            {
-                "Values": [
-                    ("dim_event", "Event", False),
-                    ("_Measures", "Validation Stations", True),
-                    ("_Measures", "Estimated MMI MAE", True),
-                ]
-            },
-            "MODEL VALIDATION BY EVENT",
+        no_totals(
+            sort_visual(
+                visual(
+                    "quality-table",
+                    "tableEx",
+                    920,
+                    284,
+                    472,
+                    410,
+                    {
+                        "Values": [
+                            ("dim_event", "Event", False),
+                            ("_Measures", "Validation Stations", True),
+                            ("_Measures", "Estimated MMI MAE", True),
+                        ]
+                    },
+                    "MODEL VALIDATION BY EVENT",
+                ),
+                "_Measures",
+                "Estimated MMI MAE",
+            )
         ),
         visual(
             "limitations",
             "textbox",
             48,
-            582,
-            820,
-            232,
+            710,
+            1344,
+            104,
             text=(
-                "LOCAL SNAPSHOT ONLY. No policy or insured-value data are used. "
-                "MAE is station-weighted and indicative, not an actuarial loss estimate. "
-                "Building lifecycle dates are approximate; all ten historical replays use current outlines. "
+                "READ-ONLY AZURE SNAPSHOT. Housekeeping failures and poison-queue depth are "
+                "captured at refresh time. Recent event status and shaking source come from the "
+                "published index. The station-weighted MAE is indicative, not an actuarial loss "
+                "estimate. Historical replays use current building outlines and 2023 population. "
                 "Water cells and the Chatham Islands are outside the mapped exposure model."
             ),
         ),
@@ -934,7 +1177,7 @@ def build_report() -> None:
     build_page(
         "data-health",
         "Data Health",
-        "Local gold and SQLite snapshot; this page does not claim live Azure health.",
+        "Azure gold and runtime, read-only at refresh time; not a live dashboard.",
         quality,
     )
 
@@ -985,7 +1228,7 @@ def main() -> None:
     build_report()
     theme = {
         "name": "NZHEM Earthquake Record",
-        "dataColors": ["#F7D34D", "#FFF200", "#FFB300", "#FF6800", "#D7191C"],
+        "dataColors": ["#FFF9D6", "#FFF200", "#FFB300", "#FF6800", "#D7191C"],
         "background": "#F2EDDF",
         "foreground": "#171815",
         "tableAccent": "#171815",
@@ -1025,7 +1268,8 @@ def main() -> None:
             "name": "RegisteredResources",
             "type": "RegisteredResources",
             "items": [
-                {"name": "nzhem-theme.json", "path": "nzhem-theme.json", "type": "CustomTheme"}
+                {"name": "nzhem-theme.json", "path": "nzhem-theme.json", "type": "CustomTheme"},
+                {"name": "nz-coastline.svg", "path": "nz-coastline.svg", "type": "Image"},
             ],
         }
     ]

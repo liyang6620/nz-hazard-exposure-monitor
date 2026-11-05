@@ -2,10 +2,10 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
   "name": "history-table",
   "position": {
-    "x": 932,
+    "x": 672,
     "y": 420,
     "z": 1,
-    "width": 460,
+    "width": 720,
     "height": 394,
     "tabOrder": 1
   },
@@ -38,11 +38,11 @@
                       "Entity": "dim_event"
                     }
                   },
-                  "Property": "Event Date (NZ)"
+                  "Property": "Origin Time NZ"
                 }
               },
-              "queryRef": "dim_event.Event Date (NZ)",
-              "nativeQueryRef": "Event Date (NZ)"
+              "queryRef": "dim_event.Origin Time NZ",
+              "nativeQueryRef": "Origin Time NZ"
             },
             {
               "field": {
@@ -71,23 +71,27 @@
               },
               "queryRef": "_Measures.Exposed Buildings",
               "nativeQueryRef": "Exposed Buildings"
-            },
-            {
-              "field": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "_Measures"
-                    }
-                  },
-                  "Property": "Exposed Population"
-                }
-              },
-              "queryRef": "_Measures.Exposed Population",
-              "nativeQueryRef": "Exposed Population"
             }
           ]
         }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "dim_event"
+                  }
+                },
+                "Property": "Origin Time NZ"
+              }
+            },
+            "direction": "Ascending"
+          }
+        ],
+        "isDefaultSort": false
       }
     },
     "visualContainerObjects": {
@@ -108,6 +112,84 @@
                 }
               }
             }
+          }
+        }
+      ]
+    },
+    "objects": {
+      "total": [
+        {
+          "properties": {
+            "totals": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "columnHeaders": [
+        {
+          "properties": {}
+        }
+      ],
+      "columnWidth": [
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "205D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "dim_event.Event"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "230D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "dim_event.Origin Time NZ"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "85D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "_Measures.Magnitude"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "145D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "_Measures.Exposed Buildings"
           }
         }
       ]

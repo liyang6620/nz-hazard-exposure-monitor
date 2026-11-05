@@ -3,10 +3,10 @@
   "name": "quality-table",
   "position": {
     "x": 920,
-    "y": 310,
+    "y": 284,
     "z": 1,
     "width": 472,
-    "height": 504,
+    "height": 410,
     "tabOrder": 1
   },
   "visual": {
@@ -60,6 +60,24 @@
             }
           ]
         }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "_Measures"
+                  }
+                },
+                "Property": "Estimated MMI MAE"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": false
       }
     },
     "visualContainerObjects": {
@@ -77,6 +95,21 @@
               "expr": {
                 "Literal": {
                   "Value": "'MODEL VALIDATION BY EVENT'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "objects": {
+      "total": [
+        {
+          "properties": {
+            "totals": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
                 }
               }
             }

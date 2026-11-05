@@ -33,6 +33,14 @@ table fct_health
 		summarizeBy: none
 		sourceColumn: recorded_runs
 
+	column 'Poison Messages'
+		dataType: int64
+		isHidden
+		formatString: #,0
+		lineageTag: 29890f38-5b73-5e34-89ce-45acc0977af9
+		summarizeBy: none
+		sourceColumn: poison_messages
+
 	column 'Scope'
 		dataType: string
 		lineageTag: bbccc48a-622d-57bf-a73f-5237c2162fd3
@@ -41,8 +49,4 @@ table fct_health
 
 	partition fct_health = m
 		mode: import
-		source =
-				let
-					Source = Parquet.Document(File.Contents(RepoRoot & "\.local\data\powerbi\fct_health.parquet"))
-				in
-					Source
+		source = Parquet.Document(File.Contents(RepoRoot & "\.local\data\powerbi\fct_health.parquet"))

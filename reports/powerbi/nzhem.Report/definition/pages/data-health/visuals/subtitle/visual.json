@@ -20,7 +20,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "Local gold and SQLite snapshot; this page does not claim live Azure health.",
+                    "value": "Azure gold and runtime, read-only at refresh time; not a live dashboard.",
                     "textStyle": {
                       "fontFamily": "Segoe UI",
                       "fontSize": "12pt",

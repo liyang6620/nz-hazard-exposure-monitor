@@ -3,10 +3,10 @@
   "name": "limitations",
   "position": {
     "x": 48,
-    "y": 582,
+    "y": 710,
     "z": 1,
-    "width": 820,
-    "height": 232,
+    "width": 1344,
+    "height": 104,
     "tabOrder": 1
   },
   "visual": {
@@ -20,7 +20,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "LOCAL SNAPSHOT ONLY. No policy or insured-value data are used. MAE is station-weighted and indicative, not an actuarial loss estimate. Building lifecycle dates are approximate; all ten historical replays use current outlines. Water cells and the Chatham Islands are outside the mapped exposure model.",
+                    "value": "READ-ONLY AZURE SNAPSHOT. Housekeeping failures and poison-queue depth are captured at refresh time. Recent event status and shaking source come from the published index. The station-weighted MAE is indicative, not an actuarial loss estimate. Historical replays use current building outlines and 2023 population. Water cells and the Chatham Islands are outside the mapped exposure model.",
                     "textStyle": {
                       "fontFamily": "Segoe UI",
                       "fontSize": "12pt",

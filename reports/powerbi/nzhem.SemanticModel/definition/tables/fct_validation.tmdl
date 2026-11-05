@@ -41,8 +41,4 @@ table fct_validation
 
 	partition fct_validation = m
 		mode: import
-		source =
-				let
-					Source = Parquet.Document(File.Contents(RepoRoot & "\.local\data\powerbi\fct_validation.parquet"))
-				in
-					Source
+		source = Parquet.Document(File.Contents(RepoRoot & "\.local\data\powerbi\fct_validation.parquet"))

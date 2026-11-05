@@ -34,7 +34,7 @@ def test_pbip_project_has_five_pages_and_local_only_sources() -> None:
     model_text = "\n".join(path.read_text(encoding="utf-8") for path in model_root.rglob("*.tmdl"))
     assert "File.Contents" in model_text
     assert "https://" not in model_text
-    assert 'Value = "..\\\\.."' in model_text
+    assert 'expression RepoRoot = "..\\\\.."' in model_text
     assert "discourageImplicitMeasures" in model_text
     assert "dataCategory: Time" in model_text
     assert "crossFilteringBehavior: oneDirection" in model_text
@@ -47,6 +47,6 @@ def test_pbip_project_has_five_pages_and_local_only_sources() -> None:
     assert "C:/Users/" not in combined_text
     assert "C:\\\\Users\\\\" not in combined_text
     assert find_local_paths(PBIP_ROOT) == []
-    assert "No policy or insured-value data" in combined_text
+    assert "READ-ONLY AZURE SNAPSHOT" in combined_text
     assert "not an actuarial loss estimate" in combined_text
-    assert "Building lifecycle dates are approximate" in combined_text
+    assert "Historical replays use current building outlines and 2023 population" in combined_text
