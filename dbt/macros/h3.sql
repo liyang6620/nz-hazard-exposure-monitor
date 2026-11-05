@@ -5,3 +5,7 @@
 {% macro default__h3_point_to_cell(latitude, longitude, resolution) -%}
   h3_latlng_to_cell({{ latitude }}, {{ longitude }}, {{ resolution }})
 {%- endmacro %}
+
+{% macro snowflake__h3_point_to_cell(latitude, longitude, resolution) -%}
+  H3_LATLNG_TO_CELL({{ latitude }}, {{ longitude }}, {{ resolution }})
+{%- endmacro %}

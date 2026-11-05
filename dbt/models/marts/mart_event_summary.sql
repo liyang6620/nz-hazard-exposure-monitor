@@ -15,20 +15,42 @@ select
     evt.validation_mae,
     max(exposure.mmi) as max_mmi,
     coalesce(
-        sum(exposure.as_if_today_building_count)
-        filter (where exposure.mmi >= 6),
+        sum(
+            case
+                when exposure.mmi >= 6
+                    then exposure.as_if_today_building_count
+                else 0
+            end
+        ),
         0
     ) as buildings_mmi_ge_6,
     coalesce(
-        sum(exposure.event_building_count) filter (where exposure.mmi >= 6), 0
+        sum(
+            case
+                when exposure.mmi >= 6
+                    then exposure.event_building_count
+                else 0
+            end
+        ), 0
     ) as event_time_buildings_mmi_ge_6,
     coalesce(
-        sum(exposure.as_if_today_footprint_area_m2)
-        filter (where exposure.mmi >= 6),
+        sum(
+            case
+                when exposure.mmi >= 6
+                    then exposure.as_if_today_footprint_area_m2
+                else 0
+            end
+        ),
         0
     ) as footprint_m2_mmi_ge_6,
     coalesce(
-        sum(exposure.population_2023) filter (where exposure.mmi >= 6), 0
+        sum(
+            case
+                when exposure.mmi >= 6
+                    then exposure.population_2023
+                else 0
+            end
+        ), 0
     ) as population_mmi_ge_6
 from {{ ref('dim_event') }} as evt
 left join {{ ref('fct_event_exposure_cell') }} as exposure

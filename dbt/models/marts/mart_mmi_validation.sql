@@ -1,6 +1,12 @@
 {% set event_root = var('event_data_root', '') %}
 
-{% if event_root %}
+{% if var('adapter_name', 'duckdb') == 'snowflake' %}
+    select *, abs(estimated_mmi - observed_mmi) as absolute_error
+    from {{ source('curated', 'mart_mmi_validation') }}
+    {% if var('benchmark_event_id', '') %}
+    where event_id = '{{ var('benchmark_event_id') }}'
+    {% endif %}
+{% elif event_root %}
     select
         *,
         abs(estimated_mmi - observed_mmi) as absolute_error

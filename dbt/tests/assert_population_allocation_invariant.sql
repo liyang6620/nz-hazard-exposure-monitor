@@ -1,6 +1,6 @@
 {% set reference_root = var('reference_data_root', '') %}
 
-{% if reference_root %}
+{% if reference_root or var('adapter_name', 'duckdb') == 'snowflake' %}
 select 'national_total' as failed_scope
 from {{ ref('int_population_h3') }}
 having abs(sum(allocated_population) - 4994034) >= 0.000001

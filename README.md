@@ -60,10 +60,10 @@ Acceptance evidence is under [`evidence/m1-a/`](evidence/m1-a/). The
 documents the poison-queue drill, unchanged gold hashes, TEST-mail rejection
 and hourly telemetry. Action Group email delivery and the NZD 1 natural budget
 stop drill remain open; the student subscription rejected Azure's built-in
-Action Group test. M5 Power BI acceptance was reopened after the old report
-was rejected; the revised five-page PBIP, screenshots and PDF are in PR #59
-for review. The owner cancelled M5 and M8 video deliverables. M7 Snowflake
-work remains deferred.
+Action Group test. The revised M5 five-page PBIP, screenshots and PDF passed
+review in PR #59. The owner cancelled M5 and M8 video deliverables. M7's
+[Snowflake offline preparation](docs/snowflake-benchmark.md) is ready; actual
+benchmark measurements wait for a trial account.
 
 ## Important limitations
 

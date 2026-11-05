@@ -1,0 +1,17 @@
+version: 2
+
+sources:
+  - name: curated
+    database: NZHEM_BENCHMARK
+    schema: CURATED
+    tables:
+      - name: int_buildings_h3
+      - name: stg_stats__population
+      - name: stg_stats__boundaries
+      - name: int_population_h3
+      - name: dim_region
+      - name: dim_h3_cell
+      - name: dim_event
+      - name: int_event_shaking_h3
+      - name: fct_event_exposure_cell
+      - name: mart_mmi_validation
