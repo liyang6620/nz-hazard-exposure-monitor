@@ -47,6 +47,13 @@ def export(connection: duckdb.DuckDBPyConnection, name: str, query: str) -> int:
     ).fetchone()[0]
 
 
+def utc_naive(value: str) -> datetime:
+    parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    if parsed.tzinfo is None:
+        raise ValueError("Run timestamp must include a timezone")
+    return parsed.astimezone(UTC).replace(tzinfo=None)
+
+
 def latest_taumarunui_magnitude() -> float | None:
     generations = ROOT / ".local/data/web/data/generations"
     candidates = sorted(generations.glob("*/replays/2026p776286/summary.json"), reverse=True)
@@ -332,15 +339,16 @@ def main() -> None:
         r["completed_at"] for r in runs if r.get("status") == "success" and r.get("completed_at")
     ]
     failed = sum(r.get("status") != "success" for r in runs)
-    now = datetime.now(UTC).isoformat()
+    now = datetime.now(UTC).replace(tzinfo=None)
+    last_run = max((utc_naive(value) for value in successful), default=None)
     health = OUTPUT / "fct_health.parquet"
     con.execute(
-        "COPY (SELECT ?::TIMESTAMPTZ AS snapshot_at, ?::TIMESTAMPTZ AS last_successful_run, "
+        "COPY (SELECT ?::TIMESTAMP AS snapshot_at, ?::TIMESTAMP AS last_successful_run, "
         "?::INTEGER AS failed_runs, ?::INTEGER AS recorded_runs, "
         "?::INTEGER AS poison_messages, ? AS scope) TO '" + sql_path(health) + "' (FORMAT PARQUET)",
         [
             now,
-            max(successful) if successful else None,
+            last_run,
             failed,
             len(runs),
             poison_count,
@@ -376,7 +384,7 @@ def main() -> None:
     (OUTPUT / "snapshot.json").write_text(
         json.dumps(
             {
-                "created_at": now,
+                "created_at": now.replace(tzinfo=UTC).isoformat(),
                 "source": "Azure gold and runtime"
                 if args.azure
                 else "M3 local gold and reference export",

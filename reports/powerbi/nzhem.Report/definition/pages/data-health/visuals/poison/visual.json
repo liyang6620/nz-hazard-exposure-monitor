@@ -76,7 +76,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'POISON MESSAGES'"
+                  "Value": "'POISON MESSAGES / INCL. DRILLS'"
                 }
               }
             }

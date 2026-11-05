@@ -76,7 +76,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'HOURS SINCE LAST RUN'"
+                  "Value": "'HOURS SINCE RUN / AT SNAPSHOT'"
                 }
               }
             }

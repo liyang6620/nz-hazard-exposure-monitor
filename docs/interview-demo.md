@@ -17,4 +17,5 @@ change Azure resources, invoke a model or display credentials.
 If the latest live event is outside model range or has no damaging shaking,
 show that explicit status and use the historical Kaikōura page for the exposure
 comparison. Do not imply that a historical replay describes 2016 building
-stock. The separate two-minute Power BI walkthrough remains owner-recorded.
+stock. This written script is the M8 interview demonstration deliverable; no
+video is required.

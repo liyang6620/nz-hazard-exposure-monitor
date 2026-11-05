@@ -85,8 +85,8 @@ table _Measures
 		displayFolder: 04 Quality
 		lineageTag: ad02e995-e5a8-5b48-aaeb-fc3f66be368a
 
-	/// Age of the last Azure housekeeping run at report viewing time, in hours.
-	measure 'Hours Since Last Run' = DATEDIFF(MAX(fct_health[Last Run]), UTCNOW(), HOUR)
+	/// Age of the last Azure housekeeping run at snapshot time, in hours; not live.
+	measure 'Hours Since Last Run' = DATEDIFF(MAX(fct_health[Last Run]), MAX(fct_health[Snapshot At]), HOUR)
 		formatString: #,0
 		displayFolder: 04 Quality
 		lineageTag: 6aaba7d9-5893-54d1-8686-ff6d20d4a6e6
@@ -97,7 +97,7 @@ table _Measures
 		displayFolder: 04 Quality
 		lineageTag: a00ad122-e7e7-5829-9779-64c518515fc4
 
-	/// Approximate number of messages in the Azure poison queue at snapshot time.
+	/// Approximate Azure poison-queue depth at snapshot time, including acceptance-drill messages.
 	measure 'Poison Messages' = SUM(fct_health[Poison Messages])
 		formatString: #,0
 		displayFolder: 04 Quality

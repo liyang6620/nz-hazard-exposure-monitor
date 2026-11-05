@@ -223,10 +223,10 @@ MEASURES = [
     ),
     (
         "Hours Since Last Run",
-        "DATEDIFF(MAX(fct_health[Last Run]), UTCNOW(), HOUR)",
+        "DATEDIFF(MAX(fct_health[Last Run]), MAX(fct_health[Snapshot At]), HOUR)",
         "#,0",
         "04 Quality",
-        "Age of the last Azure housekeeping run at report viewing time, in hours.",
+        "Age of the last Azure housekeeping run at snapshot time, in hours; not live.",
     ),
     (
         "Failed Runs",
@@ -240,7 +240,7 @@ MEASURES = [
         "SUM(fct_health[Poison Messages])",
         "#,0",
         "04 Quality",
-        "Approximate number of messages in the Azure poison queue at snapshot time.",
+        "Approximate Azure poison-queue depth at snapshot time, including acceptance-drill messages.",
     ),
     (
         "Live Event Count",
@@ -523,6 +523,45 @@ def no_totals(item: dict[str, object]) -> dict[str, object]:
     item["visual"].setdefault("objects", {})["total"] = [
         {"properties": {"totals": {"expr": {"Literal": {"Value": "false"}}}}}
     ]
+    return item
+
+
+def hide_unmapped_region(item: dict[str, object]) -> dict[str, object]:
+    item["filterConfig"] = {
+        "filters": [
+            {
+                "name": tag(f"filter:unmapped:{item['name']}").replace("-", "")[:20],
+                "field": field("dim_region", "Region")["field"],
+                "type": "Advanced",
+                "filter": {
+                    "Version": 2,
+                    "From": [{"Name": "r", "Entity": "dim_region", "Type": 0}],
+                    "Where": [
+                        {
+                            "Condition": {
+                                "Not": {
+                                    "Expression": {
+                                        "Comparison": {
+                                            "ComparisonKind": 0,
+                                            "Left": {
+                                                "Column": {
+                                                    "Expression": {"SourceRef": {"Source": "r"}},
+                                                    "Property": "Region",
+                                                }
+                                            },
+                                            "Right": {
+                                                "Literal": {"Value": "'Outside mapped regions'"}
+                                            },
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    ],
+                },
+            }
+        ]
+    }
     return item
 
 
@@ -844,16 +883,18 @@ def build_report() -> None:
                 "SOURCE AND BASIS",
             )
         ),
-        chart(
-            "regions",
-            "clusteredBarChart",
-            "REGIONS BY EXPOSED BUILDINGS",
-            780,
-            392,
-            612,
-            428,
-            ("dim_region", "Region", False),
-            ["Exposed Buildings"],
+        hide_unmapped_region(
+            chart(
+                "regions",
+                "clusteredBarChart",
+                "REGIONS BY EXPOSED BUILDINGS",
+                780,
+                392,
+                612,
+                428,
+                ("dim_region", "Region", False),
+                ["Exposed Buildings"],
+            )
         ),
     ]
     build_page(
@@ -981,40 +1022,42 @@ def build_report() -> None:
                 "REPEAT EXPOSURE ACROSS 10 REPLAYS / CENTROIDS",
             )
         ),
-        table_widths(
-            no_totals(
-                sort_visual(
-                    visual(
-                        "region-table",
-                        "pivotTable",
-                        732,
-                        402,
-                        660,
-                        412,
-                        {
-                            "Rows": [
-                                ("dim_region", "Region", False),
-                                ("dim_region", "Territorial Authority", False),
-                            ],
-                            "Values": [
-                                ("_Measures", "Exposed Buildings", True),
-                                ("_Measures", "% Region Buildings Exposed", True),
-                                ("_Measures", "Accumulated Building Exposures", True),
-                            ],
-                        },
-                        "REGION / DISTRICT RANKING AND REPEAT EXPOSURE",
-                    ),
-                    "_Measures",
-                    "Exposed Buildings",
-                )
-            ),
-            {
-                "dim_region.Region": 170,
-                "dim_region.Territorial Authority": 170,
-                "_Measures.Exposed Buildings": 95,
-                "_Measures.% Region Buildings Exposed": 95,
-                "_Measures.Accumulated Building Exposures": 110,
-            },
+        hide_unmapped_region(
+            table_widths(
+                no_totals(
+                    sort_visual(
+                        visual(
+                            "region-table",
+                            "pivotTable",
+                            732,
+                            402,
+                            660,
+                            412,
+                            {
+                                "Rows": [
+                                    ("dim_region", "Region", False),
+                                    ("dim_region", "Territorial Authority", False),
+                                ],
+                                "Values": [
+                                    ("_Measures", "Exposed Buildings", True),
+                                    ("_Measures", "% Region Buildings Exposed", True),
+                                    ("_Measures", "Accumulated Building Exposures", True),
+                                ],
+                            },
+                            "REGION / DISTRICT RANKING AND REPEAT EXPOSURE",
+                        ),
+                        "_Measures",
+                        "Exposed Buildings",
+                    )
+                ),
+                {
+                    "dim_region.Region": 170,
+                    "dim_region.Territorial Authority": 170,
+                    "_Measures.Exposed Buildings": 95,
+                    "_Measures.% Region Buildings Exposed": 95,
+                    "_Measures.Accumulated Building Exposures": 110,
+                },
+            )
         ),
     ]
     build_page(
@@ -1109,9 +1152,9 @@ def build_report() -> None:
 
     quality = [
         card("last-run", "Last Successful Run", "LAST SUCCESSFUL RUN / UTC", 48, 148, 280),
-        card("hours", "Hours Since Last Run", "HOURS SINCE LAST RUN", 340, 148, 252),
+        card("hours", "Hours Since Last Run", "HOURS SINCE RUN / AT SNAPSHOT", 340, 148, 252),
         card("failures", "Failed Runs", "FAILED RUNS", 604, 148, 252),
-        card("poison", "Poison Messages", "POISON MESSAGES", 868, 148, 252),
+        card("poison", "Poison Messages", "POISON MESSAGES / INCL. DRILLS", 868, 148, 252),
         card("mae", "Estimated MMI MAE", "STATION-WEIGHTED MAE", 1132, 148, 260),
         chart(
             "status",
@@ -1227,7 +1270,7 @@ def main() -> None:
     build_report()
     theme = {
         "name": "NZHEM Earthquake Record",
-        "dataColors": ["#FFF9D6", "#FFF200", "#FFB300", "#FF6800", "#D7191C"],
+        "dataColors": ["#E8DFAF", "#FFF200", "#FFB300", "#FF6800", "#D7191C"],
         "background": "#F2EDDF",
         "foreground": "#171815",
         "tableAccent": "#171815",

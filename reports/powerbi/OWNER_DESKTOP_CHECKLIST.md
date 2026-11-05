@@ -23,4 +23,4 @@ To refresh on another computer:
    run `python scripts/finalize_powerbi_pdf.py` to crop only that banner and
    render the five page images.
 5. Do not log in to a Microsoft account, accept licence or privacy prompts, or
-   publish to Power BI Service. The two-minute walkthrough remains for the owner.
+   publish to Power BI Service. Deliver the PBIP, five canvas screenshots and PDF.

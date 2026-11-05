@@ -13,7 +13,6 @@ Power BI Service publication.
 - [Regional Exposure](regional-exposure.png)
 - [Event History](event-history.png)
 - [Data Health](data-health.png)
-- [Two-minute silent Desktop demo with English captions](nzhem-powerbi-demo.mp4)
 - [Model size and validation](model-size.md)
 
 The PDF is a Power BI Desktop export. Desktop printed its unrelated auto-recovery
@@ -46,3 +45,10 @@ Desktop refresh; it is not a live dashboard. Its MMI map is an offline
 longitude/latitude H3 scatter plot over a locally generated coastline image,
 not a service-backed basemap. The regional page combines that map with a
 full-height region/district ranking table; the table supports drill-down.
+
+The 6 Nov NZDT read-only snapshot captured Azure's latest successful
+housekeeping completion at 5 Nov 2026 12:00:02 UTC, alongside the public
+manifest generated at 12:00:02 UTC. Data Health stores UTC clock time without
+timezone conversion and calculates age at snapshot time, not at viewing time.
+The poison-queue depth of 27 includes acceptance-drill messages; the queue does
+not label those messages separately, so no unverified split is presented.
