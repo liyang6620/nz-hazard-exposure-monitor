@@ -28,12 +28,7 @@ rejects a new monthly budget whose start date is in an earlier month.
 The subscription billing currency is NZD. The approved fixed thresholds remain
 NZD 2, NZD 5 and NZD 8, and all three resources have `prevent_destroy`.
 
-The November 2026 Action Group drill adds one independent NZD 1 Actual 100%
-budget. Supply `budget_stop_action_group_id` from the existing production
-Terraform output or state at plan time; do not commit the ID. This temporary
-budget has no `prevent_destroy` and expires after November. Apply only if the
-saved plan shows exactly this one creation and no changes to the fixed budgets.
-After Azure naturally delivers the alert, record the full stop timeline,
-recover the Function using the runbook, then remove this resource in a PR and
-apply only a plan with its single deletion. A budget creation does not prove
-Action Group delivery; Cost Management actual cost may lag.
+The temporary NZD 1 Action Group drill budget was removed on 6 Nov 2026 at the
+owner's request. The saved removal plan contained one deletion and no changes
+to the three permanent budgets. Do not recreate the drill during normal
+operations. The natural budget-alert-to-stop path remains unverified.

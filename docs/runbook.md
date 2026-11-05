@@ -84,17 +84,15 @@ alert is healthy. Deleting the switch entity is deliberate: a missing entity is
 the only disabled state and avoids storing the string `"false"` as a truthy
 Table value.
 
-## Live budget drill
+## Budget-stop verification boundary
 
-For the approved Azure for Students drill, create an independent temporary
-NZD 1 monthly subscription budget bound to the existing budget-stop Action
-Group. Its Terraform root must plan exactly one new budget and no changes to
-the permanent budgets. Cost Management may report usage with a delay; wait for
-the actual amount to cross NZD 1 and record the Azure budget notification,
-Action Group delivery, webhook receipt, durable switch and ARM stop in order.
-After owner-operated recovery, remove only this temporary budget with a plan
-showing one deletion. If Azure rejects the budget or never delivers an alert,
-record the failure without claiming the end-to-end path passed.
+The direct `budget-stop` webhook drill passed. Azure for Students rejected the
+Action Group test operation, so a natural budget alert reaching the Action
+Group and stopping the Function has not been verified end to end. The owner
+removed the temporary NZD 1 drill budget on 6 Nov 2026 to avoid an unattended
+stop. The NZD 5 `budget-killswitch` and NZD 2, 5 and 8 notification budgets
+remain. A natural-alert drill is optional and requires a separate attended
+window and reviewed Terraform plan; do not recreate the NZD 1 budget by default.
 
 The Azure for Students spending limit remains enabled as the final backstop. Do
 not upgrade the subscription or attach a payment method.
