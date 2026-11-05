@@ -1,6 +1,15 @@
 {% set reference_root = var('reference_data_root', '') %}
 
-{% if reference_root %}
+{% if var('adapter_name', 'duckdb') == 'snowflake' %}
+    select
+        building_outline_id, building_id, capture_method, capture_source_group,
+        capture_source_id, capture_source_name, capture_source_from,
+        capture_source_to, lifecycle, begin_lifespan, end_lifespan,
+        footprint_area_m2, longitude, latitude, meshblock_code, sa1_code,
+        sa2_code, sa2_name, region_code, region_name,
+        territorial_authority_code, territorial_authority_name, h3_res8, h3_res6
+    from {{ source('curated', 'int_buildings_h3') }}
+{% elif reference_root %}
     select
         building_outline_id,
         building_id,

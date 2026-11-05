@@ -8,3 +8,16 @@ nz_hazard_exposure_monitor:
       settings:
         memory_limit: 512MB
         preserve_insertion_order: false
+    snowflake_benchmark:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT', 'offline.invalid') }}"
+      user: "{{ env_var('SNOWFLAKE_USER', 'NZHEM_BENCHMARK_USER') }}"
+      private_key_path: "{{ env_var('SNOWFLAKE_PRIVATE_KEY_PATH', '.local/snowflake/rsa_key.p8') }}"
+      private_key_passphrase: "{{ env_var('SNOWFLAKE_PRIVATE_KEY_PASSPHRASE', 'offline-placeholder') }}"
+      role: NZHEM_BENCHMARK_ROLE
+      database: NZHEM_BENCHMARK
+      warehouse: NZHEM_XS
+      schema: "{{ env_var('SNOWFLAKE_SCHEMA', 'BENCHMARK_FULL') }}"
+      threads: 1
+      client_session_keep_alive: false
+      query_tag: "{{ env_var('SNOWFLAKE_QUERY_TAG', 'nzhem_m7') }}"

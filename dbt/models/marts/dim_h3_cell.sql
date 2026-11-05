@@ -1,6 +1,8 @@
 {% set reference_root = var('reference_data_root', '') %}
 
-{% if reference_root %}
+{% if var('adapter_name', 'duckdb') == 'snowflake' %}
+    select * from {{ source('curated', 'dim_h3_cell') }}
+{% elif reference_root %}
     select * from read_parquet('{{ reference_root }}/dim_h3_cell.parquet')
 {% else %}
 with cells as (

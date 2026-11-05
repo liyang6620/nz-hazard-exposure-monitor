@@ -1,6 +1,8 @@
 {% set stats_reference_root = var('stats_reference_root', '') %}
 
-{% if stats_reference_root %}
+{% if var('adapter_name', 'duckdb') == 'snowflake' %}
+    select * from {{ source('curated', 'stg_stats__boundaries') }}
+{% elif stats_reference_root %}
     select
         meshblock_code,
         sa1_code,
