@@ -20,11 +20,22 @@ is not published to Power BI Service and does not require Microsoft sign-in.
 The report uses the same natural event display names as the site, including
 `Christchurch, Feb 2011` and `Kaikōura`. Source IDs are prefixed `replay:` or
 `live:` inside the model to keep the two assessment bases distinct, but keys are
-hidden from report readers. Historical Event Comparison remains limited to the
+hidden from report readers. The source GeoNet ID is also retained as a hidden
+identity: Event History counts 29 unique earthquakes across 30 assessment
+records. Taumarunui appears once in the unfiltered chronology, using the
+historical replay. Selecting Live events or Historical replays still exposes
+the corresponding assessment. Historical Event Comparison remains limited to the
 ten fixed replays. The live public feed contains national MMI-band totals, not
 live region-by-band facts; live maps show an epicentre marker and regional
 attribution is not inferred. A live national row has no stock denominator, so
 regional share is blank for it.
+
+The MMI Threshold control defaults to 6 and changes event exposure cards,
+rankings, table titles and history bubble sizes; the fixed repeat-exposure
+mart and damaging-event count retain an explicit MMI 6+ label. Zero-exposure
+events remain in the comparison table, while ranking bars show only positive
+values. Regional tables show only mapped areas with positive event or repeat
+exposure; the internal live national row is excluded.
 
 ## Model
 

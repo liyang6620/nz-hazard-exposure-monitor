@@ -2,10 +2,10 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
   "name": "event-source",
   "position": {
-    "x": 460,
+    "x": 470,
     "y": 142,
     "z": 1,
-    "width": 620,
+    "width": 480,
     "height": 86,
     "tabOrder": 1
   },

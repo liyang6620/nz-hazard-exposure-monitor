@@ -76,7 +76,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'FAILED RUNS'"
+                  "Value": "'Failed Runs'"
                 }
               }
             }

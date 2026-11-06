@@ -2,10 +2,10 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
   "name": "event-slicer",
   "position": {
-    "x": 252,
+    "x": 250,
     "y": 132,
     "z": 1,
-    "width": 196,
+    "width": 208,
     "height": 96,
     "tabOrder": 1
   },

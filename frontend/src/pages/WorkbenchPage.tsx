@@ -31,7 +31,7 @@ const questions = [
     image: "data-health.png",
     alt: "Data Health report canvas showing last Azure run, failures, poison messages and event status",
     finding:
-      "The 6 Nov snapshot captured a successful Azure run at 07:00 UTC. Poison messages include acceptance drills.",
+      "The 6 Nov snapshot captured a successful Azure run at 11:00 UTC. Poison messages include acceptance drills.",
     page: "Data Health",
   },
 ];

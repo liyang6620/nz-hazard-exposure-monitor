@@ -43,6 +43,18 @@ def main() -> None:
     )
     assert groups.get("Historical replays") == 10, groups
     assert groups.get("Live events", 0) == metadata["ready_live_events"], groups
+    identities = con.execute(
+        "SELECT count(*), count(DISTINCT geonet_event_id) FROM read_parquet(?)",
+        [str(SNAPSHOT / "dim_event.parquet")],
+    ).fetchone()
+    assert identities[0] == 10 + metadata["ready_live_events"]
+    overlaps = con.execute(
+        "SELECT geonet_event_id, count(*), count(DISTINCT event_group) "
+        "FROM read_parquet(?) GROUP BY geonet_event_id HAVING count(*) > 1",
+        [str(SNAPSHOT / "dim_event.parquet")],
+    ).fetchall()
+    assert all(count == 2 and group_count == 2 for _, count, group_count in overlaps), overlaps
+    assert identities[1] == identities[0] - len(overlaps), identities
     live_rows = con.execute(
         """
         SELECT s.event_id, s.buildings_mmi_ge_6, coalesce(sum(e.buildings), 0),

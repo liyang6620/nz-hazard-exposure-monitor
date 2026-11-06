@@ -102,8 +102,13 @@
             },
             "text": {
               "expr": {
-                "Literal": {
-                  "Value": "'PEOPLE / EVENT'"
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "People Ranking Title"
                 }
               }
             }
@@ -114,6 +119,54 @@
   },
   "filterConfig": {
     "filters": [
+      {
+        "name": "6de0e44b1a015ac19567",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "_Measures"
+              }
+            },
+            "Property": "Positive People"
+          }
+        },
+        "type": "Advanced",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "m",
+              "Entity": "_Measures",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "Comparison": {
+                  "ComparisonKind": 0,
+                  "Left": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Source": "m"
+                        }
+                      },
+                      "Property": "Positive People"
+                    }
+                  },
+                  "Right": {
+                    "Literal": {
+                      "Value": "1D"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
       {
         "name": "c92098bb18455175b5bd",
         "field": {

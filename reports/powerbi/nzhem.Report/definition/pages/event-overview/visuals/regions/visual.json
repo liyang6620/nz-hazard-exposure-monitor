@@ -102,8 +102,13 @@
             },
             "text": {
               "expr": {
-                "Literal": {
-                  "Value": "'REGIONS BY EXPOSED BUILDINGS'"
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Region Ranking Title"
                 }
               }
             }
@@ -115,15 +120,15 @@
   "filterConfig": {
     "filters": [
       {
-        "name": "c40bd67d84a55d79be99",
+        "name": "abc46e357a4f5a6b980d",
         "field": {
-          "Column": {
+          "Measure": {
             "Expression": {
               "SourceRef": {
-                "Entity": "dim_region"
+                "Entity": "_Measures"
               }
             },
-            "Property": "Region"
+            "Property": "Visible Exposed Region"
           }
         },
         "type": "Advanced",
@@ -131,33 +136,29 @@
           "Version": 2,
           "From": [
             {
-              "Name": "r",
-              "Entity": "dim_region",
+              "Name": "m",
+              "Entity": "_Measures",
               "Type": 0
             }
           ],
           "Where": [
             {
               "Condition": {
-                "Not": {
-                  "Expression": {
-                    "Comparison": {
-                      "ComparisonKind": 0,
-                      "Left": {
-                        "Column": {
-                          "Expression": {
-                            "SourceRef": {
-                              "Source": "r"
-                            }
-                          },
-                          "Property": "Region"
+                "Comparison": {
+                  "ComparisonKind": 0,
+                  "Left": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Source": "m"
                         }
                       },
-                      "Right": {
-                        "Literal": {
-                          "Value": "'Outside mapped regions'"
-                        }
-                      }
+                      "Property": "Visible Exposed Region"
+                    }
+                  },
+                  "Right": {
+                    "Literal": {
+                      "Value": "1D"
                     }
                   }
                 }

@@ -139,6 +139,7 @@ def add_ready_events(
                 summary.get("source_version"),
                 "Event time",
                 "Live events",
+                str(summary["event_id"]),
             )
         )
         summary_rows.append(
@@ -370,7 +371,8 @@ def main() -> None:
                depth_km,
                mmi_source, shaking_version,
                'As-if-today' AS exposure_basis,
-               'Historical replays' AS event_group
+               'Historical replays' AS event_group,
+               event_id AS geonet_event_id
         FROM read_parquet('{m3}/mart_event_summary.parquet')
     """,
     )

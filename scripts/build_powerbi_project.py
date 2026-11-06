@@ -43,6 +43,7 @@ TABLES = {
         ("Shaking Version", "shaking_version", "string", False, None, None),
         ("Exposure Basis", "exposure_basis", "string", False, None, None),
         ("Event Group", "event_group", "string", False, None, None),
+        ("GeoNet Event ID", "geonet_event_id", "string", True, None, None),
     ],
     "dim_region": [
         ("Region Key", "region_key", "string", True, None, None),
@@ -189,14 +190,14 @@ MEASURES = [
     ),
     (
         "Event Count",
-        "DISTINCTCOUNT(dim_event[Event ID])",
+        "DISTINCTCOUNT(dim_event[GeoNet Event ID])",
         "#,0",
         "03 Events",
-        "Number of distinct live and historical events in filter context.",
+        "Number of distinct GeoNet earthquakes in filter context; a live assessment and replay of the same event count once.",
     ),
     (
         "Timeline Year",
-        "MAX(dim_event[Timeline Year])",
+        "IF([Visible History Event] = 1, MAX(dim_event[Timeline Year]))",
         "0.0",
         "03 Events",
         "Fractional calendar year of the earthquake origin, for the timeline X axis.",
@@ -280,7 +281,7 @@ MEASURES = [
     ),
     (
         "Share of Stock Title",
-        'IF(HASONEVALUE(dim_region[Region]), "Share of region stock", "Share of national stock")',
+        'IF(HASONEVALUE(dim_region[Region]), "Share of Region Stock", "Share of National Stock")',
         "@",
         "02 Regions",
         "Describes whether the denominator covers a selected region or the national stock.",
@@ -347,6 +348,90 @@ MEASURES = [
         "@",
         "04 Quality",
         "UTC time at which the read-only Power BI import snapshot was created.",
+    ),
+    (
+        "Visible History Event",
+        'VAR geonet_id = SELECTEDVALUE(dim_event[GeoNet Event ID]) VAR is_live = SELECTEDVALUE(dim_event[Event Group]) = "Live events" VAR replay_exists = CALCULATE(COUNTROWS(dim_event), REMOVEFILTERS(dim_event), dim_event[GeoNet Event ID] = geonet_id, dim_event[Event Group] = "Historical replays") > 0 RETURN IF(NOT ISFILTERED(dim_event[Event Group]) && is_live && replay_exists, BLANK(), 1)',
+        "0",
+        "03 Events",
+        "In the unfiltered history, keep the historical replay when a GeoNet event also has a live assessment; either group still shows its own row.",
+    ),
+    (
+        "Positive Buildings",
+        "IF([Exposed Buildings] > 0, 1)",
+        "0",
+        "03 Events",
+        "Visual filter for event rankings with positive building exposure at the selected threshold.",
+    ),
+    (
+        "Positive People",
+        "IF([Exposed Population] > 0, 1)",
+        "0",
+        "03 Events",
+        "Visual filter for event rankings with positive population exposure at the selected threshold.",
+    ),
+    (
+        "Visible Exposed Region",
+        'VAR region = SELECTEDVALUE(dim_region[Region]) RETURN IF(region <> "National" && region <> "Outside mapped regions" && [Exposed Buildings] > 0, 1)',
+        "0",
+        "02 Regions",
+        "Visual filter for mapped regions with positive building exposure; internal national live totals are excluded.",
+    ),
+    (
+        "Visible Regional Row",
+        'VAR region = SELECTEDVALUE(dim_region[Region]) RETURN IF(region <> "National" && region <> "Outside mapped regions" && ([Exposed Buildings] > 0 || [Accumulated Building Exposures] > 0), 1)',
+        "0",
+        "02 Regions",
+        "Visual filter for mapped regions or authorities with positive event or repeat exposure.",
+    ),
+    (
+        "Regional Threshold Title",
+        '"Region and district exposure at MMI " & FORMAT([MMI Threshold Selected], "0") & "+ / repeat exposure across 10 replays (fixed MMI 6+)"',
+        "@",
+        "02 Regions",
+        "Regional table title identifies the selected event threshold and the fixed repeat-exposure basis.",
+    ),
+    (
+        "Event Ranking Title",
+        '"Buildings at MMI " & FORMAT([MMI Threshold Selected], "0") & "+ by Event"',
+        "@",
+        "03 Events",
+        "Building ranking title follows the selected threshold.",
+    ),
+    (
+        "Region Ranking Title",
+        '"Buildings at MMI " & FORMAT([MMI Threshold Selected], "0") & "+ by Region"',
+        "@",
+        "02 Regions",
+        "Region ranking title follows the selected threshold.",
+    ),
+    (
+        "People Ranking Title",
+        '"People at MMI " & FORMAT([MMI Threshold Selected], "0") & "+ by Event"',
+        "@",
+        "03 Events",
+        "Population ranking title follows the selected threshold.",
+    ),
+    (
+        "Exposure Comparison Title",
+        '"Event Comparison at MMI " & FORMAT([MMI Threshold Selected], "0") & "+ / Select a Row to Filter"',
+        "@",
+        "03 Events",
+        "Comparison table title follows the selected threshold.",
+    ),
+    (
+        "History Trend Title",
+        '"Event Time × Magnitude / Bubble Area = Buildings at MMI " & FORMAT([MMI Threshold Selected], "0") & "+"',
+        "@",
+        "03 Events",
+        "Event history chart title follows the selected threshold.",
+    ),
+    (
+        "History Table Title",
+        '"Event Chronology / Buildings at MMI " & FORMAT([MMI Threshold Selected], "0") & "+"',
+        "@",
+        "03 Events",
+        "Event history table title follows the selected threshold.",
     ),
 ]
 
@@ -465,7 +550,7 @@ def visual(
                             if (
                                 size := {
                                     "last-run": "18D",
-                                    "exposure-status": "18D",
+                                    "exposure-status": "14D",
                                     "snapshot-time": "14D",
                                 }.get(name)
                             )
@@ -561,9 +646,40 @@ def no_totals(item: dict[str, object]) -> dict[str, object]:
     return item
 
 
+def visible_when(item: dict[str, object], measure: str) -> dict[str, object]:
+    item.setdefault("filterConfig", {}).setdefault("filters", []).append(
+        {
+            "name": tag(f"filter:visible:{item['name']}").replace("-", "")[:20],
+            "field": field("_Measures", measure, True)["field"],
+            "type": "Advanced",
+            "filter": {
+                "Version": 2,
+                "From": [{"Name": "m", "Entity": "_Measures", "Type": 0}],
+                "Where": [
+                    {
+                        "Condition": {
+                            "Comparison": {
+                                "ComparisonKind": 0,
+                                "Left": {
+                                    "Measure": {
+                                        "Expression": {"SourceRef": {"Source": "m"}},
+                                        "Property": measure,
+                                    }
+                                },
+                                "Right": {"Literal": {"Value": "1D"}},
+                            }
+                        }
+                    }
+                ],
+            },
+        }
+    )
+    return item
+
+
 def hide_unmapped_region(item: dict[str, object]) -> dict[str, object]:
-    item["filterConfig"] = {
-        "filters": [
+    item.setdefault("filterConfig", {}).setdefault("filters", []).extend(
+        [
             {
                 "name": tag(f"filter:unmapped:{item['name']}").replace("-", "")[:20],
                 "field": field("dim_region", "Region")["field"],
@@ -596,13 +712,13 @@ def hide_unmapped_region(item: dict[str, object]) -> dict[str, object]:
                 },
             }
         ]
-    }
+    )
     return item
 
 
 def historical_only(item: dict[str, object]) -> dict[str, object]:
-    item["filterConfig"] = {
-        "filters": [
+    item.setdefault("filterConfig", {}).setdefault("filters", []).extend(
+        [
             {
                 "name": tag(f"filter:replays:{item['name']}").replace("-", "")[:20],
                 "field": field("dim_event", "Event Group")["field"],
@@ -630,7 +746,7 @@ def historical_only(item: dict[str, object]) -> dict[str, object]:
                 },
             }
         ]
-    }
+    )
     return item
 
 
@@ -752,7 +868,19 @@ def build_page(
             {"Values": [("_Measures", "Snapshot Time", True)]},
         ),
     )
-    site_button = visual("open-website", "actionButton", 1118, 852, 274, 36, title="OPEN WEBSITE")
+    site_button = visual("open-website", "actionButton", 1118, 852, 274, 36, title="Open Website ↗")
+    site_button["visual"]["visualContainerObjects"]["background"] = [
+        {
+            "properties": {
+                "show": {"expr": {"Literal": {"Value": "true"}}},
+                "color": {"solid": {"color": {"expr": {"Literal": {"Value": "'#171815'"}}}}},
+                "transparency": {"expr": {"Literal": {"Value": "0D"}}},
+            }
+        }
+    ]
+    site_button["visual"]["visualContainerObjects"]["title"][0]["properties"]["fontColor"] = {
+        "solid": {"color": {"expr": {"Literal": {"Value": "'#FFFFFF'"}}}}
+    }
     site_button["visual"].setdefault("visualContainerObjects", {})["visualLink"] = [
         {
             "properties": {
@@ -774,6 +902,7 @@ def build_page(
 def card(
     name: str, measure: str, title: str, x: int, y: int, width: int = 292
 ) -> dict[str, object]:
+    title = title.title().replace("Mmi", "MMI").replace("Utc", "UTC")
     item = visual(name, "card", x, y, width, 112, {"Values": [("_Measures", measure, True)]}, title)
     dynamic_titles = {
         "region-share": "Share of Stock Title",
@@ -782,14 +911,19 @@ def card(
         "region-buildings": "Buildings Threshold Title",
     }
     if name in dynamic_titles:
-        item["visual"]["visualContainerObjects"]["title"][0]["properties"]["text"] = {
-            "expr": {
-                "Measure": {
-                    "Expression": {"SourceRef": {"Entity": "_Measures"}},
-                    "Property": dynamic_titles[name],
-                }
+        dynamic_title(item, dynamic_titles[name])
+    return item
+
+
+def dynamic_title(item: dict[str, object], measure: str) -> dict[str, object]:
+    item["visual"]["visualContainerObjects"]["title"][0]["properties"]["text"] = {
+        "expr": {
+            "Measure": {
+                "Expression": {"SourceRef": {"Entity": "_Measures"}},
+                "Property": measure,
             }
         }
+    }
     return item
 
 
@@ -958,11 +1092,16 @@ def build_report() -> None:
         },
     )
     threshold = threshold_slicer()
-    selected_event = event_slicer()
+    overview_group = event_group_slicer()
+    overview_event = event_slicer()
+    overview_group["position"].update({"x": 48, "width": 190})
+    overview_event["position"].update({"x": 250, "width": 208})
+    overview_threshold = threshold_slicer()
+    overview_threshold["position"].update({"x": 1162, "width": 230})
     overview = [
-        event_group_slicer(),
-        selected_event,
-        threshold,
+        overview_group,
+        overview_event,
+        overview_threshold,
         card("magnitude", "Magnitude", "MAGNITUDE", 48, 248, 324),
         card("mmi", "Max MMI", "MAXIMUM MMI", 388, 248, 324),
         card("buildings", "Exposed Buildings", "EXPOSED BUILDINGS", 728, 248, 324),
@@ -989,9 +1128,9 @@ def build_report() -> None:
             visual(
                 "event-source",
                 "tableEx",
-                460,
+                470,
                 142,
-                620,
+                480,
                 86,
                 {
                     "Values": [
@@ -1003,19 +1142,26 @@ def build_report() -> None:
                 "SOURCE AND BASIS",
             )
         ),
-        card("exposure-status", "Exposure Status", "ASSESSMENT", 1090, 142, 302),
-        hide_unmapped_region(
-            chart(
-                "regions",
-                "clusteredBarChart",
-                "REGIONS BY EXPOSED BUILDINGS",
-                780,
-                392,
-                612,
-                428,
-                ("dim_region", "Region", False),
-                ["Exposed Buildings"],
-            )
+        {
+            **card("exposure-status", "Exposure Status", "Assessment", 962, 142, 188),
+            "position": {"x": 962, "y": 142, "z": 1, "width": 188, "height": 86, "tabOrder": 1},
+        },
+        visible_when(
+            dynamic_title(
+                chart(
+                    "regions",
+                    "clusteredBarChart",
+                    "Buildings by region",
+                    780,
+                    392,
+                    612,
+                    428,
+                    ("dim_region", "Region", False),
+                    ["Exposed Buildings"],
+                ),
+                "Region Ranking Title",
+            ),
+            "Visible Exposed Region",
         ),
     ]
     build_page(
@@ -1039,65 +1185,80 @@ def build_report() -> None:
         card(
             "damaging-events",
             "Events with Damaging Shaking",
-            "EVENTS WITH DAMAGING SHAKING",
+            "DAMAGING EVENTS (FIXED MMI 6+)",
             1068,
             146,
             324,
         ),
-        chart(
-            "event-buildings",
-            "clusteredBarChart",
-            "BUILDINGS / EVENT",
-            48,
-            284,
-            658,
-            240,
-            ("dim_event", "Event", False),
-            ["Exposed Buildings"],
-        ),
-        chart(
-            "event-people",
-            "clusteredBarChart",
-            "PEOPLE / EVENT",
-            730,
-            284,
-            662,
-            240,
-            ("dim_event", "Event", False),
-            ["Exposed Population"],
-        ),
-        table_widths(
-            no_totals(
-                sort_visual(
-                    visual(
-                        "event-comparison-table",
-                        "tableEx",
-                        48,
-                        536,
-                        1344,
-                        278,
-                        {
-                            "Values": [
-                                ("dim_event", "Event", False),
-                                ("_Measures", "Magnitude", True),
-                                ("_Measures", "Max MMI", True),
-                                ("_Measures", "Exposed Buildings", True),
-                                ("_Measures", "Exposed Population", True),
-                            ]
-                        },
-                        "EVENT COMPARISON / SELECT ANY ROW TO CROSS-FILTER",
-                    ),
-                    "_Measures",
-                    "Exposed Buildings",
-                )
+        visible_when(
+            dynamic_title(
+                chart(
+                    "event-buildings",
+                    "clusteredBarChart",
+                    "Buildings by event",
+                    48,
+                    284,
+                    658,
+                    240,
+                    ("dim_event", "Event", False),
+                    ["Exposed Buildings"],
+                ),
+                "Event Ranking Title",
             ),
-            {
-                "dim_event.Event": 340,
-                "_Measures.Magnitude": 180,
-                "_Measures.Max MMI": 180,
-                "_Measures.Exposed Buildings": 300,
-                "_Measures.Exposed Population": 300,
-            },
+            "Positive Buildings",
+        ),
+        visible_when(
+            dynamic_title(
+                chart(
+                    "event-people",
+                    "clusteredBarChart",
+                    "People by event",
+                    730,
+                    284,
+                    662,
+                    240,
+                    ("dim_event", "Event", False),
+                    ["Exposed Population"],
+                ),
+                "People Ranking Title",
+            ),
+            "Positive People",
+        ),
+        dynamic_title(
+            table_widths(
+                no_totals(
+                    sort_visual(
+                        visual(
+                            "event-comparison-table",
+                            "tableEx",
+                            48,
+                            536,
+                            1344,
+                            278,
+                            {
+                                "Values": [
+                                    ("dim_event", "Event", False),
+                                    ("_Measures", "Magnitude", True),
+                                    ("_Measures", "Max MMI", True),
+                                    ("_Measures", "Exposed Buildings", True),
+                                    ("_Measures", "Exposed Population", True),
+                                ]
+                            },
+                            "Event Comparison",
+                        ),
+                        "_Measures",
+                        "Exposed Buildings",
+                    )
+                ),
+                {
+                    "dim_event.Event": 340,
+                    "_Measures.Magnitude": 180,
+                    "_Measures.Max MMI": 180,
+                    "_Measures.Exposed Buildings": 300,
+                    "_Measures.Exposed Population": 300,
+                },
+            ),
+            "Exposure Comparison Title",
         ),
     ]
     comparison = [
@@ -1112,7 +1273,7 @@ def build_report() -> None:
     )
 
     regional = [
-        selected_event,
+        event_slicer(),
         threshold,
         card("region-buildings", "Exposed Buildings", "EXPOSED BUILDINGS", 48, 244, 324),
         card(
@@ -1127,7 +1288,12 @@ def build_report() -> None:
             324,
         ),
         card(
-            "strong-cells", "Buildings in Strong Cells", "BUILDINGS IN MMI 6+ CELLS", 1068, 244, 324
+            "strong-cells",
+            "Buildings in Strong Cells",
+            "STRONG CELLS (FIXED MMI 6+)",
+            1068,
+            244,
+            324,
         ),
         map_axes(
             visual(
@@ -1146,42 +1312,46 @@ def build_report() -> None:
                 "REPEAT EXPOSURE ACROSS 10 REPLAYS / CENTROIDS",
             )
         ),
-        hide_unmapped_region(
-            table_widths(
-                no_totals(
-                    sort_visual(
-                        visual(
-                            "region-table",
-                            "pivotTable",
-                            732,
-                            402,
-                            660,
-                            412,
-                            {
-                                "Rows": [
-                                    ("dim_region", "Region", False),
-                                    ("dim_region", "Territorial Authority", False),
-                                ],
-                                "Values": [
-                                    ("_Measures", "Exposed Buildings", True),
-                                    ("_Measures", "% Region Buildings Exposed", True),
-                                    ("_Measures", "Accumulated Building Exposures", True),
-                                ],
-                            },
-                            "REGION / DISTRICT RANKING AND REPEAT EXPOSURE",
-                        ),
-                        "_Measures",
-                        "Exposed Buildings",
-                    )
+        visible_when(
+            dynamic_title(
+                table_widths(
+                    no_totals(
+                        sort_visual(
+                            visual(
+                                "region-table",
+                                "pivotTable",
+                                732,
+                                402,
+                                660,
+                                412,
+                                {
+                                    "Rows": [
+                                        ("dim_region", "Region", False),
+                                        ("dim_region", "Territorial Authority", False),
+                                    ],
+                                    "Values": [
+                                        ("_Measures", "Exposed Buildings", True),
+                                        ("_Measures", "% Region Buildings Exposed", True),
+                                        ("_Measures", "Accumulated Building Exposures", True),
+                                    ],
+                                },
+                                "Region and district exposure",
+                            ),
+                            "_Measures",
+                            "Exposed Buildings",
+                        )
+                    ),
+                    {
+                        "dim_region.Region": 170,
+                        "dim_region.Territorial Authority": 170,
+                        "_Measures.Exposed Buildings": 95,
+                        "_Measures.% Region Buildings Exposed": 95,
+                        "_Measures.Accumulated Building Exposures": 110,
+                    },
                 ),
-                {
-                    "dim_region.Region": 170,
-                    "dim_region.Territorial Authority": 170,
-                    "_Measures.Exposed Buildings": 95,
-                    "_Measures.% Region Buildings Exposed": 95,
-                    "_Measures.Accumulated Building Exposures": 110,
-                },
-            )
+                "Regional Threshold Title",
+            ),
+            "Visible Regional Row",
         ),
     ]
     build_page(
@@ -1210,64 +1380,73 @@ def build_report() -> None:
         card(
             "history-damaging",
             "Events with Damaging Shaking",
-            "EVENTS WITH DAMAGING SHAKING",
+            "DAMAGING EVENTS (FIXED MMI 6+)",
             388,
             260,
             324,
         ),
         card("history-mmi", "Largest Exposure Event", "LARGEST EXPOSURE EVENT", 728, 260, 324),
         card("history-largest", "Largest Event Exposure", "LARGEST EVENT EXPOSURE", 1068, 260, 324),
-        visual(
-            "history-trend",
-            "scatterChart",
-            48,
-            420,
-            600,
-            394,
-            {
-                "X": [("_Measures", "Timeline Year", True)],
-                "Y": [("_Measures", "Magnitude", True)],
-                "Size": [("_Measures", "Exposed Buildings", True)],
-                "Category": [("dim_event", "Event", False)],
-                "Tooltips": [
-                    ("dim_event", "Event Date (NZ)", False),
-                    ("_Measures", "Exposed Population", True),
-                ],
-            },
-            "EVENT TIME × MAGNITUDE  /  BUBBLE AREA = EXPOSED BUILDINGS",
-        ),
-        table_widths(
-            no_totals(
-                sort_visual(
-                    visual(
-                        "history-table",
-                        "tableEx",
-                        672,
-                        420,
-                        720,
-                        394,
-                        {
-                            "Values": [
-                                ("dim_event", "Event", False),
-                                ("dim_event", "Origin Time NZ", False),
-                                ("_Measures", "Magnitude", True),
-                                ("_Measures", "Exposed Buildings", True),
-                            ]
-                        },
-                        "EVENT CHRONOLOGY",
-                    ),
-                    "dim_event",
-                    "Origin Time NZ",
-                    descending=False,
-                    measure=False,
-                )
+        dynamic_title(
+            visual(
+                "history-trend",
+                "scatterChart",
+                48,
+                420,
+                600,
+                394,
+                {
+                    "X": [("_Measures", "Timeline Year", True)],
+                    "Y": [("_Measures", "Magnitude", True)],
+                    "Size": [("_Measures", "Exposed Buildings", True)],
+                    "Category": [("dim_event", "Event", False)],
+                    "Tooltips": [
+                        ("dim_event", "Event Date (NZ)", False),
+                        ("_Measures", "Exposed Population", True),
+                    ],
+                },
+                "Event Time × Magnitude",
             ),
-            {
-                "dim_event.Event": 205,
-                "dim_event.Origin Time NZ": 230,
-                "_Measures.Magnitude": 85,
-                "_Measures.Exposed Buildings": 145,
-            },
+            "History Trend Title",
+        ),
+        visible_when(
+            dynamic_title(
+                table_widths(
+                    no_totals(
+                        sort_visual(
+                            visual(
+                                "history-table",
+                                "tableEx",
+                                672,
+                                420,
+                                720,
+                                394,
+                                {
+                                    "Values": [
+                                        ("dim_event", "Event", False),
+                                        ("dim_event", "Origin Time NZ", False),
+                                        ("_Measures", "Magnitude", True),
+                                        ("_Measures", "Exposed Buildings", True),
+                                    ]
+                                },
+                                "Event Chronology",
+                            ),
+                            "dim_event",
+                            "Origin Time NZ",
+                            descending=False,
+                            measure=False,
+                        )
+                    ),
+                    {
+                        "dim_event.Event": 205,
+                        "dim_event.Origin Time NZ": 230,
+                        "_Measures.Magnitude": 85,
+                        "_Measures.Exposed Buildings": 145,
+                    },
+                ),
+                "History Table Title",
+            ),
+            "Visible History Event",
         ),
     ]
     build_page(

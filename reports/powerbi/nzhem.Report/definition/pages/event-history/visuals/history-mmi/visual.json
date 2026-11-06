@@ -76,7 +76,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'LARGEST EXPOSURE EVENT'"
+                  "Value": "'Largest Exposure Event'"
                 }
               }
             }

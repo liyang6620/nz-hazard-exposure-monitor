@@ -102,8 +102,13 @@
             },
             "text": {
               "expr": {
-                "Literal": {
-                  "Value": "'BUILDINGS / EVENT'"
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Event Ranking Title"
                 }
               }
             }
@@ -114,6 +119,54 @@
   },
   "filterConfig": {
     "filters": [
+      {
+        "name": "0b80c3bce1ea506bb621",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "_Measures"
+              }
+            },
+            "Property": "Positive Buildings"
+          }
+        },
+        "type": "Advanced",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "m",
+              "Entity": "_Measures",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "Comparison": {
+                  "ComparisonKind": 0,
+                  "Left": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Source": "m"
+                        }
+                      },
+                      "Property": "Positive Buildings"
+                    }
+                  },
+                  "Right": {
+                    "Literal": {
+                      "Value": "1D"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
       {
         "name": "e1871dd3d5915e43b2be",
         "field": {

@@ -91,3 +91,61 @@ def test_powerbi_cloud_health_requires_completed_publication(
     )
     with pytest.raises(RuntimeError, match="completion record"):
         public_housekeeping_completed_at()
+
+
+def test_powerbi_event_identity_and_visual_filters() -> None:
+    model = (PBIP_ROOT / "nzhem.SemanticModel/definition/tables/_Measures.tmdl").read_text(
+        encoding="utf-8"
+    )
+    assert "DISTINCTCOUNT(dim_event[GeoNet Event ID])" in model
+    assert "replay_exists" in model
+    assert "NOT ISFILTERED(dim_event[Event Group])" in model
+
+    pages = PBIP_ROOT / "nzhem.Report/definition/pages"
+    expected = {
+        ("event-overview", "regions"): "Visible Exposed Region",
+        ("event-comparison", "event-buildings"): "Positive Buildings",
+        ("event-comparison", "event-people"): "Positive People",
+        ("regional-exposure", "region-table"): "Visible Regional Row",
+        ("event-history", "history-table"): "Visible History Event",
+    }
+    for (page, visual_name), measure in expected.items():
+        visual = json.loads(
+            (pages / page / "visuals" / visual_name / "visual.json").read_text(encoding="utf-8")
+        )
+        filters = visual["filterConfig"]["filters"]
+        assert any(item["field"].get("Measure", {}).get("Property") == measure for item in filters)
+    assert "IF([Visible History Event] = 1, MAX(dim_event[Timeline Year]))" in model
+
+
+def test_powerbi_controls_do_not_overlap() -> None:
+    pages = PBIP_ROOT / "nzhem.Report/definition/pages"
+    control_names = {
+        "event-overview": [
+            "event-group-slicer",
+            "event-slicer",
+            "event-source",
+            "exposure-status",
+            "threshold",
+        ],
+        "event-comparison": ["threshold"],
+        "regional-exposure": ["event-slicer", "threshold"],
+        "event-history": ["region-filter", "event-group-slicer", "threshold"],
+    }
+    for page, names in control_names.items():
+        positions = {
+            name: json.loads(
+                (pages / page / "visuals" / name / "visual.json").read_text(encoding="utf-8")
+            )["position"]
+            for name in names
+        }
+        for index, name in enumerate(names):
+            a = positions[name]
+            for other in names[index + 1 :]:
+                b = positions[other]
+                assert not (
+                    a["x"] < b["x"] + b["width"]
+                    and b["x"] < a["x"] + a["width"]
+                    and a["y"] < b["y"] + b["height"]
+                    and b["y"] < a["y"] + a["height"]
+                ), (page, name, other)

@@ -121,8 +121,13 @@
             },
             "text": {
               "expr": {
-                "Literal": {
-                  "Value": "'EVENT COMPARISON / SELECT ANY ROW TO CROSS-FILTER'"
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Exposure Comparison Title"
                 }
               }
             }
