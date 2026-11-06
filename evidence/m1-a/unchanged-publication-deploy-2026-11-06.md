@@ -40,3 +40,27 @@ The next successful scheduled request and heartbeat remain acceptance gates.
 An unchanged manifest is expected
 when no event, briefing or other public data changed; the heartbeat and run
 record, not manifest age, establish hourly health.
+
+PR #64 merged after all nine CI jobs passed. The successful main CI Function
+artifact embedded commit `4b4cf43578c553f6df04f3d967aee37f97c7af7d` and
+was 181,086,004 bytes compressed. The package was published through Functions
+Core Tools at 01:32-01:35 UTC; the Flex deployment pipeline and health check
+completed successfully. The public HTTP build header now shows the same commit,
+all six expected triggers were indexed, and the exact `AzureWebJobsStorage`
+setting stayed absent while managed-identity account and credential settings
+remained.
+
+The next scheduled invocation began at **02:00:00 UTC** and Application
+Insights recorded `housekeeping` success after **13.014 seconds**. The public
+`/data/housekeeping.json` returned HTTP 200 with completion at
+**02:00:12.983 UTC**, status `success` and the expected build SHA. It reported
+`data_unchanged=true` and retained the 01:00 generation. The public manifest
+also retained that generation, as designed when no site data changes. A remote
+ADLS listing found exactly three generation directories and confirmed the
+manifest target was among them. The host storage setting check after the run
+still found only the two managed-identity settings, with no base connection
+string. This is the first verified hourly run after the retention fix.
+
+The 6 Nov Cost Management query returned NZD 0.852878 month to date, mostly
+Storage; the service breakdown is in `docs/cost.md`. It is not a steady-state
+monthly estimate. The Analyst Workbench PR remains open and was not deployed.

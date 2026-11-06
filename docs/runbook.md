@@ -109,6 +109,14 @@ be `ready` or `outside_model_range`, but must not remain `processing` beyond
 the 60-minute limit. Never infer completion from an administrator invocation's
 HTTP 202 alone.
 
+The public website retains the newest three data generations, including the
+active manifest generation. Azure's data account uses ADLS Gen2, so cleanup
+must use recursive directory deletion on a confirmed stale generation; Blob
+listing may omit empty directory markers. The scheduled publisher removes at
+most one stale generation per run. Before any bulk cleanup, verify the active
+manifest ID is among the newest three, preview the count, and preserve all
+three. Never delete the active manifest target or unrelated `$web` paths.
+
 For a manual catch-up, invoke the existing `housekeeping` function through the
 Azure Functions administrator endpoint with a host master key retrieved only
 into process memory. Do not paste the key, URL query tokens or response bodies
