@@ -84,11 +84,11 @@
                       "Entity": "_Measures"
                     }
                   },
-                  "Property": "Accumulated Building Exposures"
+                  "Property": "Repeat Exposure"
                 }
               },
-              "queryRef": "_Measures.Accumulated Building Exposures",
-              "nativeQueryRef": "Accumulated Building Exposures"
+              "queryRef": "_Measures.Repeat Exposure",
+              "nativeQueryRef": "Repeat Exposure"
             }
           ]
         }
@@ -226,7 +226,7 @@
             }
           },
           "selector": {
-            "metadata": "_Measures.Accumulated Building Exposures"
+            "metadata": "_Measures.Repeat Exposure"
           }
         }
       ]

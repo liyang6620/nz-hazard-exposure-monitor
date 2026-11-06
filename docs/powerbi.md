@@ -60,6 +60,12 @@ the event-region-MMI-band fact used by the threshold parameter. Map and
 validation facts support the offline spatial view and station quality metric.
 Accumulation counts repeat exposure across ten replays. Health, status and
 source facts are read-only operational snapshots and have no event relationship.
+Regional building stock and exposure use the same H3 cell-majority area
+assignment. This can differ slightly from counts taken directly from exact
+administrative boundaries; the shared assignment keeps district numerators and
+denominators comparable. The percentage measure removes visual row filters from
+the stock denominator, then reapplies the selected region or authority. Its
+matrix total uses the full national stock, including hidden zero-exposure areas.
 The date dimension is marked as a date table. Keys and raw numeric columns are
 hidden; implicit measures are discouraged.
 
@@ -74,7 +80,17 @@ RETURN COALESCE(
 
 % Region Buildings Exposed =
 IF(HASONEVALUE(dim_event[Event ID]),
-    DIVIDE([Exposed Buildings], SUM(dim_region[Region Buildings])))
+    VAR region = SELECTEDVALUE(dim_region[Region])
+    VAR authority = SELECTEDVALUE(dim_region[Territorial Authority])
+    VAR stock = SWITCH(TRUE(),
+        ISINSCOPE(dim_region[Territorial Authority]),
+            CALCULATE(SUM(dim_region[Region Buildings]), REMOVEFILTERS(dim_region),
+                dim_region[Region] = region, dim_region[Territorial Authority] = authority),
+        HASONEVALUE(dim_region[Region]),
+            CALCULATE(SUM(dim_region[Region Buildings]), REMOVEFILTERS(dim_region),
+                dim_region[Region] = region),
+        CALCULATE(SUM(dim_region[Region Buildings]), REMOVEFILTERS(dim_region)))
+    RETURN DIVIDE([Exposed Buildings], stock))
 
 Estimated MMI MAE =
 DIVIDE(SUM(fct_validation[Absolute Error]), COUNTROWS(fct_validation))

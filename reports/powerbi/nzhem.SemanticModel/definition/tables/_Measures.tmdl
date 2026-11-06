@@ -25,8 +25,8 @@ table _Measures
 		displayFolder: 01 Exposure
 		lineageTag: fabd96b1-fa53-509f-b4a8-5870f4fe2611
 
-	/// Share of current buildings exposed in a selected replay region and event; unavailable for live events because the public live feed lacks a regional stock denominator.
-	measure '% Region Buildings Exposed' = IF(HASONEVALUE(dim_event[Event ID]), DIVIDE([Exposed Buildings], SUM(dim_region[Region Buildings])))
+	/// Share of all current buildings in the selected authority, region or nation; the denominator includes zero-exposure areas hidden from the matrix. Unavailable for live events without a regional stock denominator.
+	measure '% Region Buildings Exposed' = IF(HASONEVALUE(dim_event[Event ID]), VAR selected_region = SELECTEDVALUE(dim_region[Region]) VAR selected_authority = SELECTEDVALUE(dim_region[Territorial Authority]) VAR stock = SWITCH(TRUE(), ISINSCOPE(dim_region[Territorial Authority]), CALCULATE(SUM(dim_region[Region Buildings]), REMOVEFILTERS(dim_region), dim_region[Region] = selected_region, dim_region[Territorial Authority] = selected_authority), HASONEVALUE(dim_region[Region]), CALCULATE(SUM(dim_region[Region Buildings]), REMOVEFILTERS(dim_region), dim_region[Region] = selected_region), CALCULATE(SUM(dim_region[Region Buildings]), REMOVEFILTERS(dim_region))) RETURN DIVIDE([Exposed Buildings], stock))
 		formatString: 0.0%
 		displayFolder: 02 Regions
 		lineageTag: 9b21b860-ab59-5cad-9bc6-9975afe733c3
@@ -36,6 +36,12 @@ table _Measures
 		formatString: #,0
 		displayFolder: 02 Regions
 		lineageTag: 5663174c-e4bf-5578-937f-8686d5af379a
+
+	/// Display name for repeated building exposure across ten historical replays; not unique buildings.
+	measure 'Repeat Exposure' = [Accumulated Building Exposures]
+		formatString: #,0
+		displayFolder: 02 Regions
+		lineageTag: 2685d11b-d56c-53a9-925f-71b5931473eb
 
 	/// Current buildings in cells that experienced MMI 6+ in at least one replay.
 	measure 'Buildings in Strong Cells' = SUM(fct_accumulation[Buildings in Strong Cells])

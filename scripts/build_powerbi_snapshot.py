@@ -325,17 +325,13 @@ def main() -> None:
         con,
         "dim_region",
         f"""
-        SELECT coalesce(region_code, 'unknown') || ':' || coalesce(ta_code, 'unknown') AS region_key,
-               coalesce(region_name, 'Outside mapped regions') AS region_name,
-               replace(coalesce(ta_name, 'Outside mapped authorities'), 'Kaikoura', 'Kaikōura') AS territorial_authority,
-               sum(buildings)::BIGINT AS region_buildings
-        FROM (
-            SELECT region_code, region_name, territorial_authority_code AS ta_code,
-                   territorial_authority_name AS ta_name, count(*) AS buildings
-            FROM read_parquet('{ref}/int_buildings_h3/region=*/*.parquet')
-            WHERE lifecycle = 'Current'
-            GROUP BY ALL
-        )
+        SELECT coalesce(o.region_code, 'unknown') || ':' || coalesce(o.ta_code, 'unknown') AS region_key,
+               coalesce(o.region_name, 'Outside mapped regions') AS region_name,
+               replace(coalesce(o.ta_name, 'Outside mapped authorities'), 'Kaikoura', 'Kaikōura') AS territorial_authority,
+               count(*)::BIGINT AS region_buildings
+        FROM read_parquet('{ref}/int_buildings_h3/region=*/*.parquet') b
+        LEFT JOIN read_parquet('{owner}') o USING (h3_res8)
+        WHERE b.lifecycle = 'Current'
         GROUP BY ALL
         UNION ALL
         SELECT 'unknown:unknown', 'Outside mapped regions',

@@ -149,3 +149,26 @@ def test_powerbi_controls_do_not_overlap() -> None:
                     and a["y"] < b["y"] + b["height"]
                     and b["y"] < a["y"] + a["height"]
                 ), (page, name, other)
+
+
+def test_regional_share_uses_full_stock_and_report_titles_preserve_acronyms() -> None:
+    model = (PBIP_ROOT / "nzhem.SemanticModel/definition/tables/_Measures.tmdl").read_text(
+        encoding="utf-8"
+    )
+    share = model.split("measure '% Region Buildings Exposed' = ", 1)[1].split("\n", 1)[0]
+    assert "REMOVEFILTERS(dim_region)" in share
+    assert "ISINSCOPE(dim_region[Territorial Authority])" in share
+    assert "dim_region[Region] = selected_region" in share
+    assert "dim_region[Territorial Authority] = selected_authority" in share
+    assert "CALCULATE(SUM(dim_region[Region Buildings]), REMOVEFILTERS(dim_region))" in share
+
+    pages = PBIP_ROOT / "nzhem.Report/definition/pages"
+    region_table = json.loads(
+        (pages / "regional-exposure/visuals/region-table/visual.json").read_text(encoding="utf-8")
+    )
+    assert "_Measures.Repeat Exposure" in json.dumps(region_table)
+    assert "_Measures.Accumulated Building Exposures" not in json.dumps(region_table)
+    mae_card = json.loads(
+        (pages / "data-health/visuals/mae/visual.json").read_text(encoding="utf-8")
+    )
+    assert "Station-Weighted MAE" in json.dumps(mae_card)

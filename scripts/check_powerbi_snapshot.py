@@ -81,6 +81,19 @@ def main() -> None:
         [str(SNAPSHOT / "fct_exposure.parquet"), str(SNAPSHOT / "dim_region.parquet")],
     ).fetchone()[0]
     assert orphan_count == 0, orphan_count
+    over_stock = con.execute(
+        """
+        SELECT e.event_id, e.region_key, sum(e.buildings) AS exposed,
+               max(d.region_buildings) AS stock
+        FROM read_parquet(?) e
+        JOIN read_parquet(?) d USING (region_key)
+        WHERE e.event_id LIKE 'replay:%' AND e.region_key <> 'unknown:unknown'
+        GROUP BY e.event_id, e.region_key
+        HAVING exposed > stock
+        """,
+        [str(SNAPSHOT / "fct_exposure.parquet"), str(SNAPSHOT / "dim_region.parquet")],
+    ).fetchall()
+    assert not over_stock, over_stock
     print(
         "Power BI snapshot reconciles 10 replays and "
         f"{len(live_rows)} live events; no orphan regions"

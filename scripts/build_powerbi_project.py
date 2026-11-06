@@ -155,10 +155,10 @@ MEASURES = [
     ),
     (
         "% Region Buildings Exposed",
-        "IF(HASONEVALUE(dim_event[Event ID]), DIVIDE([Exposed Buildings], SUM(dim_region[Region Buildings])))",
+        "IF(HASONEVALUE(dim_event[Event ID]), VAR selected_region = SELECTEDVALUE(dim_region[Region]) VAR selected_authority = SELECTEDVALUE(dim_region[Territorial Authority]) VAR stock = SWITCH(TRUE(), ISINSCOPE(dim_region[Territorial Authority]), CALCULATE(SUM(dim_region[Region Buildings]), REMOVEFILTERS(dim_region), dim_region[Region] = selected_region, dim_region[Territorial Authority] = selected_authority), HASONEVALUE(dim_region[Region]), CALCULATE(SUM(dim_region[Region Buildings]), REMOVEFILTERS(dim_region), dim_region[Region] = selected_region), CALCULATE(SUM(dim_region[Region Buildings]), REMOVEFILTERS(dim_region))) RETURN DIVIDE([Exposed Buildings], stock))",
         "0.0%",
         "02 Regions",
-        "Share of current buildings exposed in a selected replay region and event; unavailable for live events because the public live feed lacks a regional stock denominator.",
+        "Share of all current buildings in the selected authority, region or nation; the denominator includes zero-exposure areas hidden from the matrix. Unavailable for live events without a regional stock denominator.",
     ),
     (
         "Accumulated Building Exposures",
@@ -166,6 +166,13 @@ MEASURES = [
         "#,0",
         "02 Regions",
         "Sum of current buildings multiplied by the number of historical MMI 6+ events per cell; repeated exposure, not unique buildings.",
+    ),
+    (
+        "Repeat Exposure",
+        "[Accumulated Building Exposures]",
+        "#,0",
+        "02 Regions",
+        "Display name for repeated building exposure across ten historical replays; not unique buildings.",
     ),
     (
         "Buildings in Strong Cells",
@@ -902,7 +909,9 @@ def build_page(
 def card(
     name: str, measure: str, title: str, x: int, y: int, width: int = 292
 ) -> dict[str, object]:
-    title = title.title().replace("Mmi", "MMI").replace("Utc", "UTC")
+    title = title.title()
+    for acronym in ("MMI", "MAE", "H3", "UTC"):
+        title = title.replace(acronym.title(), acronym)
     item = visual(name, "card", x, y, width, 112, {"Values": [("_Measures", measure, True)]}, title)
     dynamic_titles = {
         "region-share": "Share of Stock Title",
@@ -1332,7 +1341,7 @@ def build_report() -> None:
                                     "Values": [
                                         ("_Measures", "Exposed Buildings", True),
                                         ("_Measures", "% Region Buildings Exposed", True),
-                                        ("_Measures", "Accumulated Building Exposures", True),
+                                        ("_Measures", "Repeat Exposure", True),
                                     ],
                                 },
                                 "Region and district exposure",
@@ -1346,7 +1355,7 @@ def build_report() -> None:
                         "dim_region.Territorial Authority": 170,
                         "_Measures.Exposed Buildings": 95,
                         "_Measures.% Region Buildings Exposed": 95,
-                        "_Measures.Accumulated Building Exposures": 110,
+                        "_Measures.Repeat Exposure": 110,
                     },
                 ),
                 "Regional Threshold Title",
