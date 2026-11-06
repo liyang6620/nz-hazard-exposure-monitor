@@ -12,6 +12,7 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 from azure.storage.blob import BlobServiceClient
+from azure.storage.filedatalake import DataLakeServiceClient
 
 from nzhem.adapters.local.realtime import LocalRealtimeEventAssessor
 from nzhem.adapters.local.resource_guard import ResourceGuard
@@ -38,8 +39,15 @@ def _content_digest(generation: Path, processing_record: Any) -> str:
 class AzureDataWorkspace:
     """Bounded local Parquet cache backed by private Azure Blob containers."""
 
-    def __init__(self, service: BlobServiceClient, root: Path) -> None:
+    def __init__(
+        self,
+        service: BlobServiceClient,
+        root: Path,
+        *,
+        directories: DataLakeServiceClient | None = None,
+    ) -> None:
         self._service = service
+        self._directories = directories
         self.root = root.resolve()
         self.root.mkdir(parents=True, exist_ok=True)
 
@@ -114,7 +122,7 @@ class AzureDataWorkspace:
             count += 1
         return count
 
-    def prune_web_generations(self, active: str, *, keep: int = 3) -> int:
+    def prune_web_generations(self, active: str, *, keep: int = 3, max_generations: int = 1) -> int:
         web = self._service.get_container_client("$web")
         prefix = "data/generations/"
         generations = sorted(
@@ -124,12 +132,14 @@ class AzureDataWorkspace:
         )
         retained = set(generations[-keep:]) | {active}
         removed = 0
-        for generation in generations:
-            if generation in retained:
-                continue
-            for blob in web.list_blobs(name_starts_with=f"{prefix}{generation}/"):
-                web.delete_blob(blob.name)
-                removed += 1
+        stale = [generation for generation in generations if generation not in retained]
+        if stale and self._directories is None:
+            raise RuntimeError("ADLS directory client is required for generation pruning")
+        for generation in stale[:max_generations]:
+            self._directories.get_file_system_client("$web").get_directory_client(
+                f"{prefix}{generation}"
+            ).delete_directory()
+            removed += 1
         return removed
 
 
@@ -213,4 +223,4 @@ class AzureSiteDataPublisher:
                 relative = f"data/{name}"
                 self._objects.put_bytes("web", relative, (web / relative).read_bytes())
             removed = self._workspace.prune_web_generations(generation_id)
-            return {**result, "unchanged": False, "pruned_blobs": removed}
+            return {**result, "unchanged": False, "pruned_generations": removed}
