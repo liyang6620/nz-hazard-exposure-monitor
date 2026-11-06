@@ -41,6 +41,10 @@ def main() -> None:
     assert "SUM(fct_validation[Absolute Error])" in measures
     assert "COUNTROWS(fct_validation)" in measures
     assert "SELECTEDVALUE('MMI Threshold'[MMI Threshold], 6)" in measures
+    assert "Event Group" in (MODEL / "tables/dim_event.tmdl").read_text(encoding="utf-8")
+    role = (MODEL / "roles/Canterbury Analyst.tmdl").read_text(encoding="utf-8")
+    assert 'tablePermission dim_region = [Region] = "Canterbury Region"' in role
+    assert "ref role 'Canterbury Analyst'" in model
     visuals = list((REPORT / "pages").glob("*/visuals/*/visual.json"))
     assert len(visuals) >= 40, len(visuals)
     for page in PAGES:

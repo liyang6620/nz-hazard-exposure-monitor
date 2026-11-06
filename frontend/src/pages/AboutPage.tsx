@@ -7,9 +7,9 @@ export default function AboutPage() {
         <h1>One exposure engine, two deployment targets</h1>
         <p>
           NZ Hazard Exposure Monitor turns public earthquake, building and
-          population data into an analyst-ready exposure record. The local
-          Docker product is operational; Azure remains the primary production
-          target and has not yet been deployed.
+          population data into an analyst-ready exposure record. Azure publishes
+          the website; the same core also runs locally. The workflow is
+          earthquake → website result → approved briefing → Analyst Workbench.
         </p>
       </header>
 
@@ -44,7 +44,7 @@ export default function AboutPage() {
               <span>Caddy + Mailpit</span>
             </div>
             <div>
-              <strong>Azure · planned</strong>
+              <strong>Azure · operational</strong>
               <span>Functions Flex Consumption</span>
               <span>Storage + Key Vault</span>
               <span>Application Insights</span>
@@ -52,7 +52,8 @@ export default function AboutPage() {
           </div>
           <div className="flow-line" aria-hidden="true" />
           <div className="architecture-output">
-            Static website · exposure maps · approved analyst briefings
+            Static website · exposure maps · approved briefings · Analyst
+            Workbench
           </div>
         </div>
       </section>
@@ -109,8 +110,8 @@ export default function AboutPage() {
         >
           <FileText aria-hidden="true" />
           <span>
-            <strong>Power BI report</strong>
-            Five-page analyst report exported from Power BI Desktop
+            <strong>Analyst Workbench PDF</strong>
+            Five-page analyst snapshot exported from Power BI Desktop
           </span>
           <ExternalLink aria-hidden="true" />
         </a>

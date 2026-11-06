@@ -128,12 +128,12 @@ def build_briefing_facts(summary: Mapping[str, Any]) -> dict[str, Any]:
         {"metric": "max_mmi", "label": "Maximum MMI", "display": f"{max_mmi:.1f}"},
         {
             "metric": "buildings_mmi_ge_6",
-            "label": "Buildings in MMI 6+ shaking",
+            "label": "Buildings at MMI 6+",
             "display": f"{buildings:,}",
         },
         {
             "metric": "population_mmi_ge_6",
-            "label": "People in MMI 6+ shaking",
+            "label": "People at MMI 6+",
             "display": f"{population:,}",
         },
     ]
@@ -316,7 +316,7 @@ def render_markdown(payload: Mapping[str, Any]) -> str:
         f"# {payload['headline']}\n\n## Key figures\n\n{figures}\n\n"
         f"## Situation\n\n{situation}\n\n## Limitations\n\n{limitations}\n\n"
         f"## Recommended checks\n\n{checks}\n\n"
-        "Detailed analysis: see the Power BI report demonstration in the repository README.\n"
+        "Detailed analysis: Analyst Workbench https://stnzhem8495b7ca.z8.web.core.windows.net/workbench\n"
     )
 
 
@@ -343,7 +343,8 @@ def render_html(payload: Mapping[str, Any]) -> str:
         f"<h2>Situation</h2><p>{html.escape(situation)}</p>"
         f"<h2>Limitations</h2><ul>{items(payload['limitations'])}</ul>"
         f"<h2>Recommended checks</h2><ul>{items(checks)}</ul>"
-        "<p>Detailed analysis: see the Power BI report demonstration in the repository README.</p>"
+        "<p>Detailed analysis: <a href='https://stnzhem8495b7ca.z8.web.core.windows.net/"
+        "workbench'>Analyst Workbench</a>.</p>"
         "</main></html>"
     )
 

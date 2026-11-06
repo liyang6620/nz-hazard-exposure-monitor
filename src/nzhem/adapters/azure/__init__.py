@@ -38,7 +38,7 @@ class AzureObjectStore:
     def put_bytes(self, container: str, path: str, data: bytes) -> None:
         actual_container = "$web" if container == "web" else container
         content_type = mimetypes.guess_type(path)[0] or "application/octet-stream"
-        if path in {"history", "method", "about", "review"} or (
+        if path in {"history", "method", "about", "review", "workbench"} or (
             path.startswith("events/") and not path.startswith("events/data/")
         ):
             content_type = "text/html"
@@ -48,7 +48,7 @@ class AzureObjectStore:
             "no-cache"
             if path in {"data/manifest.json", "data/housekeeping.json"}
             or path.startswith("briefings/")
-            or path in {"history", "method", "about", "review"}
+            or path in {"history", "method", "about", "review", "workbench"}
             or path.endswith("/index.html")
             or path.startswith("events/")
             else "public, max-age=31536000"

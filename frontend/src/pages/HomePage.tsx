@@ -173,6 +173,10 @@ export default function HomePage() {
             .
           </p>
         ) : null}
+        <p className="workbench-path">
+          Earthquake → website result → human-approved briefing →{" "}
+          <Link to="/workbench">Analyst Workbench</Link>.
+        </p>
       </div>
     </>
   );

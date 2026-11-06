@@ -7,8 +7,8 @@ table _Measures
 		displayFolder: 01 Exposure
 		lineageTag: 9761a4fd-928a-5f5e-acd4-0a202d0ae475
 
-	/// Current building outlines in cells at or above the selected MMI threshold.
-	measure 'Exposed Buildings' = VAR threshold = [MMI Threshold Selected] RETURN CALCULATE(SUM(fct_exposure[Buildings]), KEEPFILTERS(fct_exposure[Band Key] >= threshold))
+	/// Event-time buildings for live events or current buildings for historical replays in cells at or above the selected MMI threshold.
+	measure 'Exposed Buildings' = VAR threshold = [MMI Threshold Selected] RETURN COALESCE(CALCULATE(SUM(fct_exposure[Buildings]), KEEPFILTERS(fct_exposure[Band Key] >= threshold)), 0)
 		formatString: #,0
 		displayFolder: 01 Exposure
 		lineageTag: 67a94066-2bf0-5b73-93a9-b0cff7041253
@@ -20,12 +20,12 @@ table _Measures
 		lineageTag: 860f33b0-41c4-5acc-a194-f407115146dd
 
 	/// 2023 allocated population in cells at or above the selected MMI threshold, rounded to people.
-	measure 'Exposed Population' = VAR threshold = [MMI Threshold Selected] RETURN ROUND(CALCULATE(SUM(fct_exposure[People]), KEEPFILTERS(fct_exposure[Band Key] >= threshold)), 0)
+	measure 'Exposed Population' = VAR threshold = [MMI Threshold Selected] RETURN COALESCE(ROUND(CALCULATE(SUM(fct_exposure[People]), KEEPFILTERS(fct_exposure[Band Key] >= threshold)), 0), 0)
 		formatString: #,0
 		displayFolder: 01 Exposure
 		lineageTag: fabd96b1-fa53-509f-b4a8-5870f4fe2611
 
-	/// Share of current buildings exposed in the selected region and event; blank for multiple events.
+	/// Share of current buildings exposed in a selected replay region and event; unavailable for live events because the public live feed lacks a regional stock denominator.
 	measure '% Region Buildings Exposed' = IF(HASONEVALUE(dim_event[Event ID]), DIVIDE([Exposed Buildings], SUM(dim_region[Region Buildings])))
 		formatString: 0.0%
 		displayFolder: 02 Regions
@@ -55,7 +55,7 @@ table _Measures
 		displayFolder: 03 Events
 		lineageTag: 1ee03fb5-3e04-5245-9f2f-eb26323ce68f
 
-	/// Number of distinct historical replay events in filter context.
+	/// Number of distinct live and historical events in filter context.
 	measure 'Event Count' = DISTINCTCOUNT(dim_event[Event ID])
 		formatString: #,0
 		displayFolder: 03 Events
@@ -139,7 +139,7 @@ table _Measures
 		displayFolder: 02 Regions
 		lineageTag: 1af9639d-3774-5e75-b44a-8084d23bab6a
 
-	/// Current buildings at H3 resolution 6 for map bubble size.
+	/// Buildings at the event's stated exposure basis for map bubble size.
 	measure 'Map Buildings' = SUM(fct_map[Buildings])
 		formatString: #,0
 		displayFolder: 05 Map
@@ -168,6 +168,30 @@ table _Measures
 		formatString: 0.000
 		displayFolder: 05 Map
 		lineageTag: 9ae5c6a7-ffa6-5906-a7ec-c2267294b18c
+
+	/// Explicit no-damaging-shaking status for a single assessed event.
+	measure 'Exposure Status' = IF(HASONEVALUE(dim_event[Event ID]) && [Max MMI] < 6, "No damaging shaking", "Exposure assessed")
+		formatString: @
+		displayFolder: 03 Events
+		lineageTag: 456527d3-347a-5838-a0ae-7d4ccf617ae7
+
+	/// Building KPI label that follows the selected MMI threshold.
+	measure 'Buildings Threshold Title' = "Buildings at MMI " & FORMAT([MMI Threshold Selected], "0") & "+"
+		formatString: @
+		displayFolder: 01 Exposure
+		lineageTag: edac701e-9235-51b0-a854-bcc34d788a58
+
+	/// Population KPI label that follows the selected MMI threshold.
+	measure 'People Threshold Title' = "People at MMI " & FORMAT([MMI Threshold Selected], "0") & "+"
+		formatString: @
+		displayFolder: 01 Exposure
+		lineageTag: c0d7e906-b072-50e3-881f-5e7c0e935c5f
+
+	/// UTC time at which the read-only Power BI import snapshot was created.
+	measure 'Snapshot Time' = "Snapshot " & FORMAT(MAX(fct_health[Snapshot At]), "d MMM yyyy HH:mm", "en-NZ") & " UTC"
+		formatString: @
+		displayFolder: 04 Quality
+		lineageTag: 42639419-175a-5cfc-a154-fb26d1899285
 
 	column Placeholder
 		dataType: string

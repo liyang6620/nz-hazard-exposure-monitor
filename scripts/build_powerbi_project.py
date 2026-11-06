@@ -42,6 +42,7 @@ TABLES = {
         ("Shaking Source", "mmi_source", "string", False, None, None),
         ("Shaking Version", "shaking_version", "string", False, None, None),
         ("Exposure Basis", "exposure_basis", "string", False, None, None),
+        ("Event Group", "event_group", "string", False, None, None),
     ],
     "dim_region": [
         ("Region Key", "region_key", "string", True, None, None),
@@ -132,10 +133,10 @@ MEASURES = [
     ),
     (
         "Exposed Buildings",
-        "VAR threshold = [MMI Threshold Selected] RETURN CALCULATE(SUM(fct_exposure[Buildings]), KEEPFILTERS(fct_exposure[Band Key] >= threshold))",
+        "VAR threshold = [MMI Threshold Selected] RETURN COALESCE(CALCULATE(SUM(fct_exposure[Buildings]), KEEPFILTERS(fct_exposure[Band Key] >= threshold)), 0)",
         "#,0",
         "01 Exposure",
-        "Current building outlines in cells at or above the selected MMI threshold.",
+        "Event-time buildings for live events or current buildings for historical replays in cells at or above the selected MMI threshold.",
     ),
     (
         "Exposed Footprint m2",
@@ -146,7 +147,7 @@ MEASURES = [
     ),
     (
         "Exposed Population",
-        "VAR threshold = [MMI Threshold Selected] RETURN ROUND(CALCULATE(SUM(fct_exposure[People]), KEEPFILTERS(fct_exposure[Band Key] >= threshold)), 0)",
+        "VAR threshold = [MMI Threshold Selected] RETURN COALESCE(ROUND(CALCULATE(SUM(fct_exposure[People]), KEEPFILTERS(fct_exposure[Band Key] >= threshold)), 0), 0)",
         "#,0",
         "01 Exposure",
         "2023 allocated population in cells at or above the selected MMI threshold, rounded to people.",
@@ -156,7 +157,7 @@ MEASURES = [
         "IF(HASONEVALUE(dim_event[Event ID]), DIVIDE([Exposed Buildings], SUM(dim_region[Region Buildings])))",
         "0.0%",
         "02 Regions",
-        "Share of current buildings exposed in the selected region and event; blank for multiple events.",
+        "Share of current buildings exposed in a selected replay region and event; unavailable for live events because the public live feed lacks a regional stock denominator.",
     ),
     (
         "Accumulated Building Exposures",
@@ -191,7 +192,7 @@ MEASURES = [
         "DISTINCTCOUNT(dim_event[Event ID])",
         "#,0",
         "03 Events",
-        "Number of distinct historical replay events in filter context.",
+        "Number of distinct live and historical events in filter context.",
     ),
     (
         "Timeline Year",
@@ -289,7 +290,7 @@ MEASURES = [
         "SUM(fct_map[Buildings])",
         "#,0",
         "05 Map",
-        "Current buildings at H3 resolution 6 for map bubble size.",
+        "Buildings at the event's stated exposure basis for map bubble size.",
     ),
     (
         "Map Longitude",
@@ -318,6 +319,34 @@ MEASURES = [
         "0.000",
         "05 Map",
         "Latitude of the regional accumulation centroid.",
+    ),
+    (
+        "Exposure Status",
+        'IF(HASONEVALUE(dim_event[Event ID]) && [Max MMI] < 6, "No damaging shaking", "Exposure assessed")',
+        "@",
+        "03 Events",
+        "Explicit no-damaging-shaking status for a single assessed event.",
+    ),
+    (
+        "Buildings Threshold Title",
+        '"Buildings at MMI " & FORMAT([MMI Threshold Selected], "0") & "+"',
+        "@",
+        "01 Exposure",
+        "Building KPI label that follows the selected MMI threshold.",
+    ),
+    (
+        "People Threshold Title",
+        '"People at MMI " & FORMAT([MMI Threshold Selected], "0") & "+"',
+        "@",
+        "01 Exposure",
+        "Population KPI label that follows the selected MMI threshold.",
+    ),
+    (
+        "Snapshot Time",
+        '"Snapshot " & FORMAT(MAX(fct_health[Snapshot At]), "d MMM yyyy HH:mm", "en-NZ") & " UTC"',
+        "@",
+        "04 Quality",
+        "UTC time at which the read-only Power BI import snapshot was created.",
     ),
 ]
 
@@ -565,6 +594,40 @@ def hide_unmapped_region(item: dict[str, object]) -> dict[str, object]:
     return item
 
 
+def historical_only(item: dict[str, object]) -> dict[str, object]:
+    item["filterConfig"] = {
+        "filters": [
+            {
+                "name": tag(f"filter:replays:{item['name']}").replace("-", "")[:20],
+                "field": field("dim_event", "Event Group")["field"],
+                "type": "Categorical",
+                "filter": {
+                    "Version": 2,
+                    "From": [{"Name": "e", "Entity": "dim_event", "Type": 0}],
+                    "Where": [
+                        {
+                            "Condition": {
+                                "In": {
+                                    "Expressions": [
+                                        {
+                                            "Column": {
+                                                "Expression": {"SourceRef": {"Source": "e"}},
+                                                "Property": "Event Group",
+                                            }
+                                        }
+                                    ],
+                                    "Values": [[{"Literal": {"Value": "'Historical replays'"}}]],
+                                }
+                            }
+                        }
+                    ],
+                },
+            }
+        ]
+    }
+    return item
+
+
 def table_widths(item: dict[str, object], widths: dict[str, int]) -> dict[str, object]:
     objects = item["visual"].setdefault("objects", {})
     objects["columnHeaders"] = [{"properties": {}}]
@@ -664,13 +727,40 @@ def build_page(
             818,
             1344,
             32,
-            text="NZ HAZARD EXPOSURE MONITOR  /  AS-IF-TODAY REPLAY  /  2023 POPULATION",
+            text="NZ HAZARD EXPOSURE MONITOR  /  stnzhem8495b7ca.z8.web.core.windows.net",
         ),
     )
     add(
         page,
-        visual("navigation", "pageNavigator", 48, 852, 1040, 36),
+        visual("navigation", "pageNavigator", 48, 852, 670, 36),
     )
+    add(
+        page,
+        visual(
+            "snapshot-time",
+            "card",
+            742,
+            852,
+            360,
+            36,
+            {"Values": [("_Measures", "Snapshot Time", True)]},
+        ),
+    )
+    site_button = visual("open-website", "actionButton", 1118, 852, 274, 36, title="OPEN WEBSITE")
+    site_button["visual"].setdefault("visualContainerObjects", {})["visualLink"] = [
+        {
+            "properties": {
+                "show": {"expr": {"Literal": {"Value": "true"}}},
+                "type": {"expr": {"Literal": {"Value": "'WebUrl'"}}},
+                "webUrl": {
+                    "expr": {
+                        "Literal": {"Value": "'https://stnzhem8495b7ca.z8.web.core.windows.net/'"}
+                    }
+                },
+            }
+        }
+    ]
+    add(page, site_button)
     for item in items:
         add(page, item)
 
@@ -679,12 +769,18 @@ def card(
     name: str, measure: str, title: str, x: int, y: int, width: int = 292
 ) -> dict[str, object]:
     item = visual(name, "card", x, y, width, 112, {"Values": [("_Measures", measure, True)]}, title)
-    if name == "region-share":
+    dynamic_titles = {
+        "region-share": "Share of Stock Title",
+        "buildings": "Buildings Threshold Title",
+        "people": "People Threshold Title",
+        "region-buildings": "Buildings Threshold Title",
+    }
+    if name in dynamic_titles:
         item["visual"]["visualContainerObjects"]["title"][0]["properties"]["text"] = {
             "expr": {
                 "Measure": {
                     "Expression": {"SourceRef": {"Entity": "_Measures"}},
-                    "Property": "Share of Stock Title",
+                    "Property": dynamic_titles[name],
                 }
             }
         }
@@ -771,9 +867,9 @@ def event_slicer() -> dict[str, object]:
     item = visual(
         "event-slicer",
         "slicer",
-        48,
+        252,
         132,
-        400,
+        196,
         96,
         {"Values": [("dim_event", "Event", False)]},
         None,
@@ -815,6 +911,23 @@ def event_slicer() -> dict[str, object]:
     return item
 
 
+def event_group_slicer() -> dict[str, object]:
+    item = visual(
+        "event-group-slicer",
+        "slicer",
+        48,
+        132,
+        190,
+        96,
+        {"Values": [("dim_event", "Event Group", False)]},
+        None,
+    )
+    item["visual"]["objects"] = {
+        "data": [{"properties": {"mode": {"expr": {"Literal": {"Value": "'Dropdown'"}}}}}]
+    }
+    return item
+
+
 def build_report() -> None:
     pages = REPORT / "pages"
     if pages.exists():
@@ -841,6 +954,7 @@ def build_report() -> None:
     threshold = threshold_slicer()
     selected_event = event_slicer()
     overview = [
+        event_group_slicer(),
         selected_event,
         threshold,
         card("magnitude", "Magnitude", "MAGNITUDE", 48, 248, 324),
@@ -862,7 +976,7 @@ def build_report() -> None:
                     "Category": [("fct_map", "H3 Cell", False)],
                     "Series": [("dim_mmi_band", "MMI Band", False)],
                 },
-                "H3 EXPOSURE POINTS / MMI INTENSITY",
+                "H3 REPLAY CELLS / LIVE EPICENTRE / MMI INTENSITY",
             )
         ),
         no_totals(
@@ -883,6 +997,7 @@ def build_report() -> None:
                 "SOURCE AND BASIS",
             )
         ),
+        card("exposure-status", "Exposure Status", "ASSESSMENT", 1090, 142, 302),
         hide_unmapped_region(
             chart(
                 "regions",
@@ -900,7 +1015,7 @@ def build_report() -> None:
     build_page(
         "event-overview",
         "Event Overview",
-        "Select one earthquake. Counts use the current building stock and 2023 population (as-if-today).",
+        "Select live event-time exposure or an as-if-today historical replay. Population uses 2023 Census.",
         overview,
     )
 
@@ -978,6 +1093,9 @@ def build_report() -> None:
                 "_Measures.Exposed Population": 300,
             },
         ),
+    ]
+    comparison = [
+        historical_only(item) if item["name"] != "threshold" else item for item in comparison
     ]
     build_page(
         "event-comparison",
@@ -1067,7 +1185,10 @@ def build_report() -> None:
         regional,
     )
 
+    history_group = event_group_slicer()
+    history_group["position"].update({"x": 470, "y": 138, "width": 240})
     history = [
+        history_group,
         threshold,
         visual(
             "region-filter",
@@ -1216,6 +1337,9 @@ def build_report() -> None:
             ),
         ),
     ]
+    quality = [
+        historical_only(item) if item["name"] == "quality-table" else item for item in quality
+    ]
     build_page(
         "data-health",
         "Data Health",
@@ -1241,7 +1365,13 @@ def build_model() -> None:
         "\tdefaultPowerBIDataSourceVersion: powerBI_V3\n\tdiscourageImplicitMeasures\n"
         "\tsourceQueryCulture: en-NZ\n\tdataAccessOptions\n\t\treturnErrorValuesAsNull\n\n"
         "annotation __PBI_TimeIntelligenceEnabled = 0\n"
-        'annotation PBI_ProTooling = ["DevMode"]\n\n' + refs + "\n",
+        'annotation PBI_ProTooling = ["DevMode"]\n\n' + refs + "\nref role 'Canterbury Analyst'\n",
+    )
+    write(
+        MODEL / "roles/Canterbury Analyst.tmdl",
+        "role 'Canterbury Analyst'\n"
+        "\tmodelPermission: read\n\n"
+        '\ttablePermission dim_region = [Region] = "Canterbury Region"\n',
     )
     relationships = [
         ("fct_event_summary", "Event ID", "dim_event", "Event ID"),

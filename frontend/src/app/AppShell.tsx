@@ -45,6 +45,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             <NavLink to="/history" onClick={() => setMenuOpen(false)}>
               Historical replays
             </NavLink>
+            <NavLink to="/workbench" onClick={() => setMenuOpen(false)}>
+              Analyst Workbench
+            </NavLink>
             <NavLink to="/method" onClick={() => setMenuOpen(false)}>
               Method
             </NavLink>
@@ -66,6 +69,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
           <div className="footer-links">
             <Link to="/method">Method</Link>
+            <Link to="/workbench">Analyst Workbench</Link>
             <Link to="/about">About</Link>
             <a
               href="https://github.com/liyang6620/nz-hazard-exposure-monitor"

@@ -165,8 +165,22 @@ test("method and about pages expose evidence and deployment status", async ({
     }),
   ).toBeVisible();
   await expect(page.getByText("Local · operational")).toBeVisible();
-  await expect(page.getByText("Azure · planned")).toBeVisible();
+  await expect(page.getByText("Azure · operational")).toBeVisible();
   await expect(
-    page.getByRole("link", { name: /Power BI report/i }),
+    page.getByRole("link", { name: /Analyst Workbench PDF/i }),
   ).toBeVisible();
+});
+
+test("Analyst Workbench shows reviewed questions and downloadable PDF", async ({
+  page,
+}) => {
+  await page.goto("/workbench");
+  await expect(
+    page.getByRole("heading", { name: "Analyst Workbench" }),
+  ).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2 })).toHaveCount(4);
+  await expect(page.getByRole("img")).toHaveCount(4);
+  await expect(
+    page.getByRole("link", { name: /Download five-page PDF/i }),
+  ).toHaveAttribute("href", "/workbench/nzhem-powerbi-report.pdf");
 });

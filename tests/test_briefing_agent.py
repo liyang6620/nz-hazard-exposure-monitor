@@ -129,7 +129,7 @@ def test_deterministic_template_uses_only_published_summary() -> None:
     )
     displays = {item["label"]: item["display"] for item in facts["key_figures"]}
     assert displays["Depth"] == "15.1 km"
-    assert displays["People in MMI 6+ shaking"] == "83,276"
+    assert displays["People at MMI 6+"] == "83,276"
     assert displays["Most affected region"] == (
         "Marlborough Region · 30,423 buildings · 31,464 people"
     )

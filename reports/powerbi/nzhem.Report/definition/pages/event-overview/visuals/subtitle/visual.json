@@ -20,7 +20,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "Select one earthquake. Counts use the current building stock and 2023 population (as-if-today).",
+                    "value": "Select live event-time exposure or an as-if-today historical replay. Population uses 2023 Census.",
                     "textStyle": {
                       "fontFamily": "Segoe UI",
                       "fontSize": "12pt",

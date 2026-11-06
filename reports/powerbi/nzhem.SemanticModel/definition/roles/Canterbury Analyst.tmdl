@@ -1,0 +1,4 @@
+role 'Canterbury Analyst'
+	modelPermission: read
+
+	tablePermission dim_region = [Region] = "Canterbury Region"
