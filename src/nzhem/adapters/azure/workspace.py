@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import os
+import re
 import shutil
 import threading
 from collections.abc import Mapping
@@ -19,6 +21,18 @@ from nzhem.ports import EventAssessor, ObjectStore, TableStore
 
 _publish_lock = threading.Lock()
 _MIN_FREE_BYTES = 256 * 1024 * 1024
+_GENERATION_PREFIX = re.compile(r"data/generations/(\d{8}T\d{12}Z)/\Z")
+
+
+def _content_digest(generation: Path, processing_record: Any) -> str:
+    digest = hashlib.sha256()
+    for path in sorted(generation.rglob("*")):
+        if path.is_file():
+            digest.update(path.relative_to(generation).as_posix().encode("utf-8"))
+            digest.update(b"\0")
+            digest.update(hashlib.sha256(path.read_bytes()).digest())
+    digest.update(json.dumps(processing_record, sort_keys=True).encode("utf-8"))
+    return digest.hexdigest()
 
 
 class AzureDataWorkspace:
@@ -100,6 +114,24 @@ class AzureDataWorkspace:
             count += 1
         return count
 
+    def prune_web_generations(self, active: str, *, keep: int = 3) -> int:
+        web = self._service.get_container_client("$web")
+        prefix = "data/generations/"
+        generations = sorted(
+            match.group(1)
+            for item in web.walk_blobs(name_starts_with=prefix, delimiter="/")
+            if (match := _GENERATION_PREFIX.fullmatch(str(item.name)))
+        )
+        retained = set(generations[-keep:]) | {active}
+        removed = 0
+        for generation in generations:
+            if generation in retained:
+                continue
+            for blob in web.list_blobs(name_starts_with=f"{prefix}{generation}/"):
+                web.delete_blob(blob.name)
+                removed += 1
+        return removed
+
 
 class AzureRealtimeEventAssessor(EventAssessor):
     def __init__(self, workspace: AzureDataWorkspace, *, memory_limit_mb: int) -> None:
@@ -156,6 +188,19 @@ class AzureSiteDataPublisher:
             result = publisher.publish(generated_at)
             generation_id = str(result["generation_id"])
             generation = web / "data" / "generations" / generation_id
+            manifest_path = web / "data" / "manifest.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            digest = _content_digest(generation, manifest.get("processing_record"))
+            try:
+                current = json.loads(self._objects.get_bytes("web", "data/manifest.json"))
+            except FileNotFoundError:
+                current = {}
+            if current.get("content_sha256") == digest and current.get("generation_id"):
+                return {**result, "generation_id": current["generation_id"], "unchanged": True}
+            manifest["content_sha256"] = digest
+            encoded_manifest = (json.dumps(manifest, separators=(",", ":")) + "\n").encode()
+            for name in (f"manifest-{generation_id}.json", "manifest.json"):
+                (web / "data" / name).write_bytes(encoded_manifest)
             for path in sorted(generation.rglob("*")):
                 if path.is_file():
                     relative = path.relative_to(web).as_posix()
@@ -167,4 +212,5 @@ class AzureSiteDataPublisher:
             for name in (f"manifest-{generation_id}.json", "manifest.json"):
                 relative = f"data/{name}"
                 self._objects.put_bytes("web", relative, (web / relative).read_bytes())
-            return result
+            removed = self._workspace.prune_web_generations(generation_id)
+            return {**result, "unchanged": False, "pruned_blobs": removed}

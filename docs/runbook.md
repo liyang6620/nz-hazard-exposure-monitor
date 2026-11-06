@@ -36,8 +36,9 @@ state migration requires the project manager's approval relayed by the owner.
    dispatched from `main`; it builds the locked Function package and React
    application, deploys both and checks
    the next scheduled `housekeeping` run. It preserves runtime `data/` and
-   `briefings/` in `$web`. The Function publishes a new data generation after
-   each hourly run and after queue-triggered event assessment. The Azure timer
+   `briefings/` in `$web`. The Function writes a small `data/housekeeping.json`
+   run record hourly; it publishes a new data generation only when event,
+   briefing or other site data changes. The Azure timer
    does not run on host startup; an idle-host wakeup must not create an extra
    poll or storage write.
 
@@ -101,8 +102,9 @@ not upgrade the subscription or attach a payment method.
 
 The Azure timer runs at `0 0 * * * *` (UTC cron, once per hour). At startup,
 GeoNet FDSN `updatedafter` catches up changes made while the host was offline.
-Check the `runs` table for successful `housekeeping` rows, then read the public
-`data/manifest.json`; its generation must advance after a run. A new event may
+Check the `runs` table for successful `housekeeping` rows and the public
+`data/housekeeping.json`; its completion time must advance after a run. The
+`data/manifest.json` generation advances only when site content changes. A new event may
 be `ready` or `outside_model_range`, but must not remain `processing` beyond
 the 60-minute limit. Never infer completion from an administrator invocation's
 HTTP 202 alone.
@@ -208,7 +210,9 @@ The CI package includes `build_git_sha.txt`. An invalid, token-free GET to
 it against the deployed commit. Confirm that all six triggers are indexed.
 Then wait through the next scheduled UTC hour and verify a successful
 `housekeeping` request in Application Insights and a newer
-`/data/manifest.json` `generated_at`. Do not mark a deploy complete based on
+`/data/housekeeping.json` completion time with the deployed SHA. Check the
+`/data/manifest.json` generation only if event, briefing or other site data
+changed. Do not mark a deploy complete based on
 ZIP acceptance, Function `Running`, or trigger enumeration alone. If the next
 hour misses, keep ArcGIS publishing disabled and treat it as an incident.
 After publication resumes, inspect `events.json` for the offline catch-up

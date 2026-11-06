@@ -21,8 +21,8 @@ Analytics each returned NZD 0.000000. Displayed service amounts are rounded;
 the unrounded sum is NZD 0.381775. These are actual billable values as returned
 by Azure, not a forecast. Most reported spend is Storage, but this single day
 cannot distinguish one-time deployment transactions from steady-state use.
-The NZD 1 drill budget will only alert after delayed actual cost crosses NZD 1;
-it must not be treated as an immediate stop test.
+The NZD 1 drill budget was removed on 6 Nov before a natural alert. It must not
+be treated as an end-to-end stop test.
 The 4 Nov NZDT reading grouped by service was Storage NZD 0.526743, Azure
 Monitor NZD 0.005859, Email NZD 0.001780, Foundry Models NZD 0.001471 and
 Key Vault NZD 0.000064. Azure App Service, Bandwidth, Functions and Log
@@ -72,7 +72,10 @@ substitute estimates for delayed or missing rows. Watch for charges from
 Functions, storage transactions, Application Insights, ACS Email and Azure
 OpenAI. The application separately enforces briefing token and monthly-count
 limits. No subscription upgrade or payment method is part of this plan.
-The temporary NZD 1 budget drill remains active until its natural notification
-either proves the Action Group stop path or exposes a delivery failure. Delete
-it only after the stop and owner-operated recovery are recorded, using a
-reviewed plan with just that one deletion.
+The temporary NZD 1 budget drill is no longer active. Its saved removal plan
+contained one deletion and left the NZD 2, 5 and 8 permanent budgets unchanged.
+The direct budget-stop webhook test passed; natural budget alert delivery to the
+Action Group remains unverified. On 6 Nov the daily Cost Management request
+returned HTTP 429, so no new actual amount is reported. Skipping unchanged
+site generations reduces storage write and retained-blob operations while the
+hourly housekeeping heartbeat remains available for operational checks.
