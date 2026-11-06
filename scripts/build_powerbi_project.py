@@ -461,8 +461,14 @@ def visual(
                     "properties": {
                         "labelDisplayUnits": {"expr": {"Literal": {"Value": "1D"}}},
                         **(
-                            {"fontSize": {"expr": {"Literal": {"Value": "18D"}}}}
-                            if name == "last-run"
+                            {"fontSize": {"expr": {"Literal": {"Value": size}}}}
+                            if (
+                                size := {
+                                    "last-run": "18D",
+                                    "exposure-status": "18D",
+                                    "snapshot-time": "14D",
+                                }.get(name)
+                            )
                             else {}
                         ),
                     }

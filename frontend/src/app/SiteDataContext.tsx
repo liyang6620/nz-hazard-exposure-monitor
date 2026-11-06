@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from "react";
 
-import { loadSiteData } from "../data/client";
+import { loadHousekeepingHeartbeat, loadSiteData } from "../data/client";
 import type { SiteData } from "../data/types";
 
 interface SiteDataState {
@@ -39,6 +39,21 @@ export function SiteDataProvider({ children }: { children: ReactNode }) {
       });
     return () => controller.abort();
   }, [reloadKey]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const timer = window.setInterval(() => {
+      loadHousekeepingHeartbeat(controller.signal)
+        .then((heartbeat) =>
+          setData((current) => (current ? { ...current, heartbeat } : current)),
+        )
+        .catch(() => undefined);
+    }, 60_000);
+    return () => {
+      window.clearInterval(timer);
+      controller.abort();
+    };
+  }, []);
 
   const value = useMemo(
     () => ({

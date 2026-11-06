@@ -3,6 +3,7 @@ import { useState, type ReactNode } from "react";
 import { Link, NavLink } from "react-router-dom";
 
 import { EarthquakeTicker } from "../components/EarthquakeTicker";
+import { formatNzDateTime } from "../lib/format";
 import { useSiteData } from "./SiteDataContext";
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -66,6 +67,11 @@ export function AppShell({ children }: { children: ReactNode }) {
               Buildings and population exposed to New Zealand earthquake
               shaking.
             </p>
+            {data?.heartbeat ? (
+              <p className="site-last-checked">
+                Last checked {formatNzDateTime(data.heartbeat.completed_at)}
+              </p>
+            ) : null}
           </div>
           <div className="footer-links">
             <Link to="/method">Method</Link>

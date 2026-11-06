@@ -31,7 +31,7 @@ const questions = [
     image: "data-health.png",
     alt: "Data Health report canvas showing last Azure run, failures, poison messages and event status",
     finding:
-      "The reviewed 6 Nov snapshot captured a successful Azure run at 12:00 UTC on 5 Nov. Poison messages include acceptance drills.",
+      "The 6 Nov snapshot captured a successful Azure run at 07:00 UTC. Poison messages include acceptance drills.",
     page: "Data Health",
   },
 ];
@@ -58,7 +58,7 @@ export default function WorkbenchPage() {
         </a>
       </header>
       <p className="workbench-snapshot">
-        Reviewed snapshot: 6 Nov 2026. These report images and the PDF are a
+        Desktop snapshot: 6 Nov 2026. These report images and the PDF are a
         fixed export; the interactive version opens locally in Power BI Desktop.
       </p>
       {questions.map((question) => (

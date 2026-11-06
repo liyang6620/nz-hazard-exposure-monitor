@@ -152,7 +152,9 @@ export default function HomePage() {
           <div className="section-heading">
             <h2 id="recent-heading">Latest monitored events</h2>
             <span className="updated">
-              Data generated {formatNzDateTime(data.manifest.generated_at)}
+              {data.heartbeat
+                ? `Last checked ${formatNzDateTime(data.heartbeat.completed_at)}`
+                : `Data generated ${formatNzDateTime(data.manifest.generated_at)}`}
             </span>
           </div>
           {recentEvents.length ? (
