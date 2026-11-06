@@ -225,14 +225,66 @@ def test_workspace_prunes_only_old_complete_generations(tmp_path: Path) -> None:
                 for day in range(1, 5)
             ]
 
-        def list_blobs(self, name_starts_with: str) -> list[SimpleNamespace]:
-            return [SimpleNamespace(name=name_starts_with + "events.json")]
-
-        def delete_blob(self, name: str) -> None:
-            deleted.append(name)
-
     workspace = AzureDataWorkspace(
-        SimpleNamespace(get_container_client=lambda _: Container()), tmp_path
+        SimpleNamespace(get_container_client=lambda _: Container()),
+        tmp_path,
+        directories=SimpleNamespace(
+            get_file_system_client=lambda _: SimpleNamespace(
+                get_directory_client=lambda path: SimpleNamespace(
+                    delete_directory=lambda: deleted.append(path)
+                )
+            )
+        ),
     )
     assert workspace.prune_web_generations("20261104T000000000000Z") == 1
-    assert deleted == ["data/generations/20261101T000000000000Z/events.json"]
+    assert deleted == ["data/generations/20261101T000000000000Z"]
+
+
+def test_workspace_prunes_empty_adls_directory_markers(tmp_path: Path) -> None:
+    deleted: list[str] = []
+
+    class Container:
+        def walk_blobs(self, **kwargs: object) -> list[SimpleNamespace]:
+            return [
+                SimpleNamespace(name=f"data/generations/2026110{day}T000000000000Z/")
+                for day in range(1, 5)
+            ]
+
+    workspace = AzureDataWorkspace(
+        SimpleNamespace(get_container_client=lambda _: Container()),
+        tmp_path,
+        directories=SimpleNamespace(
+            get_file_system_client=lambda _: SimpleNamespace(
+                get_directory_client=lambda path: SimpleNamespace(
+                    delete_directory=lambda: deleted.append(path)
+                )
+            )
+        ),
+    )
+    assert workspace.prune_web_generations("20261104T000000000000Z") == 1
+    assert deleted == ["data/generations/20261101T000000000000Z"]
+
+
+def test_workspace_bounds_generation_pruning_per_run(tmp_path: Path) -> None:
+    deleted: list[str] = []
+
+    class Container:
+        def walk_blobs(self, **kwargs: object) -> list[SimpleNamespace]:
+            return [
+                SimpleNamespace(name=f"data/generations/2026110{day}T000000000000Z/")
+                for day in range(1, 6)
+            ]
+
+    workspace = AzureDataWorkspace(
+        SimpleNamespace(get_container_client=lambda _: Container()),
+        tmp_path,
+        directories=SimpleNamespace(
+            get_file_system_client=lambda _: SimpleNamespace(
+                get_directory_client=lambda path: SimpleNamespace(
+                    delete_directory=lambda: deleted.append(path)
+                )
+            )
+        ),
+    )
+    assert workspace.prune_web_generations("20261105T000000000000Z") == 1
+    assert deleted == ["data/generations/20261101T000000000000Z"]

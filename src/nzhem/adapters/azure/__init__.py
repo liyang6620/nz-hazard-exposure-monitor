@@ -14,6 +14,7 @@ from azure.data.tables import TableServiceClient
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
 from azure.storage.blob import BlobServiceClient, ContentSettings
+from azure.storage.filedatalake import DataLakeServiceClient
 from azure.storage.queue import QueueServiceClient
 
 from nzhem.adapters.local.geonet import GeoNetFdsnEventSource, NullEventSource
@@ -255,7 +256,13 @@ def build_azure_container(settings: Settings) -> ServiceContainer:
     from nzhem.core.agent.published_briefing_tools import PublishedBriefingTools
 
     objects = AzureObjectStore(settings.storage_account_name)
-    workspace = AzureDataWorkspace(objects._service, Path(settings.data_root))
+    directories = DataLakeServiceClient(
+        f"https://{settings.storage_account_name}.dfs.core.windows.net",
+        credential=credential(),
+    )
+    workspace = AzureDataWorkspace(
+        objects._service, Path(settings.data_root), directories=directories
+    )
     tables = AzureTableStore(settings.storage_account_name)
     event_source = (
         GeoNetFdsnEventSource(settings.geonet_fdsn_url)
