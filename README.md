@@ -56,8 +56,9 @@ server-side ArcGIS, OpenAI or approval secrets. See the
 ## Current status
 
 The Azure for Students deployment is live, with no subscription upgrade or
-payment method. Its Function processes hourly GeoNet updates and publishes
-immutable data generations before switching the public manifest. The first
+payment method. Its Function processes hourly GeoNet updates, records a
+separate hourly health heartbeat, and publishes a new immutable generation
+only when public data changes. The first
 Azure Kaikōura briefing was approved through the emailed GET confirmation and
 POST decision flow and appears on the website. The private ArcGIS item retained
 its ID during Azure incremental publication; the 4 Nov check found 4,014

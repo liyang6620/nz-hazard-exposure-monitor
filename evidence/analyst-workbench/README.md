@@ -31,3 +31,5 @@ review.
   buildings and people to its source summaries.
 - Browser key boundary scan passed. Desktop refresh, visual/RLS inspection and
   updated PDF export remain explicitly unverified.
+- The reviewed PDF has five pages. Its extracted text contains no machine path,
+  email address, Azure GUID or key assignment.
