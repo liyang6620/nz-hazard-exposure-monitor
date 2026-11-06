@@ -88,8 +88,12 @@ From the repository root after the owner has completed an MFA `az login`, run:
 .\.venv\Scripts\python.exe scripts/prepare_powerbi_desktop.py --name powerbi-desktop-workbench
 ```
 
-The `--azure` step reads gold blobs, housekeeping runs, poison queue depth and
-the public event index. It does not change Azure. Open the ignored
+The `--azure` step reads gold blobs, housekeeping runs, poison queue depth,
+the public event index and the published housekeeping completion heartbeat.
+The Data Health last-success timestamp uses that heartbeat because a polling
+run can be recorded as successful before a later site-publication failure.
+If the heartbeat is missing, the snapshot refresh fails instead of reporting
+a misleading successful time. The step does not change Azure. Open the ignored
 `.local/powerbi-desktop-workbench/nzhem.pbip` in Desktop and choose **Refresh**.
 The source PBIP uses a relative `RepoRoot`; only the ignored Desktop copy gets
 the machine path. Never save a machine path into the committed PBIP. Run

@@ -96,6 +96,15 @@ def public_ready_events(events: list[dict[str, object]]) -> list[dict[str, objec
     return summaries
 
 
+def public_housekeeping_completed_at() -> datetime:
+    response = requests.get(f"{PUBLIC_SITE}/data/housekeeping.json", timeout=15)
+    response.raise_for_status()
+    record = response.json()
+    if record.get("status") != "success" or not record.get("completed_at"):
+        raise RuntimeError("Public housekeeping completion record is unavailable")
+    return utc_naive(str(record["completed_at"]))
+
+
 def add_ready_events(
     connection: duckdb.DuckDBPyConnection,
     counts: dict[str, int],
@@ -481,7 +490,11 @@ def main() -> None:
     ]
     failed = sum(r.get("status") != "success" for r in runs)
     now = datetime.now(UTC).replace(tzinfo=None)
-    last_run = max((utc_naive(value) for value in successful), default=None)
+    last_run = (
+        public_housekeeping_completed_at()
+        if args.azure
+        else max((utc_naive(value) for value in successful), default=None)
+    )
     health = OUTPUT / "fct_health.parquet"
     con.execute(
         "COPY (SELECT ?::TIMESTAMP AS snapshot_at, ?::TIMESTAMP AS last_successful_run, "

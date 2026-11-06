@@ -3,7 +3,7 @@ from datetime import datetime
 from pathlib import Path
 
 import pytest
-from scripts.build_powerbi_snapshot import utc_naive
+from scripts.build_powerbi_snapshot import public_housekeeping_completed_at, utc_naive
 from scripts.check_pbip_portability import find_local_paths
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -65,3 +65,29 @@ def test_powerbi_health_timestamps_keep_utc_hour() -> None:
         encoding="utf-8"
     )
     assert "DATEDIFF(MAX(fct_health[Last Run]), MAX(fct_health[Snapshot At]), HOUR)" in measures
+
+
+def test_powerbi_cloud_health_requires_completed_publication(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class Response:
+        def raise_for_status(self) -> None:
+            return None
+
+        def json(self) -> dict[str, str]:
+            return {"status": "success", "completed_at": "2026-11-06T02:00:19Z"}
+
+    monkeypatch.setattr(
+        "scripts.build_powerbi_snapshot.requests.get", lambda *args, **kwargs: Response()
+    )
+    assert public_housekeeping_completed_at() == datetime(2026, 11, 6, 2, 0, 19)
+
+    class Incomplete(Response):
+        def json(self) -> dict[str, str]:
+            return {"status": "failed", "completed_at": "2026-11-06T03:00:19Z"}
+
+    monkeypatch.setattr(
+        "scripts.build_powerbi_snapshot.requests.get", lambda *args, **kwargs: Incomplete()
+    )
+    with pytest.raises(RuntimeError, match="completion record"):
+        public_housekeeping_completed_at()
