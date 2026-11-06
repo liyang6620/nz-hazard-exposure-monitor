@@ -13,6 +13,7 @@ subscription not supported`), so Action Group delivery is not verified.
 | 3 Nov 2026, first query | unavailable | NZD | Cost Management returned HTTP 429; no amount was inferred. |
 | 4 Nov 2026 NZDT | 0.535918 | NZD | Month-to-date ActualCost returned by Cost Management; charges are delayed. |
 | 4 Nov 2026 NZDT, later query | 0.614707 | NZD | Month-to-date ActualCost; the separate NZD 1 drill budget reported current spend NZD 0.600112. |
+| 6 Nov 2026 NZDT, later query | 0.852878 | NZD | Month-to-date ActualCost after an earlier HTTP 429; delayed charges, not a daily rate. |
 
 The later reading, grouped by Cost Management `ServiceName`, was Storage
 NZD 0.378492, Email NZD 0.001780, Foundry Models NZD 0.001471, and Key Vault
@@ -72,10 +73,16 @@ substitute estimates for delayed or missing rows. Watch for charges from
 Functions, storage transactions, Application Insights, ACS Email and Azure
 OpenAI. The application separately enforces briefing token and monthly-count
 limits. No subscription upgrade or payment method is part of this plan.
+The 6 Nov grouped reading was Storage NZD 0.771435, Azure Monitor NZD
+0.075927, Email NZD 0.002226, Foundry Models NZD 0.002185 and Key Vault NZD
+0.001105. Azure App Service, Bandwidth, Functions and Log Analytics returned
+zero. The unrounded sum is NZD 0.852878. Storage includes deployment-period
+transactions, so this reading does not establish a steady monthly run rate.
+
 The temporary NZD 1 budget drill is no longer active. Its saved removal plan
 contained one deletion and left the NZD 2, 5 and 8 permanent budgets unchanged.
 The direct budget-stop webhook test passed; natural budget alert delivery to the
-Action Group remains unverified. On 6 Nov the daily Cost Management request
-returned HTTP 429, so no new actual amount is reported. Skipping unchanged
+Action Group remains unverified. On 6 Nov an earlier Cost Management request
+returned HTTP 429; the later query above succeeded. Skipping unchanged
 site generations reduces storage write and retained-blob operations while the
 hourly housekeeping heartbeat remains available for operational checks.
