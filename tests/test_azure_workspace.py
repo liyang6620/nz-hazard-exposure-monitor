@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from datetime import UTC, datetime
 from pathlib import Path
 from types import SimpleNamespace
@@ -108,6 +109,10 @@ def test_site_publisher_uploads_manifest_last(
         def sync_realtime(self) -> Path:
             return tmp_path / "realtime"
 
+        def prune_web_generations(self, active: str) -> int:
+            assert active == "generation"
+            return 0
+
     class Publisher:
         def __init__(self, **kwargs: object) -> None:
             pass
@@ -125,7 +130,9 @@ def test_site_publisher_uploads_manifest_last(
     uploads: list[str] = []
     objects = SimpleNamespace(
         put_bytes=lambda container, path, data: uploads.append(path),
-        get_bytes=lambda container, path: b"<html>app</html>",
+        get_bytes=lambda container, path: (
+            b"{}" if path == "data/manifest.json" else b"<html>app</html>"
+        ),
     )
     publisher = AzureSiteDataPublisher(Workspace(), objects, None, memory_limit_mb=512)
 
@@ -141,3 +148,91 @@ def test_site_publisher_uploads_manifest_last(
         "data/manifest-generation.json",
         "data/manifest.json",
     ]
+
+
+def test_site_publisher_skips_unchanged_generation(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    class Workspace:
+        root = tmp_path
+
+        def latest_reference(self) -> Path:
+            return tmp_path / "reference"
+
+        def sync_gold(self) -> Path:
+            return tmp_path / "gold"
+
+        def sync_realtime(self) -> Path:
+            return tmp_path / "realtime"
+
+        def prune_web_generations(self, active: str) -> int:
+            return 0
+
+    class Publisher:
+        def __init__(self, **kwargs: object) -> None:
+            pass
+
+        def publish(self, generated_at: datetime) -> dict[str, str]:
+            generation_id = generated_at.strftime("%Y%m%dT%H%M%S%fZ")
+            data = tmp_path / "web/data"
+            generation = data / "generations" / generation_id
+            generation.mkdir(parents=True)
+            (generation / "events.json").write_text('[{"event_id":"2026p123456"}]')
+            manifest = {"generation_id": generation_id, "processing_record": None}
+            for name in (f"manifest-{generation_id}.json", "manifest.json"):
+                (data / name).write_text(json.dumps(manifest))
+            return {"generation_id": generation_id}
+
+    monkeypatch.setattr("nzhem.adapters.azure.workspace.LocalSiteDataPublisher", Publisher)
+    saved: dict[str, bytes] = {"index.html": b"<html>app</html>"}
+    uploads: list[str] = []
+
+    def put_bytes(container: str, path: str, data: bytes) -> None:
+        saved[path] = data
+        uploads.append(path)
+
+    def get_bytes(container: str, path: str) -> bytes:
+        if path not in saved:
+            raise FileNotFoundError(path)
+        return saved[path]
+
+    publisher = AzureSiteDataPublisher(
+        Workspace(),
+        SimpleNamespace(
+            put_bytes=put_bytes,
+            get_bytes=get_bytes,
+        ),
+        None,
+        memory_limit_mb=512,
+    )
+    first = publisher.publish(datetime(2026, 11, 6, 1, tzinfo=UTC))
+    count = len(uploads)
+    second = publisher.publish(datetime(2026, 11, 6, 2, tzinfo=UTC))
+    assert first["unchanged"] is False
+    assert second["unchanged"] is True
+    assert second["generation_id"] == first["generation_id"]
+    assert len(uploads) == count
+
+
+def test_workspace_prunes_only_old_complete_generations(tmp_path: Path) -> None:
+    deleted: list[str] = []
+
+    class Container:
+        def walk_blobs(self, **kwargs: object) -> list[SimpleNamespace]:
+            assert kwargs == {"name_starts_with": "data/generations/", "delimiter": "/"}
+            return [
+                SimpleNamespace(name=f"data/generations/2026110{day}T000000000000Z/")
+                for day in range(1, 5)
+            ]
+
+        def list_blobs(self, name_starts_with: str) -> list[SimpleNamespace]:
+            return [SimpleNamespace(name=name_starts_with + "events.json")]
+
+        def delete_blob(self, name: str) -> None:
+            deleted.append(name)
+
+    workspace = AzureDataWorkspace(
+        SimpleNamespace(get_container_client=lambda _: Container()), tmp_path
+    )
+    assert workspace.prune_web_generations("20261104T000000000000Z") == 1
+    assert deleted == ["data/generations/20261101T000000000000Z/events.json"]

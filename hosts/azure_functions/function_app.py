@@ -108,6 +108,24 @@ def housekeeping(timer: func.TimerRequest) -> None:
     timed_out = processor.expire_stale_processing() if processor else 0
     publication = container.publish_site_data()
     hosted = container.publish_hosted_features()
+    container.objects.put_bytes(
+        "web",
+        "data/housekeeping.json",
+        (
+            json.dumps(
+                {
+                    "run_id": result.run_id,
+                    "completed_at": container.clock.now().astimezone(UTC).isoformat(),
+                    "status": "success",
+                    "build_sha": _build_sha,
+                    "site_generation": publication["generation_id"] if publication else None,
+                    "data_unchanged": bool(publication and publication.get("unchanged")),
+                },
+                separators=(",", ":"),
+            )
+            + "\n"
+        ).encode("utf-8"),
+    )
     logging.info(
         "housekeeping completed",
         extra={

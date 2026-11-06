@@ -111,7 +111,7 @@ jobs:
             --name "${{ secrets.AZURE_FUNCTION_APP_NAME }}" \
             --query 'length(@)' --output tsv)"
           test "$count" = 6
-      - name: Verify the next scheduled site-data publication
+      - name: Verify the next scheduled housekeeping run
         shell: bash
         run: |
           site_url="$(az storage account show \
@@ -120,12 +120,12 @@ jobs:
             --query 'primaryEndpoints.web' --output tsv)"
           for attempt in {1..225}; do
             if curl --fail --silent --show-error \
-              "${site_url%/}/data/manifest.json" -o site-manifest.json; then
-              if python -c "import json,os; from datetime import datetime; d=json.load(open('site-manifest.json')); started=datetime.fromisoformat(os.environ['DEPLOY_STARTED_AT'].replace('Z','+00:00')); published=datetime.fromisoformat(d['generated_at'].replace('Z','+00:00')); assert published >= started"; then
+              "${site_url%/}/data/housekeeping.json" -o site-housekeeping.json; then
+              if python -c "import json,os; from datetime import datetime; d=json.load(open('site-housekeeping.json')); started=datetime.fromisoformat(os.environ['DEPLOY_STARTED_AT'].replace('Z','+00:00')); completed=datetime.fromisoformat(d['completed_at'].replace('Z','+00:00')); assert d['status']=='success' and d['build_sha']==os.environ['GITHUB_SHA'] and completed >= started"; then
                 exit 0
               fi
             fi
             sleep 20
           done
-          echo 'The next hourly timer did not publish fresh site data.' >&2
+          echo 'The next hourly timer did not complete housekeeping.' >&2
           exit 1

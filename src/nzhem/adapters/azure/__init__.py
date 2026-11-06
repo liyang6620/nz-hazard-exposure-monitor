@@ -46,7 +46,7 @@ class AzureObjectStore:
             content_type = "application/geo+json"
         cache_control = (
             "no-cache"
-            if path == "data/manifest.json"
+            if path in {"data/manifest.json", "data/housekeeping.json"}
             or path.startswith("briefings/")
             or path in {"history", "method", "about", "review"}
             or path.endswith("/index.html")
