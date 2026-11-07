@@ -49,6 +49,9 @@ state migration requires the project manager's approval relayed by the owner.
    `workbench/` asset directory, publish the replacement assets first, verify
    them, then remove only that obsolete directory before writing the
    `/workbench` route blob.
+   The static deploy also rewrites each published event route using the new
+   `index.html`, even when the data generation is unchanged. Verify a direct
+   event deep link loads the same frontend build as `/` after every deploy.
 
 The 31 Oct replan was approved and applied; see
 `evidence/m1-a/azure-acceptance-2026-11-02.md` for verified rollout steps and

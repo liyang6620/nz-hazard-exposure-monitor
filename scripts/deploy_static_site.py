@@ -1,13 +1,28 @@
 from __future__ import annotations
 
 import argparse
+import json
 import mimetypes
+import re
 from pathlib import Path
 
+from azure.core.exceptions import ResourceNotFoundError
 from azure.identity import DefaultAzureCredential
 from azure.storage.blob import BlobServiceClient, ContentSettings
 
 from nzhem.core.site_routes import static_route_blobs, validate_static_route_assets
+
+
+def published_event_ids(web: object) -> list[str]:
+    try:
+        manifest = json.loads(web.get_blob_client("data/manifest.json").download_blob().readall())
+    except ResourceNotFoundError:
+        return []
+    base_path = manifest["base_path"].lstrip("/")
+    if not re.fullmatch(r"data/generations/\d{8}T\d{12}Z", base_path):
+        raise ValueError("Unexpected published generation path")
+    events = json.loads(web.get_blob_client(f"{base_path}/events.json").download_blob().readall())
+    return [str(event["event_id"]) for event in events]
 
 
 def main() -> None:
@@ -18,13 +33,13 @@ def main() -> None:
     root = args.dist.resolve()
     if not (root / "index.html").is_file():
         raise FileNotFoundError("Vite build output is missing index.html")
-    routes = static_route_blobs()
-    validate_static_route_assets(root, routes)
     service = BlobServiceClient(
         f"https://{args.account_name}.blob.core.windows.net",
         credential=DefaultAzureCredential(exclude_interactive_browser_credential=True),
     )
     web = service.get_container_client("$web")
+    routes = static_route_blobs(published_event_ids(web))
+    validate_static_route_assets(root, routes)
     count = 0
     for path in sorted(root.rglob("*")):
         if not path.is_file():
