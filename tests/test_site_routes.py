@@ -11,6 +11,7 @@ def test_static_route_blobs_include_fixed_and_event_paths() -> None:
         "method",
         "about",
         "review",
+        "workbench",
         "events/2016p858000",
     ]
 

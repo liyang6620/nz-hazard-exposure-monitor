@@ -1,4 +1,9 @@
-import type { EventSummary, Manifest, SiteData } from "./types";
+import type {
+  EventSummary,
+  HousekeepingHeartbeat,
+  Manifest,
+  SiteData,
+} from "./types";
 
 async function readJson<T>(path: string, signal?: AbortSignal): Promise<T> {
   const response = await fetch(path, { signal, cache: "no-cache" });
@@ -9,11 +14,33 @@ async function readJson<T>(path: string, signal?: AbortSignal): Promise<T> {
 
 export async function loadSiteData(signal?: AbortSignal): Promise<SiteData> {
   const manifest = await readJson<Manifest>("/data/manifest.json", signal);
-  const events = await readJson<SiteData["events"]>(
-    `${manifest.base_path}/events.json`,
-    signal,
-  );
-  return { manifest, events };
+  const [events, heartbeat] = await Promise.all([
+    readJson<SiteData["events"]>(`${manifest.base_path}/events.json`, signal),
+    loadHousekeepingHeartbeat(signal),
+  ]);
+  return { manifest, events, heartbeat };
+}
+
+export async function loadHousekeepingHeartbeat(
+  signal?: AbortSignal,
+): Promise<HousekeepingHeartbeat | null> {
+  if (
+    !window.location.hostname.endsWith(".web.core.windows.net") &&
+    import.meta.env.VITE_PUBLIC_HEARTBEAT !== "true"
+  )
+    return null;
+  try {
+    const record = await readJson<HousekeepingHeartbeat>(
+      "/data/housekeeping.json",
+      signal,
+    );
+    if (record.status !== "success" || !record.completed_at) return null;
+    return record;
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError")
+      throw error;
+    return null;
+  }
 }
 
 export async function loadEventSummary(

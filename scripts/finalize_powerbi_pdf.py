@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 import subprocess
 from pathlib import Path
 
@@ -20,14 +21,19 @@ PAGES = [
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--source", type=Path)
+    parser.add_argument("--output-dir", type=Path, default=EVIDENCE)
+    args = parser.parse_args()
     sources = sorted(SOURCE_ROOT.glob("print-job-*/nzhem.pdf"), key=lambda p: p.stat().st_mtime)
-    if not sources:
+    source = args.source or (sources[-1] if sources else None)
+    if source is None:
         raise FileNotFoundError("Power BI Desktop PDF export not found")
-    reader = PdfReader(sources[-1])
+    reader = PdfReader(source)
     if len(reader.pages) != len(PAGES):
         raise ValueError(f"Expected {len(PAGES)} report pages, found {len(reader.pages)}")
-    EVIDENCE.mkdir(parents=True, exist_ok=True)
-    output = EVIDENCE / "nzhem-powerbi-report.pdf"
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    output = args.output_dir / "nzhem-powerbi-report.pdf"
     writer = PdfWriter()
     for page in reader.pages:
         # Desktop exported its 43 pt auto-recovery notice above the report canvas.
@@ -49,11 +55,11 @@ def main() -> None:
                 "120",
                 "-png",
                 str(output),
-                str(EVIDENCE / name),
+                str(args.output_dir / name),
             ],
             check=True,
         )
-    print(f"Finalized {len(PAGES)} Desktop report pages from {sources[-1].parent.name}")
+    print(f"Finalized {len(PAGES)} Desktop report pages from {source.parent.name}")
 
 
 if __name__ == "__main__":

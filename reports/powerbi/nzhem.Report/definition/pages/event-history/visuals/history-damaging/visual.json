@@ -76,7 +76,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'EVENTS WITH DAMAGING SHAKING'"
+                  "Value": "'Damaging Events (Fixed MMI 6+)'"
                 }
               }
             }

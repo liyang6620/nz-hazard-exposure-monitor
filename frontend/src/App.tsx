@@ -11,6 +11,7 @@ const EventDetailPage = lazy(() => import("./pages/EventDetailPage"));
 const HistoryPage = lazy(() => import("./pages/HistoryPage"));
 const MethodologyPage = lazy(() => import("./pages/MethodologyPage"));
 const AboutPage = lazy(() => import("./pages/AboutPage"));
+const WorkbenchPage = lazy(() => import("./pages/WorkbenchPage"));
 const ReviewPage = lazy(() => import("./pages/ReviewPage"));
 
 export default function App() {
@@ -38,6 +39,7 @@ export default function App() {
             <Route path="/history" element={<HistoryPage />} />
             <Route path="/method" element={<MethodologyPage />} />
             <Route path="/about" element={<AboutPage />} />
+            <Route path="/workbench" element={<WorkbenchPage />} />
             <Route
               path="*"
               element={

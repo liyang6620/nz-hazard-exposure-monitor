@@ -152,8 +152,13 @@
             },
             "text": {
               "expr": {
-                "Literal": {
-                  "Value": "'EVENT TIME × MAGNITUDE  /  BUBBLE AREA = EXPOSED BUILDINGS'"
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "History Trend Title"
                 }
               }
             }

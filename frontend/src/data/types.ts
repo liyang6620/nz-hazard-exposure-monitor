@@ -24,6 +24,14 @@ export interface Manifest {
   processing_record?: ProcessingRecord | null;
 }
 
+export interface HousekeepingHeartbeat {
+  completed_at: string;
+  status: "success";
+  build_sha: string;
+  data_unchanged: boolean;
+  site_generation: string | null;
+}
+
 export interface BriefingState {
   status: "pending" | "approved" | "rejected" | "expired";
   title: string | null;
@@ -80,4 +88,5 @@ export interface EventSummary extends EventListItem {
 export interface SiteData {
   manifest: Manifest;
   events: EventListItem[];
+  heartbeat?: HousekeepingHeartbeat | null;
 }

@@ -12,6 +12,13 @@ has approved it, a written briefing. Ten historical events have a separate
 **as-if-today** replay using current buildings and 2023 population. An event
 without damaging shaking still receives a clear assessment.
 
+The new Analyst Workbench page at `/workbench` extends the first-hour website
+result with threshold changes, repeat regional exposure, historical comparisons
+and data health. This page is in an unmerged review PR and is not yet on the
+public site. Its five-page PDF is a dated snapshot; the interactive report runs
+in Power BI Desktop. See the
+[model and refresh guide](docs/powerbi.md).
+
 | Observed result | Evidence |
 |---|---|
 | Genuine new GeoNet M5.0 event published **32 minutes 9 seconds** after origin on 2 Nov 2026 | [Azure acceptance](evidence/m1-a/azure-acceptance-2026-11-02.md) |
@@ -33,6 +40,7 @@ flowchart LR
     B --> E[Approval email]
     E --> R[Human GET preview and one-time POST decision]
     R --> W
+    D --> PB[Analyst Workbench PBIP snapshot]
     P --> A[Single ArcGIS hosted-layer publisher]
 ```
 
@@ -48,8 +56,9 @@ server-side ArcGIS, OpenAI or approval secrets. See the
 ## Current status
 
 The Azure for Students deployment is live, with no subscription upgrade or
-payment method. Its Function processes hourly GeoNet updates and publishes
-immutable data generations before switching the public manifest. The first
+payment method. Its Function processes hourly GeoNet updates, records a
+separate hourly health heartbeat, and publishes a new immutable generation
+only when public data changes. The first
 Azure Kaikōura briefing was approved through the emailed GET confirmation and
 POST decision flow and appears on the website. The private ArcGIS item retained
 its ID during Azure incremental publication; the 4 Nov check found 4,014
@@ -58,9 +67,10 @@ features and 3,521,464 bytes, within the 125 MiB free storage allowance.
 Acceptance evidence is under [`evidence/m1-a/`](evidence/m1-a/). The
 [owner-assisted record](evidence/m1-a/owner-assisted-acceptance-2026-11-04.md)
 documents the poison-queue drill, unchanged gold hashes, TEST-mail rejection
-and hourly telemetry. Action Group email delivery and the NZD 1 natural budget
-stop drill remain open; the student subscription rejected Azure's built-in
-Action Group test. The revised M5 five-page PBIP, screenshots and PDF passed
+and hourly telemetry. Action Group email delivery remains open; the student
+subscription rejected Azure's built-in Action Group test. The NZD 1 drill
+budget was removed at the owner's request without a natural stop test. The
+revised M5 five-page PBIP, screenshots and PDF passed
 review in PR #59. The owner cancelled M5 and M8 video deliverables. M7's
 [Snowflake offline preparation](docs/snowflake-benchmark.md) is ready; actual
 benchmark measurements wait for a trial account.

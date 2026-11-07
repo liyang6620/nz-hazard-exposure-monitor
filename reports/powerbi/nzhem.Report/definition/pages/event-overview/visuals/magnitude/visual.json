@@ -76,7 +76,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'MAGNITUDE'"
+                  "Value": "'Magnitude'"
                 }
               }
             }

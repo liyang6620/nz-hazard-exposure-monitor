@@ -1,4 +1,4 @@
-import { ArrowLeft, Info, MapPin } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Info, MapPin } from "lucide-react";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 
@@ -132,6 +132,10 @@ export default function EventDetailPage() {
             />
           </div>
           {status ? <p className="event-callout">{status}</p> : null}
+          <Link className="workbench-event-link" to="/workbench">
+            Open in Analyst Workbench{" "}
+            <ArrowUpRight size={17} aria-hidden="true" />
+          </Link>
         </div>
       </section>
       <div className="page-container event-content">

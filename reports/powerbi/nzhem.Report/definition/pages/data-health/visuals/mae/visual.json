@@ -76,7 +76,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'STATION-WEIGHTED MAE'"
+                  "Value": "'Station-Weighted MAE'"
                 }
               }
             }

@@ -76,7 +76,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'BUILDINGS IN MMI 6+ CELLS'"
+                  "Value": "'Strong Cells (Fixed MMI 6+)'"
                 }
               }
             }

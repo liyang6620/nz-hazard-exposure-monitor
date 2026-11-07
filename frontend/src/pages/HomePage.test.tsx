@@ -177,6 +177,33 @@ describe("HomePage", () => {
     expect(screen.getByText("18m 0s")).toBeInTheDocument();
   });
 
+  it("shows the last completed check when unchanged data retains an older manifest", () => {
+    useSiteData.mockReturnValue({
+      data: {
+        ...siteData,
+        heartbeat: {
+          completed_at: "2026-11-06T02:00:12Z",
+          status: "success",
+          build_sha: "tested-build",
+          data_unchanged: true,
+          site_generation: "test",
+        },
+      },
+      error: null,
+      loading: false,
+      reload: vi.fn(),
+    });
+    const { container } = render(
+      <MemoryRouter>
+        <HomePage />
+      </MemoryRouter>,
+    );
+    expect(
+      screen.getByText(/Last checked 6 Nov 2026.*NZDT/),
+    ).toBeInTheDocument();
+    expect(container.textContent).not.toMatch(/Data generated 29 Oct/);
+  });
+
   it("renders a retryable error state", () => {
     useSiteData.mockReturnValue({
       data: null,

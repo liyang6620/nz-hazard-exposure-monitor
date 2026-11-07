@@ -75,8 +75,13 @@
             },
             "text": {
               "expr": {
-                "Literal": {
-                  "Value": "'EXPOSED PEOPLE'"
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "People Threshold Title"
                 }
               }
             }

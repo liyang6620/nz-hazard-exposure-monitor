@@ -76,7 +76,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'REPEAT EXPOSURE ACROSS 10 REPLAYS'"
+                  "Value": "'Repeat Exposure Across 10 Replays'"
                 }
               }
             }

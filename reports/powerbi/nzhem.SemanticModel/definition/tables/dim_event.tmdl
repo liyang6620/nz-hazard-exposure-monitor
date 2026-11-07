@@ -80,6 +80,19 @@ table dim_event
 		summarizeBy: none
 		sourceColumn: exposure_basis
 
+	column 'Event Group'
+		dataType: string
+		lineageTag: c43f9137-fe52-5b93-bdb6-3a5cbb706cf2
+		summarizeBy: none
+		sourceColumn: event_group
+
+	column 'GeoNet Event ID'
+		dataType: string
+		isHidden
+		lineageTag: efb9bc49-cd39-5459-b6bb-0ed6859ff275
+		summarizeBy: none
+		sourceColumn: geonet_event_id
+
 	partition dim_event = m
 		mode: import
 		source = Parquet.Document(File.Contents(RepoRoot & "\.local\data\powerbi\dim_event.parquet"))

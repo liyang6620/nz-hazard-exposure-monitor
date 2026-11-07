@@ -76,7 +76,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'MAXIMUM MMI'"
+                  "Value": "'Maximum MMI'"
                 }
               }
             }

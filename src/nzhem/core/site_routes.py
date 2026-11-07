@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from collections.abc import Iterable
 
-FIXED_ROUTES = ("history", "method", "about", "review")
+FIXED_ROUTES = ("history", "method", "about", "review", "workbench")
 _EVENT_ID = re.compile(r"[A-Za-z0-9_-]+\Z")
 
 

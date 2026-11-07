@@ -120,7 +120,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'H3 EXPOSURE POINTS / MMI INTENSITY'"
+                  "Value": "'H3 REPLAY CELLS / LIVE EPICENTRE / MMI INTENSITY'"
                 }
               }
             }

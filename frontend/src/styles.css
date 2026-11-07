@@ -131,6 +131,101 @@ td:nth-child(n + 2),
   width: min(1180px, calc(100% - 40px));
   margin-inline: auto;
 }
+.workbench-page {
+  padding-block: 44px 80px;
+}
+.workbench-lead {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 32px;
+  padding-bottom: 36px;
+  border-bottom: 2px solid var(--ink);
+}
+.workbench-lead h1 {
+  font-size: clamp(34px, 3rem, 48px);
+  line-height: 1.1;
+  margin-bottom: 14px;
+}
+.workbench-lead p {
+  max-width: 650px;
+  margin-bottom: 0;
+  font-size: 17px;
+}
+.workbench-download,
+.workbench-event-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 0;
+  border-bottom: 2px solid var(--ink);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.workbench-event-link {
+  margin-top: 18px;
+}
+.workbench-snapshot {
+  margin: 18px 0 34px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.workbench-question {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.6fr) minmax(0, 1.4fr);
+  gap: 40px;
+  padding: 34px 0;
+  border-top: 1px solid var(--line);
+}
+.workbench-question-copy h2 {
+  max-width: 360px;
+  font-size: 23px;
+  line-height: 1.25;
+}
+.workbench-question-copy p {
+  max-width: 360px;
+}
+.workbench-question-copy span,
+.workbench-question > a > span {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12px;
+}
+.workbench-question > a {
+  display: block;
+  min-width: 0;
+  text-decoration: none;
+}
+.workbench-question img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+}
+.workbench-question > a > span {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  margin-top: 10px;
+  text-decoration: underline;
+}
+.workbench-end,
+.workbench-path {
+  border-top: 1px solid var(--line);
+  padding-top: 18px;
+}
+@media (max-width: 720px) {
+  .workbench-lead,
+  .workbench-question {
+    display: block;
+  }
+  .workbench-download {
+    margin-top: 22px;
+  }
+  .workbench-question > a {
+    margin-top: 20px;
+  }
+}
 .app-shell {
   min-height: 100vh;
   display: flex;

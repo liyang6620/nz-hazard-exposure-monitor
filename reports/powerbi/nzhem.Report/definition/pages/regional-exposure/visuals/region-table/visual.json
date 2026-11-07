@@ -84,11 +84,11 @@
                       "Entity": "_Measures"
                     }
                   },
-                  "Property": "Accumulated Building Exposures"
+                  "Property": "Repeat Exposure"
                 }
               },
-              "queryRef": "_Measures.Accumulated Building Exposures",
-              "nativeQueryRef": "Accumulated Building Exposures"
+              "queryRef": "_Measures.Repeat Exposure",
+              "nativeQueryRef": "Repeat Exposure"
             }
           ]
         }
@@ -125,8 +125,13 @@
             },
             "text": {
               "expr": {
-                "Literal": {
-                  "Value": "'REGION / DISTRICT RANKING AND REPEAT EXPOSURE'"
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Regional Threshold Title"
                 }
               }
             }
@@ -221,7 +226,7 @@
             }
           },
           "selector": {
-            "metadata": "_Measures.Accumulated Building Exposures"
+            "metadata": "_Measures.Repeat Exposure"
           }
         }
       ]
@@ -230,15 +235,15 @@
   "filterConfig": {
     "filters": [
       {
-        "name": "321f551326a1515e9fbf",
+        "name": "65478b067dfd565bb5f3",
         "field": {
-          "Column": {
+          "Measure": {
             "Expression": {
               "SourceRef": {
-                "Entity": "dim_region"
+                "Entity": "_Measures"
               }
             },
-            "Property": "Region"
+            "Property": "Visible Regional Row"
           }
         },
         "type": "Advanced",
@@ -246,33 +251,29 @@
           "Version": 2,
           "From": [
             {
-              "Name": "r",
-              "Entity": "dim_region",
+              "Name": "m",
+              "Entity": "_Measures",
               "Type": 0
             }
           ],
           "Where": [
             {
               "Condition": {
-                "Not": {
-                  "Expression": {
-                    "Comparison": {
-                      "ComparisonKind": 0,
-                      "Left": {
-                        "Column": {
-                          "Expression": {
-                            "SourceRef": {
-                              "Source": "r"
-                            }
-                          },
-                          "Property": "Region"
+                "Comparison": {
+                  "ComparisonKind": 0,
+                  "Left": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Source": "m"
                         }
                       },
-                      "Right": {
-                        "Literal": {
-                          "Value": "'Outside mapped regions'"
-                        }
-                      }
+                      "Property": "Visible Regional Row"
+                    }
+                  },
+                  "Right": {
+                    "Literal": {
+                      "Value": "1D"
                     }
                   }
                 }

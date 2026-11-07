@@ -83,7 +83,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'LAST SUCCESSFUL RUN / UTC'"
+                  "Value": "'Last Successful Run / UTC'"
                 }
               }
             }

@@ -75,8 +75,13 @@
             },
             "text": {
               "expr": {
-                "Literal": {
-                  "Value": "'EXPOSED BUILDINGS'"
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Buildings Threshold Title"
                 }
               }
             }

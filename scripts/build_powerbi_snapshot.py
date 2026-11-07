@@ -7,11 +7,13 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import os
 import shutil
 import sqlite3
 import subprocess
 from datetime import UTC, datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import duckdb
 import requests
@@ -45,6 +47,153 @@ def export(connection: duckdb.DuckDBPyConnection, name: str, query: str) -> int:
     return connection.execute(
         f"SELECT count(*) FROM read_parquet('{sql_path(destination)}')"
     ).fetchone()[0]
+
+
+def append_snapshot_rows(
+    connection: duckdb.DuckDBPyConnection,
+    name: str,
+    rows: list[tuple[object, ...]],
+) -> int:
+    if not rows:
+        return connection.execute(
+            f"SELECT count(*) FROM read_parquet('{sql_path(OUTPUT / (name + '.parquet'))}')"
+        ).fetchone()[0]
+    current = OUTPUT / f"{name}.parquet"
+    replacement = OUTPUT / f".{name}.parquet"
+    connection.execute(
+        f"CREATE OR REPLACE TEMP TABLE snapshot_append AS SELECT * FROM read_parquet('{sql_path(current)}')"
+    )
+    placeholders = ", ".join("?" for _ in rows[0])
+    connection.executemany(f"INSERT INTO snapshot_append VALUES ({placeholders})", rows)
+    connection.execute(
+        f"COPY snapshot_append TO '{sql_path(replacement)}' (FORMAT PARQUET, COMPRESSION ZSTD)"
+    )
+    os.replace(replacement, current)
+    return connection.execute("SELECT count(*) FROM snapshot_append").fetchone()[0]
+
+
+def public_ready_events(events: list[dict[str, object]]) -> list[dict[str, object]]:
+    manifest = requests.get(f"{PUBLIC_SITE}/data/manifest.json", timeout=15)
+    manifest.raise_for_status()
+    base_path = str(manifest.json()["base_path"])
+    if not base_path.startswith("/data/generations/"):
+        raise RuntimeError("Unexpected public data generation path")
+    summaries = []
+    for event in events:
+        if not event.get("is_recent_monitoring") or event.get("assessment_status") != "ready":
+            continue
+        event_id = str(event["event_id"])
+        if not event_id.replace("p", "").isdigit():
+            raise ValueError("Unexpected GeoNet event ID")
+        response = requests.get(
+            f"{PUBLIC_SITE}{base_path}/events/{event_id}/summary.json", timeout=15
+        )
+        response.raise_for_status()
+        summary = response.json()
+        if summary.get("event_id") != event_id or summary.get("assessment_status") != "ready":
+            raise ValueError("Published event summary does not match the ready event index")
+        summaries.append(summary)
+    return summaries
+
+
+def public_housekeeping_completed_at() -> datetime:
+    response = requests.get(f"{PUBLIC_SITE}/data/housekeeping.json", timeout=15)
+    response.raise_for_status()
+    record = response.json()
+    if record.get("status") != "success" or not record.get("completed_at"):
+        raise RuntimeError("Public housekeeping completion record is unavailable")
+    return utc_naive(str(record["completed_at"]))
+
+
+def add_ready_events(
+    connection: duckdb.DuckDBPyConnection,
+    counts: dict[str, int],
+    events: list[dict[str, object]],
+) -> int:
+    summaries = public_ready_events(events)
+    if not summaries:
+        return 0
+    local_zone = ZoneInfo("Pacific/Auckland")
+    dim_rows = []
+    summary_rows = []
+    exposure_rows = []
+    map_rows = []
+    for summary in summaries:
+        event_id = f"live:{summary['event_id']}"
+        origin = datetime.fromisoformat(str(summary["origin_time"]).replace("Z", "+00:00"))
+        origin_nz = origin.astimezone(local_zone)
+        name = str(summary["name"])
+        event_day = origin_nz.date()
+        dim_rows.append(
+            (
+                event_id,
+                name,
+                event_day,
+                f"{event_day.day} {origin_nz:%b %Y}",
+                origin_nz.replace(tzinfo=None),
+                origin_nz.strftime("%Y-%m-%d %H:%M %Z"),
+                origin_nz.year + (origin_nz.timetuple().tm_yday - 1) / 366.0,
+                float(summary["magnitude"]),
+                float(summary["depth_km"]),
+                summary.get("mmi_source"),
+                summary.get("source_version"),
+                "Event time",
+                "Live events",
+                str(summary["event_id"]),
+            )
+        )
+        summary_rows.append(
+            (
+                event_id,
+                event_day,
+                float(summary["max_mmi"] or 0),
+                int(summary["buildings_mmi_ge_6"] or 0),
+                float(summary["population_mmi_ge_6"] or 0),
+                None,
+                None,
+                None,
+            )
+        )
+        for band in summary.get("mmi_bands", []):
+            label = str(band["mmi_band"])
+            if label == "<4":
+                continue
+            exposure_rows.append(
+                (
+                    event_id,
+                    "live:national",
+                    8 if label == "8+" else int(label),
+                    int(band["buildings"]),
+                    None,
+                    float(band["population"]),
+                )
+            )
+        if not summary.get("no_damaging_shaking"):
+            # The public feed has no live region-by-threshold fact. A single
+            # epicentre marker is honest about the map's available granularity.
+            map_rows.append(
+                (
+                    event_id,
+                    str(summary["event_id"]),
+                    min(8, int(float(summary["max_mmi"]))),
+                    float(summary["max_mmi"]),
+                    int(summary["buildings_mmi_ge_6"] or 0),
+                    float(summary["population_mmi_ge_6"] or 0),
+                    float(summary["latitude"]),
+                    float(summary["longitude"]),
+                )
+            )
+    counts["dim_region"] = append_snapshot_rows(
+        connection, "dim_region", [("live:national", "Live events / national", "National", None)]
+    )
+    for name, rows in (
+        ("dim_event", dim_rows),
+        ("fct_event_summary", summary_rows),
+        ("fct_exposure", exposure_rows),
+        ("fct_map", map_rows),
+    ):
+        counts[name] = append_snapshot_rows(connection, name, rows)
+    return len(summaries)
 
 
 def utc_naive(value: str) -> datetime:
@@ -176,17 +325,13 @@ def main() -> None:
         con,
         "dim_region",
         f"""
-        SELECT coalesce(region_code, 'unknown') || ':' || coalesce(ta_code, 'unknown') AS region_key,
-               coalesce(region_name, 'Outside mapped regions') AS region_name,
-               replace(coalesce(ta_name, 'Outside mapped authorities'), 'Kaikoura', 'Kaikōura') AS territorial_authority,
-               sum(buildings)::BIGINT AS region_buildings
-        FROM (
-            SELECT region_code, region_name, territorial_authority_code AS ta_code,
-                   territorial_authority_name AS ta_name, count(*) AS buildings
-            FROM read_parquet('{ref}/int_buildings_h3/region=*/*.parquet')
-            WHERE lifecycle = 'Current'
-            GROUP BY ALL
-        )
+        SELECT coalesce(o.region_code, 'unknown') || ':' || coalesce(o.ta_code, 'unknown') AS region_key,
+               coalesce(o.region_name, 'Outside mapped regions') AS region_name,
+               replace(coalesce(o.ta_name, 'Outside mapped authorities'), 'Kaikoura', 'Kaikōura') AS territorial_authority,
+               count(*)::BIGINT AS region_buildings
+        FROM read_parquet('{ref}/int_buildings_h3/region=*/*.parquet') b
+        LEFT JOIN read_parquet('{owner}') o USING (h3_res8)
+        WHERE b.lifecycle = 'Current'
         GROUP BY ALL
         UNION ALL
         SELECT 'unknown:unknown', 'Outside mapped regions',
@@ -197,7 +342,7 @@ def main() -> None:
         con,
         "dim_event",
         f"""
-        SELECT event_id,
+        SELECT 'replay:' || event_id AS event_id,
                CASE event_id
                    WHEN '3366146' THEN 'Darfield, 2010'
                    WHEN '3468575' THEN 'Christchurch, Feb 2011'
@@ -221,7 +366,9 @@ def main() -> None:
                {magnitude_expression} AS magnitude,
                depth_km,
                mmi_source, shaking_version,
-               'As-if-today' AS exposure_basis
+               'As-if-today' AS exposure_basis,
+               'Historical replays' AS event_group,
+               event_id AS geonet_event_id
         FROM read_parquet('{m3}/mart_event_summary.parquet')
     """,
     )
@@ -229,7 +376,7 @@ def main() -> None:
         con,
         "fct_event_summary",
         f"""
-        SELECT event_id, CAST(origin_time AS DATE) AS event_date,
+        SELECT 'replay:' || event_id AS event_id, CAST(origin_time AS DATE) AS event_date,
                max_mmi, buildings_mmi_ge_6, population_mmi_ge_6,
                footprint_m2_mmi_ge_6, validation_station_count, validation_mae
         FROM read_parquet('{m3}/mart_event_summary.parquet')
@@ -266,7 +413,7 @@ def main() -> None:
         con,
         "fct_exposure",
         f"""
-        SELECT e.event_id,
+        SELECT 'replay:' || e.event_id AS event_id,
                coalesce(o.region_code, 'unknown') || ':' || coalesce(o.ta_code, 'unknown') AS region_key,
                least(floor(e.mmi)::INTEGER, 8) AS band_key,
                sum(e.as_if_today_building_count)::BIGINT AS buildings,
@@ -287,7 +434,7 @@ def main() -> None:
                    avg(centre_longitude) AS longitude
             FROM read_parquet('{ref}/dim_h3_cell.parquet') GROUP BY h3_res6
         )
-        SELECT e.event_id, e.h3_res6::VARCHAR AS h3_cell,
+        SELECT 'replay:' || e.event_id AS event_id, e.h3_res6::VARCHAR AS h3_cell,
                least(floor(e.mmi)::INTEGER, 8) AS band_key,
                round(e.mmi, 1) AS mmi, e.as_if_today_building_count AS buildings,
                e.population_2023 AS people, c.latitude, c.longitude
@@ -317,13 +464,14 @@ def main() -> None:
         con,
         "fct_validation",
         f"""
-        SELECT event_id, station_id, observed_mmi, estimated_mmi,
+        SELECT 'replay:' || event_id AS event_id, station_id, observed_mmi, estimated_mmi,
                abs(observed_mmi - estimated_mmi) AS absolute_error
         FROM read_parquet('{m3}/mart_mmi_validation.parquet')
         WHERE exclusion_reason IS NULL AND observed_mmi IS NOT NULL
           AND estimated_mmi IS NOT NULL
     """,
     )
+    live_count = add_ready_events(con, counts, cloud_events) if args.azure else 0
 
     state = ROOT / ".local/state/nzhem.sqlite3"
     runs: list[dict[str, object]] = cloud_runs
@@ -340,7 +488,11 @@ def main() -> None:
     ]
     failed = sum(r.get("status") != "success" for r in runs)
     now = datetime.now(UTC).replace(tzinfo=None)
-    last_run = max((utc_naive(value) for value in successful), default=None)
+    last_run = (
+        public_housekeeping_completed_at()
+        if args.azure
+        else max((utc_naive(value) for value in successful), default=None)
+    )
     health = OUTPUT / "fct_health.parquet"
     con.execute(
         "COPY (SELECT ?::TIMESTAMP AS snapshot_at, ?::TIMESTAMP AS last_successful_run, "
@@ -389,6 +541,7 @@ def main() -> None:
                 if args.azure
                 else "M3 local gold and reference export",
                 "rows": counts,
+                "ready_live_events": live_count,
             },
             indent=2,
         ),
