@@ -42,6 +42,14 @@ state migration requires the project manager's approval relayed by the owner.
    does not run on host startup; an idle-host wakeup must not create an extra
    poll or storage write.
 
+   On the ADLS Gen2-backed static website, a route such as `/workbench` must be
+   a blob, while its report attachments must live under a different prefix
+   (`/report-assets/`). A directory and route blob cannot share the same name.
+   The static deploy validates this before uploading. For an existing
+   `workbench/` asset directory, publish the replacement assets first, verify
+   them, then remove only that obsolete directory before writing the
+   `/workbench` route blob.
+
 The 31 Oct replan was approved and applied; see
 `evidence/m1-a/azure-acceptance-2026-11-02.md` for verified rollout steps and
 remaining acceptance checks. Do not use the original 50-create production plan

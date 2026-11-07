@@ -105,7 +105,7 @@ export default function AboutPage() {
           <ExternalLink aria-hidden="true" />
         </a>
         <a
-          href="https://github.com/liyang6620/nz-hazard-exposure-monitor/raw/main/evidence/m5/nzhem-powerbi-report.pdf"
+          href="/report-assets/nzhem-powerbi-report.pdf"
           rel="noreferrer"
         >
           <FileText aria-hidden="true" />

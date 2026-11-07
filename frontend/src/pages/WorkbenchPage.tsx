@@ -50,7 +50,7 @@ export default function WorkbenchPage() {
         </div>
         <a
           className="workbench-download"
-          href="/workbench/nzhem-powerbi-report.pdf"
+          href="/report-assets/nzhem-powerbi-report.pdf"
           download
         >
           <ArrowDownToLine size={18} aria-hidden="true" /> Download five-page
@@ -69,12 +69,12 @@ export default function WorkbenchPage() {
             <span>{question.page}</span>
           </div>
           <a
-            href={`/workbench/${question.image}`}
+            href={`/report-assets/${question.image}`}
             target="_blank"
             rel="noreferrer"
           >
             <img
-              src={`/workbench/${question.image}`}
+              src={`/report-assets/${question.image}`}
               alt={question.alt}
               loading="lazy"
             />
