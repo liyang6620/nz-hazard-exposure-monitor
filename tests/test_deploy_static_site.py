@@ -2,9 +2,8 @@ from __future__ import annotations
 
 import json
 
-from azure.core.exceptions import ResourceNotFoundError
 import pytest
-
+from azure.core.exceptions import ResourceNotFoundError
 from scripts.deploy_static_site import published_event_ids
 
 
