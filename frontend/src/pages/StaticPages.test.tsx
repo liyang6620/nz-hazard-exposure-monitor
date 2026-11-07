@@ -40,7 +40,7 @@ describe("product information pages", () => {
     ).toBeVisible();
     expect(
       screen.getByRole("link", { name: /Download five-page PDF/i }),
-    ).toHaveAttribute("href", "/workbench/nzhem-powerbi-report.pdf");
+    ).toHaveAttribute("href", "/report-assets/nzhem-powerbi-report.pdf");
     expect(screen.getAllByRole("img", { name: /report canvas/i })).toHaveLength(
       4,
     );

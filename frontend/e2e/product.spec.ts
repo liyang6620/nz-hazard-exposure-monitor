@@ -182,5 +182,5 @@ test("Analyst Workbench shows reviewed questions and downloadable PDF", async ({
   await expect(page.getByRole("img")).toHaveCount(4);
   await expect(
     page.getByRole("link", { name: /Download five-page PDF/i }),
-  ).toHaveAttribute("href", "/workbench/nzhem-powerbi-report.pdf");
+  ).toHaveAttribute("href", "/report-assets/nzhem-powerbi-report.pdf");
 });

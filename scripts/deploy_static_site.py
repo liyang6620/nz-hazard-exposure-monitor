@@ -7,7 +7,7 @@ from pathlib import Path
 from azure.identity import DefaultAzureCredential
 from azure.storage.blob import BlobServiceClient, ContentSettings
 
-from nzhem.core.site_routes import static_route_blobs
+from nzhem.core.site_routes import static_route_blobs, validate_static_route_assets
 
 
 def main() -> None:
@@ -18,6 +18,8 @@ def main() -> None:
     root = args.dist.resolve()
     if not (root / "index.html").is_file():
         raise FileNotFoundError("Vite build output is missing index.html")
+    routes = static_route_blobs()
+    validate_static_route_assets(root, routes)
     service = BlobServiceClient(
         f"https://{args.account_name}.blob.core.windows.net",
         credential=DefaultAzureCredential(exclude_interactive_browser_credential=True),
@@ -46,7 +48,7 @@ def main() -> None:
             )
         count += 1
     index_html = (root / "index.html").read_bytes()
-    for route in static_route_blobs():
+    for route in routes:
         web.upload_blob(
             route,
             index_html,
