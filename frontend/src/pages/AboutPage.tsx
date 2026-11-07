@@ -104,10 +104,7 @@ export default function AboutPage() {
           </span>
           <ExternalLink aria-hidden="true" />
         </a>
-        <a
-          href="/report-assets/nzhem-powerbi-report.pdf"
-          rel="noreferrer"
-        >
+        <a href="/report-assets/nzhem-powerbi-report.pdf" rel="noreferrer">
           <FileText aria-hidden="true" />
           <span>
             <strong>Analyst Workbench PDF</strong>
