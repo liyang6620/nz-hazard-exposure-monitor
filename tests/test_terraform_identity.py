@@ -4,12 +4,8 @@ from pathlib import Path
 
 def test_github_oidc_uses_scoped_user_assigned_identity() -> None:
     bootstrap = Path("infra/bootstrap/main.tf").read_text(encoding="utf-8")
-    plan_workflow = Path(".github/workflows/terraform-plan.yml").read_text(
-        encoding="utf-8"
-    )
-    deploy_workflow = Path(".github/workflows/deploy.yml").read_text(
-        encoding="utf-8"
-    )
+    plan_workflow = Path(".github/workflows/terraform-plan.yml").read_text(encoding="utf-8")
+    deploy_workflow = Path(".github/workflows/deploy.yml").read_text(encoding="utf-8")
     terraform_sources = "\n".join(
         path.read_text(encoding="utf-8") for path in Path("infra").rglob("*.tf")
     )
