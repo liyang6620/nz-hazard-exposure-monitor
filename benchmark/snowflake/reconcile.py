@@ -9,10 +9,10 @@ from pathlib import Path
 import duckdb
 
 try:
-    from .auth import connect
+    from .auth import assert_warehouse_guard, connect, suspend_warehouse
     from .load_curated import DATASETS
 except ImportError:
-    from auth import connect
+    from auth import assert_warehouse_guard, connect, suspend_warehouse
     from load_curated import DATASETS
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -54,8 +54,11 @@ def require_equal_count(name: str, local_count: int, remote_count: int) -> None:
 def require_equal_sum(name: str, column: str, local_value: object, remote_value: object) -> None:
     a = float(local_value or 0)
     b = float(remote_value or 0)
-    if not math.isfinite(a) or not math.isfinite(b) or abs(a - b) >= TOLERANCE:
-        raise AssertionError(f"{name}.{column}: aggregate difference >= {TOLERANCE}")
+    difference = abs(a - b)
+    if not math.isfinite(a) or not math.isfinite(b) or difference >= TOLERANCE:
+        raise AssertionError(
+            f"{name}.{column}: aggregate difference {difference:.9g} >= {TOLERANCE}"
+        )
 
 
 def require_equal_mmi(local_rows: list[tuple], remote_rows: list[tuple]) -> None:
@@ -68,6 +71,12 @@ def require_equal_mmi(local_rows: list[tuple], remote_rows: list[tuple]) -> None
 def parquet_query(database: duckdb.DuckDBPyConnection, path: Path, sql: str):
     quoted = str(path).replace("'", "''").replace("\\", "/")
     return database.execute(sql.replace("{parquet}", f"read_parquet('{quoted}')"))
+
+
+def stable_sum(cursor) -> float:
+    return math.fsum(
+        float(row[0] or 0) for batch in iter(lambda: cursor.fetchmany(10_000), []) for row in batch
+    )
 
 
 def reconcile(root: Path, *, schema: str, event_id: str | None = None) -> dict[str, int]:
@@ -107,7 +116,22 @@ def reconcile(root: Path, *, schema: str, event_id: str | None = None) -> dict[s
                     cursor.execute(
                         f"SELECT SUM({column}) FROM NZHEM_BENCHMARK.{schema}.{name.upper()}" + where
                     )
-                    require_equal_sum(name, column, local_sum, cursor.fetchone()[0])
+                    remote_sum = cursor.fetchone()[0]
+                    try:
+                        require_equal_sum(name, column, local_sum, remote_sum)
+                    except AssertionError:
+                        local_stable = stable_sum(
+                            parquet_query(local, path, f"SELECT {column} FROM {{parquet}}" + where)
+                        )
+                        cursor.execute(
+                            f"SELECT {column} FROM NZHEM_BENCHMARK.{schema}.{name.upper()}" + where
+                        )
+                        remote_stable = stable_sum(cursor)
+                        require_equal_sum(name, column, local_stable, remote_stable)
+                        print(
+                            f"{name}.{column}: engine SUM order differed; "
+                            f"stable row-sum difference {abs(local_stable - remote_stable):.9g}"
+                        )
             for name, grid_column in (
                 ("fct_event_exposure_cell", "h3_res8"),
                 ("mart_event_exposure_h3r6", "h3_res6"),
@@ -135,7 +159,11 @@ def main() -> None:
     parser.add_argument("--schema", choices=["BENCHMARK_FULL", "BENCHMARK_SINGLE"], required=True)
     parser.add_argument("--event-id")
     args = parser.parse_args()
-    results = reconcile(args.curated_root, schema=args.schema, event_id=args.event_id)
+    assert_warehouse_guard()
+    try:
+        results = reconcile(args.curated_root, schema=args.schema, event_id=args.event_id)
+    finally:
+        suspend_warehouse()
     print("Reconciliation passed: exact row counts and grid MMI; aggregate error < 1e-6")
     for name, count in results.items():
         print(f"{name}: {count}")

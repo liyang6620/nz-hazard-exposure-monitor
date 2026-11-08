@@ -7,9 +7,16 @@
     {% endif %}
 {% elif event_root %}
     select *
-    from read_parquet(
-        '{{ event_root }}/fct_event_exposure_cell.parquet'
-    )
+    from
+        read_parquet(
+            '{{ event_root }}/fct_event_exposure_cell.parquet'
+        )
+    {% if var('benchmark_event_id', '') %}
+        where event_id = '{{ var('benchmark_event_id') }}'
+    {% endif %}
 {% else %}
     select * from {{ ref('event_exposure_cell') }}
+    {% if var('benchmark_event_id', '') %}
+    where event_id = '{{ var('benchmark_event_id') }}'
+    {% endif %}
 {% endif %}

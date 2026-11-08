@@ -7,6 +7,12 @@
     {% endif %}
 {% elif event_root %}
     select * from read_parquet('{{ event_root }}/int_event_shaking_h3.parquet')
+    {% if var('benchmark_event_id', '') %}
+        where event_id = '{{ var('benchmark_event_id') }}'
+    {% endif %}
 {% else %}
     select * from {{ ref('event_shaking_h3') }}
+    {% if var('benchmark_event_id', '') %}
+    where event_id = '{{ var('benchmark_event_id') }}'
+    {% endif %}
 {% endif %}

@@ -7,6 +7,12 @@
     {% endif %}
 {% elif event_root %}
     select * from read_parquet('{{ event_root }}/dim_event.parquet')
+    {% if var('benchmark_event_id', '') %}
+        where event_id = '{{ var('benchmark_event_id') }}'
+    {% endif %}
 {% else %}
     select * from {{ ref('event_catalog') }}
+    {% if var('benchmark_event_id', '') %}
+    where event_id = '{{ var('benchmark_event_id') }}'
+    {% endif %}
 {% endif %}

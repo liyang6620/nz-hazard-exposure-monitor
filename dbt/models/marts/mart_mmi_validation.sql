@@ -11,9 +11,15 @@
         *,
         abs(estimated_mmi - observed_mmi) as absolute_error
     from read_parquet('{{ event_root }}/mart_mmi_validation.parquet')
+    {% if var('benchmark_event_id', '') %}
+        where event_id = '{{ var('benchmark_event_id') }}'
+    {% endif %}
 {% else %}
     select
         *,
         abs(estimated_mmi - observed_mmi) as absolute_error
     from {{ ref('mmi_validation') }}
+    {% if var('benchmark_event_id', '') %}
+    where event_id = '{{ var('benchmark_event_id') }}'
+    {% endif %}
 {% endif %}

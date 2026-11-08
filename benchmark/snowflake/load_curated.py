@@ -9,9 +9,9 @@ from pathlib import Path
 import duckdb
 
 try:
-    from .auth import connect
+    from .auth import assert_warehouse_guard, connect, suspend_warehouse
 except ImportError:
-    from auth import connect
+    from auth import assert_warehouse_guard, connect, suspend_warehouse
 
 ROOT = Path(__file__).resolve().parents[2]
 DATASETS = {
@@ -94,8 +94,13 @@ def put_sql(name: str, path: Path, root: Path) -> str:
     return f"PUT '{local_uri}' {destination} AUTO_COMPRESS=FALSE OVERWRITE=TRUE"
 
 
-def load(root: Path, *, execute: bool) -> dict[str, object]:
-    selected = {name: files_for(root, name) for name in DATASETS}
+def load(root: Path, *, execute: bool, start_at: str | None = None) -> dict[str, object]:
+    names = list(DATASETS)
+    if start_at is not None:
+        if start_at not in DATASETS:
+            raise ValueError("Unknown curated table for resume")
+        names = names[names.index(start_at) :]
+    selected = {name: files_for(root, name) for name in names}
     validate_schemas(selected)
     result: dict[str, object] = {
         "tables": len(selected),
@@ -104,20 +109,24 @@ def load(root: Path, *, execute: bool) -> dict[str, object]:
     }
     if not execute:
         return result
-    with connect() as connection, connection.cursor() as cursor:
-        for name, paths in selected.items():
-            cursor.execute(table_ddl(name, paths[0]))
-            cursor.execute(f"REMOVE @{STAGE}/{name}/")
-            for path in paths:
-                cursor.execute(put_sql(name, path, root))
-            cursor.execute(
-                f"COPY INTO NZHEM_BENCHMARK.CURATED.{name.upper()} "
-                f"FROM @{STAGE}/{name}/ "
-                f"FILE_FORMAT=(FORMAT_NAME={FORMAT}) "
-                "MATCH_BY_COLUMN_NAME=CASE_INSENSITIVE ON_ERROR=ABORT_STATEMENT"
-            )
-            cursor.execute(f"SELECT COUNT(*) FROM NZHEM_BENCHMARK.CURATED.{name.upper()}")
-            result[name] = cursor.fetchone()[0]
+    assert_warehouse_guard()
+    try:
+        with connect() as connection, connection.cursor() as cursor:
+            for name, paths in selected.items():
+                cursor.execute(table_ddl(name, paths[0]))
+                cursor.execute(f"REMOVE @{STAGE}/{name}/")
+                for path in paths:
+                    cursor.execute(put_sql(name, path, root))
+                cursor.execute(
+                    f"COPY INTO NZHEM_BENCHMARK.CURATED.{name.upper()} "
+                    f"FROM @{STAGE}/{name}/ "
+                    f"FILE_FORMAT=(FORMAT_NAME={FORMAT}) "
+                    "MATCH_BY_COLUMN_NAME=CASE_INSENSITIVE ON_ERROR=ABORT_STATEMENT"
+                )
+                cursor.execute(f"SELECT COUNT(*) FROM NZHEM_BENCHMARK.CURATED.{name.upper()}")
+                result[name] = cursor.fetchone()[0]
+    finally:
+        suspend_warehouse()
     return result
 
 
@@ -127,8 +136,9 @@ def main() -> None:
     parser.add_argument(
         "--execute", action="store_true", help="Upload and COPY; omitted for offline inventory"
     )
+    parser.add_argument("--start-at", choices=tuple(DATASETS), help="Resume at this table")
     args = parser.parse_args()
-    result = load(args.curated_root.resolve(), execute=args.execute)
+    result = load(args.curated_root.resolve(), execute=args.execute, start_at=args.start_at)
     for name, value in result.items():
         print(f"{name}: {value}")
 

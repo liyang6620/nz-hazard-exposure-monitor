@@ -12,7 +12,11 @@ curated rows; event exposure has 400,742 H3-8 rows; the H3-6 exposure mart has
 25,668 rows. An encrypted key pair was generated in git-ignored
 `.local/snowflake/`; no private material or account identifier is committed.
 
-No Snowflake warehouse or trial credit has been used. Actual rebuild times,
-metered credits and Snowflake parity results remain **not measured** until the
-owner creates the trial account. Offline CI checks syntax, adapter parsing and
-the negative reconciliation tests; those are not cloud benchmark evidence.
+During this offline phase no Snowflake warehouse or trial credit was used.
+Offline CI checked syntax, adapter parsing and negative reconciliation tests;
+those results alone were not cloud benchmark evidence.
+
+The account-backed second phase is documented in
+[`trial-benchmark-2026-11-08.md`](trial-benchmark-2026-11-08.md). It passed
+strict parity and both timed workloads. Per-run metered credits remain pending
+Account Usage reporting; the X-Small Gen2 warehouse is suspended.
