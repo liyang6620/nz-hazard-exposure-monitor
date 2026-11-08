@@ -19,3 +19,6 @@ and one five-page PDF. No M5 or M8 video is required. Keep
 
 Reviewers inspect the PBIP and static evidence directly. The report remains
 local-only: no Microsoft sign-in or Power BI Service publication is needed.
+The website's Analyst Workbench exposes a dated PDF and screenshots, not a
+live Power BI Service report. Interactive filtering and the Canterbury
+Analyst RLS demonstration run only in Desktop on a read-only local snapshot.

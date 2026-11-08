@@ -59,3 +59,22 @@ failure mode. The first deployment needs an owner-run bootstrap before OIDC can
 take over CI planning and code deployment. If managed-identity federation or
 scoped role assignment is rejected, deployment falls back to owner-run
 `az login`; CI then runs only formatting and validation.
+
+## Implementation status, 9 Nov 2026
+
+The GitHub OIDC workflow files and Azure managed identity exist, but the
+repository enablement variables and required environment secrets are absent.
+The environment-scoped workflow jobs also do not match the originally created
+PR/main federated subjects. Azure deployments therefore still use an
+owner-authorised local MFA session. The
+[completion proposal](../github-oidc-completion.md) requires project-manager
+review before any identity-trust or GitHub setting change.
+
+The approved secret compromise is explicit: the ACS connection string and
+some sensitive runtime values reside in protected Function application
+settings; the server-side ArcGIS owner-scope key resides in Key Vault and is
+never sent to the browser. The LINZ LDS tile key is intentionally public in
+the browser bundle and is separate from those server secrets. The optional
+`map-token` relay remains disabled; the public map uses local GeoJSON and
+LINZ tiles, with OpenStreetMap fallback. No GitHub runtime service is used
+by the event processor.

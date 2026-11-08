@@ -35,3 +35,6 @@ Open operating checks remain explicit: real Action Group email receipt,
 the natural budget-alert-to-stop path, GitHub OIDC deployment, and a complete
 quiet-period billing average. The NZD 1 temporary drill budget was removed
 on 6 Nov at the owner's request, so it is not waiting to trigger.
+The [section 16 acceptance ledger](../../docs/acceptance-checklist.md)
+records these as unverified rather than passed, alongside the accepted
+school-account exception and cancelled video deliverables.
