@@ -1,21 +1,30 @@
-# Five-minute product demonstration
+# Five-minute interview demonstration
 
-Audience: catastrophe or exposure analysts, with hiring reviewers as a
-secondary audience. Open the [public website](https://stnzhem8495b7ca.z8.web.core.windows.net/)
-before starting. This walkthrough is read-only: do not open approval links,
-change Azure resources, invoke a model or display credentials.
+Audience: catastrophe and exposure analysts, then hiring reviewers. Open the
+[public website](https://stnzhem8495b7ca.z8.web.core.windows.net/) and the
+[Analyst Workbench](https://stnzhem8495b7ca.z8.web.core.windows.net/workbench)
+before starting. Use public, read-only pages; do not display credentials or
+approval links. This written script replaces the cancelled video deliverable.
 
-| Time | Screen and action | What to say |
-|---|---|---|
-| 0:00-0:45 | Homepage: point to the latest monitored event and recent-event strip. | "GeoNet events are polled hourly. Each assessment reports maximum MMI and buildings and people in MMI 6+ shaking. The first genuine Azure event was on the site 32 minutes 9 seconds after origin." |
-| 0:45-1:45 | Open a recent assessed event. Show the epicentre, H3 cells, MMI legend and map text alternative. | "An official Shaking Layer is preferred. When it is unavailable, an in-range point-source estimate is labelled preliminary. An event with no damaging shaking has an explicit result instead of a pending chart." |
-| 1:45-2:35 | On the same detail page, compare the MMI 5+ chart and regional table. | "These are screening exposure counts, not insured losses. The chart keeps damaging bands readable; the table omits empty regions and explains unmatched geography." |
-| 2:35-3:35 | Open History, then the Kaikōura replay and its approved briefing. | "This replay applies today's 3,219,311 deduplicated buildings and 2023 population to historical shaking. Kaikōura shows 78,564 buildings and 83,276 people at MMI 6+. Its briefing appeared only after a person approved it." |
-| 3:35-4:20 | Open Method. Point out the data versions and limitations. | "Population starts at SA1 and is allocated by building footprint. The point-source model has station MAE 1.049 MMI. Water cells and the Chatham Islands are excluded. These boundaries matter before using the numbers." |
-| 4:20-5:00 | Open About and the repository README architecture diagram. | "The same core runs in local Docker Compose and Azure Functions. Azure publishes immutable JSON and GeoJSON generations for the public React site. The local and cloud replay hashes matched across 56 Parquet files. November actual cost reported on 4 Nov was NZD 0.535918, with billing delay." |
+| Time | Show | Say |
+| --- | --- | --- |
+| 0:00-0:45 | Home: latest monitored event, recent strip, Last checked | "GeoNet is polled hourly. The first genuine Azure event reached the site 32 minutes 9 seconds after origin. Last checked comes from the hourly heartbeat even when the data manifest does not change." |
+| 0:45-1:35 | A live event detail: map, epicentre, MMI source, summary | "Official shaking is preferred. Otherwise an in-range point-source estimate is labelled preliminary; out-of-range and no-damaging-shaking results are explicit. Buildings and people at MMI 6+ are exposure, not loss." |
+| 1:35-2:20 | Historical Kaikōura detail and approved briefing | "Ten fixed events replay historical shaking over current buildings and 2023 population. Kaikōura has 78,564 buildings and 83,276 people at MMI 6+ in that as-if-today scenario. The numeric heading is deterministic; a human approved the prose before publication." |
+| 2:20-3:20 | Analyst Workbench, then five-page PDF | "The website supports a first-hour decision; the Desktop report supports threshold, regional-repeat, comparison and data-health questions. The public PDF is a dated snapshot. A Canterbury RLS role was checked in Desktop; there is no Power BI Service login." |
+| 3:20-4:15 | Method and Data Health | "The point-source station MAE is 1.049 MMI. SA1 population allocation, water-cell exclusions and missing Chatham Islands coverage are disclosed. The 11-hour 2 Nov publication outage was detected because the manifest stopped updating while the Function still said Running; we now gate releases on the next real timer run and heartbeat." |
+| 4:15-5:00 | README architecture and platform comparison | "Local Docker and Azure share the core, and 56 Parquet objects matched by hash. Snowflake reproduced the dbt marts but took 36.1 seconds for the full rebuild versus 22.1 on bounded local DuckDB. Azure Cost Management had returned NZD 1.141149 month-to-date rows on 9 Nov; a stable daily rate is not yet verified." |
 
-If the latest live event is outside model range or has no damaging shaking,
-show that explicit status and use the historical Kaikōura page for the exposure
-comparison. Do not imply that a historical replay describes 2016 building
-stock. This written script is the M8 interview demonstration deliverable; no
-video is required.
+If the latest event has no damaging shaking, use that clear state rather than
+an empty chart, then open Kaikōura for the exposure example. Never describe a
+historical replay as a 2016 building inventory.
+
+## Common follow-up questions
+
+| Question | Answer points |
+| --- | --- |
+| Why DuckDB rather than Snowflake in production? | The approved curated/gold volume fits one thread and 512 MB. In the controlled trial, local full and single-event dbt runs were faster; Snowflake adds a separately metered warehouse and trial expiry. Strict row, MMI and aggregate parity passed. |
+| How do you keep AI from inventing numbers? | Titles and key figures come directly from the event summary. The model writes only short situation and check text; each numeric mention must match a named metric and value. Unknown regions, leaked field names and decimal people are rejected. GET previews are read-only and approval requires a one-time human POST. |
+| How was the 11-hour outage found? | The public manifest froze after a legacy Flex ZIP deployment even though ARM said Running. App Insights showed the timer listener failing to authenticate to host storage. The runbook now checks the served SHA, indexed triggers, managed-identity settings and the next scheduled heartbeat; unchanged data does not force a new manifest. |
+| What caused the Power BI regional percentage regression? | A visual filter hiding zero rows also shrank the building-stock denominator. The DAX measure now removes visual row filters, then reapplies the intended region/district context. The total matches national share, and Canterbury RLS retains its regional denominator. |
+| What remains unverified? | A clean physical-computer install, a complete stable billing period under US$3/month, natural budget alert to stop delivery, GitHub OIDC deployment, and Snowflake per-run metered credits. These are labelled as gaps in the final checklist. |

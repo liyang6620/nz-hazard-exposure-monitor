@@ -1,10 +1,11 @@
 # NZ Hazard Exposure Monitor
 
-**See how many New Zealand buildings and people are exposed to damaging
-earthquake shaking, within a one-hour publication target.** The
-[live website](https://stnzhem8495b7ca.z8.web.core.windows.net/) serves
-catastrophe and exposure analysts who need a traceable first view before
-portfolio matching or loss modelling.
+**New Zealand earthquake exposure, published for catastrophe and exposure
+analysts within a one-hour target.** The
+[public website](https://stnzhem8495b7ca.z8.web.core.windows.net/) shows how
+many buildings and people experienced damaging shaking after a GeoNet event.
+It supplies a traceable first assessment before portfolio matching or loss
+modelling; it does not estimate insured loss.
 
 The homepage shows recent GeoNet earthquakes; each detail page combines
 shaking, H3 exposure cells, MMI-band charts, regional totals and, when a human
@@ -12,18 +13,18 @@ has approved it, a written briefing. Ten historical events have a separate
 **as-if-today** replay using current buildings and 2023 population. An event
 without damaging shaking still receives a clear assessment.
 
-The new Analyst Workbench page at `/workbench` extends the first-hour website
-result with threshold changes, repeat regional exposure, historical comparisons
-and data health. This page is in an unmerged review PR and is not yet on the
-public site. Its five-page PDF is a dated snapshot; the interactive report runs
-in Power BI Desktop. See the
+The live [Analyst Workbench](https://stnzhem8495b7ca.z8.web.core.windows.net/workbench)
+extends the first-hour result with threshold changes, repeat regional exposure,
+historical comparisons and data health. Its five-page PDF is a dated snapshot;
+the interactive report runs in Power BI Desktop. See the
 [model and refresh guide](docs/powerbi.md).
 
 | Observed result | Evidence |
 |---|---|
 | Genuine new GeoNet M5.0 event published **32 minutes 9 seconds** after origin on 2 Nov 2026 | [Azure acceptance](evidence/m1-a/azure-acceptance-2026-11-02.md) |
 | Azure and local replay data matched across **56 curated/gold Parquet files** (216,680,598 bytes) | [Azure acceptance](evidence/m1-a/azure-acceptance-2026-11-02.md) |
-| November month-to-date actual cost: **NZD 0.535918** as reported on 4 Nov NZDT; billing is delayed, so this is not a monthly run rate | [Cost record](docs/cost.md) |
+| Snowflake trial reproduced all four gold marts and 48 dbt checks; full rebuild took **36.141 s** versus **22.062 s** on local DuckDB | [M7 trial](evidence/m7/trial-benchmark-2026-11-08.md) |
+| Azure Cost Management returned **NZD 1.141149** November actual-cost rows on 9 Nov NZDT; billing is delayed and a stable daily rate is not yet verified | [Dated cost query](evidence/m8/cost-2026-11-09.md) |
 
 ## Architecture
 
@@ -40,7 +41,7 @@ flowchart LR
     B --> E[Approval email]
     E --> R[Human GET preview and one-time POST decision]
     R --> W
-    D --> PB[Analyst Workbench PBIP snapshot]
+    D --> PB[Analyst Workbench Desktop snapshot and public PDF]
     P --> A[Single ArcGIS hosted-layer publisher]
 ```
 
@@ -56,7 +57,12 @@ server-side ArcGIS, OpenAI or approval secrets. See the
 ## Current status
 
 The Azure for Students deployment is live, with no subscription upgrade or
-payment method. Its Function processes hourly GeoNet updates, records a
+payment method. It depends on the owner's school account, which is expected
+to expire around October 2027; this is the approved exception to the original
+school-account-independence constraint. Terraform and the
+[migration runbook](docs/runbook.md#move-to-another-subscription) support a
+fresh deployment to another subscription. Its Function processes hourly
+GeoNet updates, records a
 separate hourly health heartbeat, and publishes a new immutable generation
 only when public data changes. The first
 Azure Kaikōura briefing was approved through the emailed GET confirmation and
@@ -67,13 +73,15 @@ features and 3,521,464 bytes, within the 125 MiB free storage allowance.
 Acceptance evidence is under [`evidence/m1-a/`](evidence/m1-a/). The
 [owner-assisted record](evidence/m1-a/owner-assisted-acceptance-2026-11-04.md)
 documents the poison-queue drill, unchanged gold hashes, TEST-mail rejection
-and hourly telemetry. Action Group email delivery remains open; the student
-subscription rejected Azure's built-in Action Group test. The NZD 1 drill
-budget was removed at the owner's request without a natural stop test. The
-revised M5 five-page PBIP, screenshots and PDF passed
-review in PR #59. The owner cancelled M5 and M8 video deliverables. M7's
-[Snowflake offline preparation](docs/snowflake-benchmark.md) is ready; actual
-benchmark measurements wait for a trial account.
+and hourly telemetry. The revised M5 five-page PBIP, screenshots and PDF
+passed review; its public Workbench page and attachments passed Azure checks.
+The owner cancelled M5 and M8 video deliverables. The
+[Snowflake trial comparison](docs/platform-comparison.md) passed strict
+reconciliation; its warehouse is suspended. The natural budget-alert-to-stop
+path remains unverified: Azure for Students rejected the built-in Action Group
+test and the owner removed the NZD 1 drill budget to avoid unattended downtime.
+The direct stop/recovery drill passed. Failure-alert inbox delivery remains
+unverified despite the alert firing and a second receiver being configured.
 
 ## Important limitations
 
@@ -87,6 +95,10 @@ benchmark measurements wait for a trial account.
 - Population is published 2023 SA1 population distributed within each SA1 by
   current building footprint. SA1 is coarser than meshblock and Stats NZ applies
   confidentiality treatment to small-area counts.
+- The station comparison yielded MAE 1.049 MMI. Preliminary point-source MMI
+  is therefore labelled as an estimate; official GeoNet Shaking Layers take
+  priority. Water-meshblock buildings and the Chatham Islands are excluded
+  from the current exposure coverage.
 
 ## Repository layout
 
@@ -128,7 +140,7 @@ The services are then available at:
 - Token-free historical event map: <http://localhost:8080/map/>
 - Mailpit inbox: <http://localhost:8025/>
 
-The application runs `housekeeping` once at startup and then every 60 minutes.
+The local app runs `housekeeping` once at startup and then every 60 minutes.
 It reads the last successful poll from SQLite and sends GeoNet FDSN an
 `updatedafter` query so events published while the computer was off are caught
 up. The same run consumes the event queue, prefers an official GeoNet Shaking
@@ -165,6 +177,14 @@ only on POST. Approved pages appear in the static site's briefing list.
 The four-tool local MCP server and ten-event evaluation are documented in
 [`docs/mcp-local.md`](docs/mcp-local.md) and
 [`docs/evaluation.md`](docs/evaluation.md).
+
+To inspect the Analyst Workbench interactively, follow the
+[read-only Azure snapshot and Desktop refresh steps](docs/powerbi.md#refresh).
+The reviewed public [PDF](evidence/m5/nzhem-powerbi-report.pdf) and five
+[screenshots](evidence/m5/README.md) need no Microsoft login. To reproduce the
+Snowflake trial, use [the guarded benchmark guide](docs/snowflake-benchmark.md)
+with a separate trial account; do not resume the warehouse for routine site
+operation.
 
 Place the untouched owner-created LINZ ZIP at
 `.local/data/raw/reference/linz_buildings_export/incoming/lds-nz-building-outlines-all-sources-GPKG.zip`.
@@ -227,7 +247,14 @@ summary outputs. CI validates all Terraform roots; it does not apply them.
 Azure infrastructure is already deployed. Function packages are currently
 published through the owner-authorised Flex Consumption Core Tools path, with
 the build SHA, six triggers, managed-identity host storage and next scheduled
-site-data generation verified after deployment.
+housekeeping heartbeat verified after deployment. The manifest advances only
+when public data changes.
+
+GitHub OIDC plan and deploy workflows exist, but their repository enablement
+variables and required Azure identifiers are not configured. Azure releases
+have therefore used an owner-authorised local MFA session. The
+[OIDC completion proposal](docs/github-oidc-completion.md) is awaiting project
+manager review; CI does not currently deploy to Azure.
 
 Runtime secrets come from local environment variables, Azure Key Vault, or
 Terraform-generated values held in protected remote state and Function app
@@ -238,11 +265,14 @@ drive, UNC, macOS user-home or Linux user-home paths are rejected.
 
 ## Data attribution
 
-- Earthquakes and intensity: GeoNet / Earth Sciences New Zealand, CC BY 3.0 NZ.
-- Shaking Layers Dataset: Earth Sciences New Zealand, DOI 10.21420/J856-2J84.
-- Building outlines: Land Information New Zealand, CC BY 4.0.
-- Census and boundaries: Stats NZ, CC BY 4.0. Counts may be randomly rounded or
-  suppressed for confidentiality.
+- Earthquakes and intensity: [GeoNet / Earth Sciences New Zealand](https://www.geonet.org.nz/policy),
+  CC BY 3.0 NZ.
+- Shaking Layers Dataset: Earth Sciences New Zealand,
+  [DOI 10.21420/J856-2J84](https://doi.org/10.21420/J856-2J84).
+- Building outlines and LDS map tiles: [Toitū Te Whenua LINZ](https://www.linz.govt.nz/products-services/data/linz-data-service),
+  CC BY 4.0, with map attribution on the site.
+- Census population and administrative boundaries: [Stats NZ](https://www.stats.govt.nz/about-us/copyright-and-attribution/),
+  CC BY 4.0. Counts may be randomly rounded or suppressed for confidentiality.
 
 ## Licence
 

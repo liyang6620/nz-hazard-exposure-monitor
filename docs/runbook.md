@@ -1,5 +1,25 @@
 # Operations runbook
 
+## Current deployment and checks
+
+Azure is live on the owner's Azure for Students subscription. GitHub CI builds
+and validates, but the OIDC plan/deploy switches and required repository
+configuration have not been completed. Releases currently use an
+owner-authorised local MFA session and the Flex-supported Functions Core Tools
+path. Do not describe the GitHub workflow as an active deployment mechanism.
+See [the proposed completion](github-oidc-completion.md); any identity-trust
+change requires project-manager review before enabling it.
+
+At each release, record the CI-built SHA, confirm all six Function triggers
+index, confirm the host uses only managed-identity
+`AzureWebJobsStorage__accountName` and `__credential`, and wait for the next
+top-of-hour successful housekeeping request and matching public
+`/data/housekeeping.json`. An unchanged `/data/manifest.json` is expected
+when no event or briefing data changed. Check event catch-up and poison depth
+before closing the deployment record. The website and Mailpit may remain local,
+but local `app` polling and ArcGIS publication must stay off while Azure owns
+those tasks.
+
 ## Approval rule
 
 Terraform plan is read-only and may be run by the implementer. Every apply,
@@ -7,6 +27,11 @@ Azure resource-provider registration, resource creation, paid API call, and
 state migration requires the project manager's approval relayed by the owner.
 
 ## M1 rollout order
+
+This is the approved original provisioning sequence, not a claim that GitHub
+OIDC deployment is active. Bootstrap, guardrails, production and the local
+MFA deployment were completed. The repository configuration in steps 6-7
+remains the reviewed [OIDC proposal](github-oidc-completion.md).
 
 1. Review the seven missing namespaces in `infra/providers`; register only the
    approved set. `Microsoft.Insights` is already registered.
@@ -32,9 +57,9 @@ state migration requires the project manager's approval relayed by the owner.
    workflow files. Never print
    their values in an issue, PR comment, log, screenshot, or repository file.
    `AZURE_GITHUB_PRINCIPAL_ID` is the bootstrap output used by production plans.
-7. Merge the PR only after CI passes. The deployment workflow is manually
-   dispatched from `main`; it builds the locked Function package and React
-   application, deploys both and checks
+7. Merge the PR only after CI passes. Once OIDC is configured and verified,
+   the deployment workflow can be manually dispatched from `main`; it builds
+   the locked Function package and React application, deploys both and checks
    the next scheduled `housekeeping` run. It preserves runtime `data/` and
    `briefings/` in `$web`. The Function writes a small `data/housekeeping.json`
    run record hourly; it publishes a new data generation only when event,
@@ -61,9 +86,10 @@ against the now-populated remote state.
 ## Pre-upgrade stop drill
 
 1. Record current Cost Management, Function status, and `runs` switch state.
-2. In Azure Monitor, use **Test action group** on `ag-nzhem-budget-stop` with the
-   common alert schema. This test is a state-changing operation and is run only
-   inside the approved drill window.
+2. Azure for Students rejected **Test action group** for the budget alert with
+   HTTP 409. Do not retry it as an ordinary validation step. In a separately
+   approved, attended window, use the reviewed direct-webhook test or a new
+   temporary budget plan if an end-to-end natural alert is explicitly required.
 3. Verify a request with a missing or wrong random webhook token is rejected
    before any storage, email or ARM call. Then verify the Action Group test
    request enables the
@@ -111,8 +137,9 @@ not upgrade the subscription or attach a payment method.
 
 ## Event replay and catch-up
 
-The Azure timer runs at `0 0 * * * *` (UTC cron, once per hour). At startup,
-GeoNet FDSN `updatedafter` catches up changes made while the host was offline.
+The Azure timer runs at `0 0 * * * *` (UTC cron, once per hour), with
+`run_on_startup=False`. At its next scheduled execution, GeoNet FDSN
+`updatedafter` catches up changes made while the host was offline.
 Check the `runs` table for successful `housekeeping` rows and the public
 `data/housekeeping.json`; its completion time must advance after a run. The
 `data/manifest.json` generation advances only when site content changes. A new event may
@@ -169,6 +196,17 @@ When enqueueing a valid JSON request from Windows, use the Azure Queue SDK's
 PowerShell passing JSON through `az.cmd --content` can remove quotation marks;
 the 4 Nov TEST-mail rehearsal sent one such malformed message to the poison
 queue. Never requeue an uninspected poison payload.
+
+## Cost check
+
+Query Cost Management `ActualCost` by UTC `UsageDate` and `ServiceName`,
+without printing the subscription scope or access token. Record query time,
+currency, daily totals and service totals in [the cost record](cost.md).
+Billing is delayed; a partial current UTC day or deployment/cleanup day is
+not a stable daily rate. Requery consecutive complete no-deployment days
+before projecting a monthly amount. If that projection exceeds the US$3
+operating target, prepare a reviewed change rather than silently altering
+resources. The independent student spending limit remains the final backstop.
 
 ## Rollback and backup
 
