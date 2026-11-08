@@ -25,7 +25,13 @@ documents the ArcGIS item staying private and under its 125 MiB storage
 allowance, unchanged gold data during a poison drill, and the approved TEST
 mail flow.
 
-Open operating checks are explicitly retained: whether Azure Monitor's real
-failure alert reaches the 163 mailbox, and whether the NZD 1 temporary budget
-naturally invokes the stop Action Group before owner-operated recovery and
-one-resource deletion. They are not represented as completed acceptance.
+The [9 Nov cost query](cost-2026-11-09.md) records NZD 1.141149 in returned
+November actual-cost rows and an observed 5-7 Nov daily average. Deployments
+in those days and incomplete 8 Nov billing prevent a stable-rate conclusion.
+The [M7 comparison](../../docs/platform-comparison.md) passed strict parity;
+per-run metered credits await Snowflake Account Usage.
+
+Open operating checks remain explicit: real Action Group email receipt,
+the natural budget-alert-to-stop path, GitHub OIDC deployment, and a complete
+quiet-period billing average. The NZD 1 temporary drill budget was removed
+on 6 Nov at the owner's request, so it is not waiting to trigger.

@@ -4,7 +4,27 @@ The deployment uses the student subscription's spending limit as the final
 backstop. Three fixed monthly subscription budgets notify the owner; the
 separate budget-stop webhook can stop the Function App. Azure for Students
 rejected the built-in Action Group test notification with HTTP 409 (`Free
-subscription not supported`), so Action Group delivery is not verified.
+subscription not supported`). The direct stop/recovery drill passed, but
+natural budget alert delivery and stop have not been verified.
+
+## Latest actuals and daily rate
+
+A read-only 9 Nov NZDT Cost Management `ActualCost` query returned **NZD
+1.141149** for its November usage-day rows. Storage was NZD 0.984532 and Azure
+Monitor NZD 0.150060; the remaining billed services totalled about NZD
+0.006557. See the [dated query record](../evidence/m8/cost-2026-11-09.md)
+for every day and service. This is delayed, month-to-date billing data, not
+a forecast or the remaining student credit.
+
+The completed 5-7 Nov UTC usage days averaged **NZD 0.120593/day**. Deployment
+and cleanup activity occurred in that window, so a stable-operation actual
+daily average is **not yet verified**. The first complete quiet billing day
+after the 7 Nov release was unavailable at the query time; 8 Nov was partial
+and billing may still catch up. Do not multiply the three-day average by 30
+and call it a steady monthly cost. Requery consecutive quiet full days by
+`UsageDate` and `ServiceName`, record the query time and currency, then
+compare the result with the US$3/month operating target using the applicable
+exchange rate.
 
 | NZ date | Actual month-to-date cost | Currency | Interpretation |
 |---|---:|---|---|
