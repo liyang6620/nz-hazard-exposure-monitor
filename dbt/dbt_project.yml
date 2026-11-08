@@ -28,24 +28,24 @@ seeds:
         sa2_code: varchar
         region_code: varchar
         territorial_authority_code: varchar
-        h3_res8: ubigint
-        h3_res6: ubigint
+        h3_res8: "{{ 'NUMBER(20,0)' if target.type == 'snowflake' else 'ubigint' }}"
+        h3_res6: "{{ 'NUMBER(20,0)' if target.type == 'snowflake' else 'ubigint' }}"
     reference_population:
       +column_types:
         sa1_code: varchar
         land_water: varchar
-        fallback_h3_res8: ubigint
-        fallback_h3_res6: ubigint
+        fallback_h3_res8: "{{ 'NUMBER(20,0)' if target.type == 'snowflake' else 'ubigint' }}"
+        fallback_h3_res6: "{{ 'NUMBER(20,0)' if target.type == 'snowflake' else 'ubigint' }}"
     event_shaking_h3:
       +column_types:
         event_id: varchar
-        h3_res8: ubigint
-        h3_res6: ubigint
+        h3_res8: "{{ 'NUMBER(20,0)' if target.type == 'snowflake' else 'ubigint' }}"
+        h3_res6: "{{ 'NUMBER(20,0)' if target.type == 'snowflake' else 'ubigint' }}"
     event_exposure_cell:
       +column_types:
         event_id: varchar
-        h3_res8: ubigint
-        h3_res6: ubigint
+        h3_res8: "{{ 'NUMBER(20,0)' if target.type == 'snowflake' else 'ubigint' }}"
+        h3_res6: "{{ 'NUMBER(20,0)' if target.type == 'snowflake' else 'ubigint' }}"
         event_building_count: bigint
         event_footprint_area_m2: double
         as_if_today_building_count: bigint

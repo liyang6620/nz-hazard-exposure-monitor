@@ -1,4 +1,4 @@
-"""Timed dbt rebuilds; credit estimates are labelled until metering is available."""
+"""Timed dbt rebuilds; metered per-run credits are attached later."""
 
 from __future__ import annotations
 
@@ -12,9 +12,11 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 try:
+    from .auth import assert_warehouse_guard, suspend_warehouse
     from .env import load_local_env
     from .reconcile import reconcile
 except ImportError:
+    from auth import assert_warehouse_guard, suspend_warehouse
     from env import load_local_env
     from reconcile import reconcile
 
@@ -83,10 +85,7 @@ def execute(mode: str) -> dict[str, object]:
         "started_at_utc": started.isoformat(),
         "completed_at_utc": datetime.now(UTC).isoformat(),
         "elapsed_seconds": round(elapsed, 3),
-        "xs_compute_credit_estimate": round(max(elapsed, 60) / 3600, 6),
-        "credits_status": (
-            "estimate only; replace with Snowflake metered credits after billing delay"
-        ),
+        "credits_status": "Gen2 per-run credits pending delayed Account Usage metering",
         "reconciled_rows": counts,
     }
 
@@ -102,7 +101,11 @@ def main() -> None:
         print("Offline plan only; no Snowflake connection was made")
         return
     OUTPUT.mkdir(parents=True, exist_ok=True)
-    results = [execute("full"), execute("single")]
+    assert_warehouse_guard()
+    try:
+        results = [execute("full"), execute("single")]
+    finally:
+        suspend_warehouse()
     output = OUTPUT / "benchmark-results.json"
     output.write_text(json.dumps(results, indent=2) + "\n", encoding="utf-8")
     print(f"Reconciled both runs; measurements saved to ignored {output}")
