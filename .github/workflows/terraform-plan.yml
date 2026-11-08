@@ -14,7 +14,13 @@ permissions:
 
 jobs:
   production-plan:
-    if: ${{ vars.AZURE_OIDC_ENABLED == 'true' }}
+    if: >-
+      ${{ vars.AZURE_OIDC_ENABLED == 'true' &&
+          ((github.event_name == 'pull_request' &&
+            github.event.pull_request.head.repo.full_name == github.repository &&
+            github.event.pull_request.base.ref == 'main') ||
+           (github.event_name == 'workflow_dispatch' &&
+            github.ref == 'refs/heads/main')) }}
     runs-on: ubuntu-latest
     environment: terraform-plan
     env:

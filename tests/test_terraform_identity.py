@@ -4,16 +4,25 @@ from pathlib import Path
 
 def test_github_oidc_uses_scoped_user_assigned_identity() -> None:
     bootstrap = Path("infra/bootstrap/main.tf").read_text(encoding="utf-8")
+    plan_workflow = Path(".github/workflows/terraform-plan.yml").read_text(encoding="utf-8")
+    deploy_workflow = Path(".github/workflows/deploy.yml").read_text(encoding="utf-8")
     terraform_sources = "\n".join(
         path.read_text(encoding="utf-8") for path in Path("infra").rglob("*.tf")
     )
 
     assert 'resource "azurerm_user_assigned_identity" "github"' in bootstrap
-    assert 'subject                   = "repo:${var.github_repository}:pull_request"' in bootstrap
     assert (
-        'subject                   = "repo:${var.github_repository}:ref:refs/heads/main"'
+        'subject                   = "repo:${var.github_repository}:environment:terraform-plan"'
         in bootstrap
     )
+    assert (
+        'subject                   = "repo:${var.github_repository}:environment:production"'
+        in bootstrap
+    )
+    assert "github.event.pull_request.head.repo.full_name == github.repository" in plan_workflow
+    assert "github.event.pull_request.base.ref == 'main'" in plan_workflow
+    assert "github.ref == 'refs/heads/main'" in plan_workflow
+    assert "github.ref == 'refs/heads/main'" in deploy_workflow
     assert 'role_definition_name = "Contributor"' in bootstrap
     assert 'role_definition_name = "Role Based Access Control Administrator"' in bootstrap
     assert 'condition_version    = "2.0"' in bootstrap

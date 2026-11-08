@@ -128,7 +128,7 @@ resource "azurerm_federated_identity_credential" "github_pull_request" {
   user_assigned_identity_id = azurerm_user_assigned_identity.github.id
   audience                  = ["api://AzureADTokenExchange"]
   issuer                    = "https://token.actions.githubusercontent.com"
-  subject                   = "repo:${var.github_repository}:pull_request"
+  subject                   = "repo:${var.github_repository}:environment:terraform-plan"
 }
 
 resource "azurerm_federated_identity_credential" "github_main" {
@@ -136,7 +136,7 @@ resource "azurerm_federated_identity_credential" "github_main" {
   user_assigned_identity_id = azurerm_user_assigned_identity.github.id
   audience                  = ["api://AzureADTokenExchange"]
   issuer                    = "https://token.actions.githubusercontent.com"
-  subject                   = "repo:${var.github_repository}:ref:refs/heads/main"
+  subject                   = "repo:${var.github_repository}:environment:production"
 }
 
 resource "azurerm_role_assignment" "github_state" {
