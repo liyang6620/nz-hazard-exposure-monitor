@@ -26,12 +26,13 @@ requests, making the missing-housekeeping log alert unreliable.
   `AzureWebJobsStorage__credential=managedidentity` setting. The base
   `AzureWebJobsStorage` connection string must remain absent.
 - Treat the deployment as complete only after the next scheduled request is
-  recorded and `/data/manifest.json` advances. A Running status or successful
-  package upload alone is insufficient.
+  recorded and `/data/housekeeping.json` advances with the deployed SHA.
+  `/data/manifest.json` advances only when public data changes. A Running
+  status or successful package upload alone is insufficient.
 - Keep Request and Exception telemetry unsampled at the Function host. The
   approved fallback sets Application Insights sampling to 100% while retaining
-  its 0.1 GB daily cap. Compare two consecutive scheduled requests to public
-  generations before accepting the execution alert.
+  its 0.1 GB daily cap. Compare two consecutive scheduled requests with the
+  hourly public heartbeat before accepting the execution alert.
 
 ## Consequences
 
@@ -44,5 +45,6 @@ never inferred from the cron expression. The first observed Azure event took
 The missing-housekeeping alert's older Fired instances resolved once hourly
 requests appeared in telemetry. Action Group email delivery remains unverified
 despite a separate Function-failure alert firing and resolving. The NZD 1
-budget's natural stop path remains pending, and actual telemetry cost must be
-read from Cost Management rather than inferred from the sampling percentage.
+drill budget was removed before natural trigger, so that stop path remains
+unverified. Actual telemetry cost must be read from Cost Management rather
+than inferred from the sampling percentage.

@@ -82,6 +82,9 @@ path remains unverified: Azure for Students rejected the built-in Action Group
 test and the owner removed the NZD 1 drill budget to avoid unattended downtime.
 The direct stop/recovery drill passed. Failure-alert inbox delivery remains
 unverified despite the alert firing and a second receiver being configured.
+The [final acceptance ledger](docs/acceptance-checklist.md) marks every
+original section 16 item and C1-C10 constraint as completed, cancelled or
+unverified, with its evidence and remaining boundary.
 
 ## Important limitations
 
