@@ -31,8 +31,9 @@ network endpoints are necessary to stay within the USD 3 monthly ceiling.
   production for an ordinary application failure.
 - Give the Function a custom role containing only `Microsoft.Web/sites/read`
   and `Microsoft.Web/sites/stop/action`, assigned at the one Function App.
-- GitHub uses one user-assigned managed identity with repository-scoped PR and
-  `main` OIDC federated credentials. It has state-container data access plus
+- The original GitHub plan used one user-assigned managed identity with PR and
+  `main` OIDC federated credentials; the retained credentials now use protected
+  GitHub environments. The identity has state-container data access plus
   `Contributor` and `Role Based Access Control Administrator` only on the
   production resource group. It has no subscription role. Repository
   environment gates control when plan and deployment workflows can use it. Its
@@ -60,15 +61,22 @@ take over CI planning and code deployment. If managed-identity federation or
 scoped role assignment is rejected, deployment falls back to owner-run
 `az login`; CI then runs only formatting and validation.
 
-## Implementation status, 9 Nov 2026
+## Final OIDC decision, 10 Nov 2026
 
-The GitHub OIDC workflow files and Azure managed identity exist, but the
-repository enablement variables and required environment secrets are absent.
-The environment-scoped workflow jobs also do not match the originally created
-PR/main federated subjects. Azure deployments therefore still use an
-owner-authorised local MFA session. The
-[completion proposal](../github-oidc-completion.md) requires project-manager
-review before any identity-trust or GitHub setting change.
+GitHub Actions automatically runs tests, checks and builds. Azure deployments
+remain owner-run from a local MFA session. The GitHub managed identity and two
+environment-scoped federated credentials are retained, with subjects matched
+to GitHub's observed immutable-ID format. Both repository switches,
+`AZURE_OIDC_ENABLED` and `AZURE_DEPLOYMENT_ENABLED`, are `false`; neither
+workflow is an active release path. Both environments require owner review,
+and `production` allows only `main`.
+
+An owner-approved read-only workflow passed OIDC login and private state
+initialization, then received HTTP 401 while refreshing the subscription-level
+budget. Granting budget-read permission at subscription scope would expand
+the identity beyond the approved production resource-group and state-container
+roles. The owner declined that expansion and closed the OIDC completion PR.
+No budget-read role was applied. See the [decision record](../github-oidc-completion.md).
 
 The approved secret compromise is explicit: the ACS connection string and
 some sensitive runtime values reside in protected Function application

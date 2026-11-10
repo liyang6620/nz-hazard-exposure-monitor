@@ -14,6 +14,13 @@ User Access Administrator,
 and Role Based Access Control Administrator are outside the allowlist. Both
 role-assignment creation and deletion are constrained.
 
+GitHub's observed default OIDC subject includes immutable numeric IDs after
+the owner and repository names. The two retained federated credentials match
+that format, but GitHub OIDC deployment is deliberately disabled. To check
+bootstrap drift without exposing the IDs, read them from the GitHub repository
+API and pass them as sensitive `TF_VAR_github_owner_id` and
+`TF_VAR_github_repository_id` values. Do not commit either value or a plan.
+
 The custom stop role is created by this owner-run bootstrap rather than by the
 GitHub identity. The production root can assign it but cannot create or modify
 role definitions.

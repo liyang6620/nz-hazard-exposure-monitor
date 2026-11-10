@@ -2,13 +2,12 @@
 
 ## Current deployment and checks
 
-Azure is live on the owner's Azure for Students subscription. GitHub CI builds
-and validates, but the OIDC plan/deploy switches and required repository
-configuration have not been completed. Releases currently use an
+Azure is live on the owner's Azure for Students subscription. GitHub Actions
+automatically tests, checks and builds. The owner decided not to enable OIDC
+planning or deployment: both repository switches are `false`. Releases use an
 owner-authorised local MFA session and the Flex-supported Functions Core Tools
-path. Do not describe the GitHub workflow as an active deployment mechanism.
-See [the proposed completion](github-oidc-completion.md); any identity-trust
-change requires project-manager review before enabling it.
+path. The retained GitHub identity and federated subjects are not an active
+deployment mechanism; see the [final decision](github-oidc-completion.md).
 
 At each release, record the CI-built SHA, confirm all six Function triggers
 index, confirm the host uses only managed-identity
@@ -30,13 +29,14 @@ state migration requires the project manager's approval relayed by the owner.
 
 This is the approved original provisioning sequence, not a claim that GitHub
 OIDC deployment is active. Bootstrap, guardrails, production and the local
-MFA deployment were completed. The repository configuration in steps 6-7
-remains the reviewed [OIDC proposal](github-oidc-completion.md).
+MFA deployment were completed. The proposed OIDC continuation in steps 6-7
+was cancelled by the owner; keep the switches off.
 
 1. Review the seven missing namespaces in `infra/providers`; register only the
    approved set. `Microsoft.Insights` is already registered.
 2. Save, review and apply `infra/bootstrap`. It creates both resource groups,
-   state storage and the GitHub UAMI with PR/main federated credentials. Keep
+   state storage and the GitHub UAMI with environment-scoped federated
+   credentials. Keep
    its local state encrypted and backed up outside GitHub.
 3. Initialize `infra/guardrails` against the new `guardrails.tfstate` backend
    key and apply only its approved new-subscription plan. Never migrate the old
@@ -52,15 +52,16 @@ remains the reviewed [OIDC proposal](github-oidc-completion.md).
    `AzureWebJobsStorage` connection string. The host storage account disables
    shared keys; the Function uses the configured `AzureWebJobsStorage__accountName`
    and `AzureWebJobsStorage__credential=managedidentity` settings instead. The
-   deployment workflow performs this check and removal automatically.
-6. Set the GitHub encrypted secrets and enablement variables listed in the
-   workflow files. Never print
-   their values in an issue, PR comment, log, screenshot, or repository file.
-   `AZURE_GITHUB_PRINCIPAL_ID` is the bootstrap output used by production plans.
-7. Merge the PR only after CI passes. Once OIDC is configured and verified,
-   the deployment workflow can be manually dispatched from `main`; it builds
-   the locked Function package and React application, deploys both and checks
-   the next scheduled `housekeeping` run. It preserves runtime `data/` and
+   inactive deployment workflow contains this check; the local MFA release
+   must perform it before package publication.
+6. Do not enable `AZURE_OIDC_ENABLED` or `AZURE_DEPLOYMENT_ENABLED`. The
+   subscription-level budget read needed for a complete GitHub-hosted plan
+   was declined. Keep encrypted environment values private; their presence
+   does not make the disabled workflows an active deployment path.
+7. Merge a release PR only after CI passes. From the owner's local MFA session,
+   build the locked Function package and React application, deploy both using
+   the reviewed local procedure, and check the next scheduled `housekeeping`
+   run. Preserve runtime `data/` and
    `briefings/` in `$web`. The Function writes a small `data/housekeeping.json`
    run record hourly; it publishes a new data generation only when event,
    briefing or other site data changes. The Azure timer

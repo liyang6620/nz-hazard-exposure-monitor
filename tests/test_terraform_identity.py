@@ -11,14 +11,10 @@ def test_github_oidc_uses_scoped_user_assigned_identity() -> None:
     )
 
     assert 'resource "azurerm_user_assigned_identity" "github"' in bootstrap
-    assert (
-        'subject                   = "repo:${var.github_repository}:environment:terraform-plan"'
-        in bootstrap
-    )
-    assert (
-        'subject                   = "repo:${var.github_repository}:environment:production"'
-        in bootstrap
-    )
+    assert 'repo:${local.github_subject_repository}:environment:terraform-plan"' in bootstrap
+    assert 'repo:${local.github_subject_repository}:environment:production"' in bootstrap
+    assert "var.github_owner_id" in bootstrap
+    assert "var.github_repository_id" in bootstrap
     assert "github.event.pull_request.head.repo.full_name == github.repository" in plan_workflow
     assert "github.event.pull_request.base.ref == 'main'" in plan_workflow
     assert "github.ref == 'refs/heads/main'" in plan_workflow
