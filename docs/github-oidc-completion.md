@@ -70,3 +70,20 @@ workflow passed OIDC login and state initialization but exposed two missing
 Terraform inputs (`owner_object_id` and `budget_start_date`). The environment
 now holds the needed values without publishing them. Production deployment
 remains disabled until the read-only plan and a reviewed release both pass.
+
+The owner-approved PR #73 run then reached Terraform state refresh and failed
+with HTTP 401 reading the subscription budget. The GitHub identity deliberately
+has no subscription-level role. `AZURE_OIDC_ENABLED` is back to `false` until
+the project manager reviews a narrowly scoped budget-read role or another
+approved design. Do not use `-refresh=false` to conceal the failed read or
+mistake successful state initialization for a completed production plan.
+
+The narrowly scoped proposal is a subscription-level custom role with only
+`Microsoft.Consumption/budgets/read`, assigned to the existing GitHub identity.
+Its read-only bootstrap plan contained exactly two creations: the role
+definition and assignment. It does not alter existing roles, identities,
+resources or network exposure. This is a **new subscription-level permission**
+outside the approved two-subject change, so the project manager must review
+and approve a regenerated plan before apply. A successful Azure login and
+state initialization do not establish that this role alone will clear every
+production resource refresh; rerun the full read-only plan after approval.

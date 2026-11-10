@@ -50,7 +50,26 @@ This record separates configuration from a successful GitHub-hosted release.
   secrets, along with the existing second alert receiver. It sets the Azure
   ArcGIS publisher input to its already deployed `true` state. The budget
   date was normalized to UTC RFC3339 before storing it. A local read-only
-  production plan with the same inputs reported **zero changes**. A complete
-  GitHub-hosted plan remains pending the updated workflow run.
+  production plan with the same inputs reported **zero changes**.
+- The owner approved the [PR #73 GitHub plan run](https://github.com/liyang6620/nz-hazard-exposure-monitor/actions/runs/42729229579).
+  OIDC login and remote state initialization passed. During state refresh,
+  Terraform received HTTP 401 reading the subscription-level
+  `budget-killswitch`. The GitHub identity has no subscription-level budget
+  read role; this is a permission gap, not another subject mismatch. No plan
+  completed and no apply ran. `AZURE_OIDC_ENABLED` was returned to `false`
+  while this scope change is reviewed; the production deployment switch
+  remains unset.
+- Candidate fix for project-manager review: a subscription-scoped custom
+  read-only role limited to `Microsoft.Consumption/budgets/read`, assigned to
+  the existing GitHub managed identity. This would add a role definition and
+  one assignment, with no write permission, new identity or network change.
+  A saved local bootstrap proposal plan was checked: **2 creates, 0 updates,
+  0 deletes**, and no other resource changes. Its SHA-256 is
+  `B11C063C4CFEC2D921E36CA57F1BA9F96763A577115DEE7A49E8B27E2617275C`.
+  The saved plan is ignored and must be regenerated from reviewed source before
+  any eventual apply. This permission change is **not approved or applied**.
+  The broader built-in Cost Management Reader
+  role also includes other Cost Management and Support actions and was not
+  granted. If the narrow role does not resolve the 401, stop and review again.
 - `AZURE_DEPLOYMENT_ENABLED` remains unset. A production deployment and its
   next-hour heartbeat are not yet verified.
