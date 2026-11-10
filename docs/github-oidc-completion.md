@@ -1,23 +1,22 @@
 # GitHub OIDC deployment completion proposal
 
-Status: **proposal for project-manager review; not enabled** (9 Nov 2026 NZDT).
-The live Azure deployment has used an owner-authorised local MFA session.
-GitHub CI validates and builds but does not currently deploy.
+Status: **approved and partly configured; production deployment not yet
+verified** (10 Nov 2026 NZDT). The live Azure deployment has used an
+owner-authorised local MFA session. GitHub CI validates and builds.
 
 ## Verified repository state
 
-- The repository has no `AZURE_OIDC_ENABLED` or
-  `AZURE_DEPLOYMENT_ENABLED` variable. Its only listed repository secret is
+- Before implementation, the repository had no `AZURE_OIDC_ENABLED` or
+  `AZURE_DEPLOYMENT_ENABLED` variable. Its only listed repository secret was
   the browser-scoped LINZ LDS tile key.
-- The `terraform-plan` GitHub environment exists with no required reviewers
-  or branch policy. A `production` environment is not yet configured.
+- Before implementation, the `terraform-plan` environment had no required
+  reviewer and the `production` environment had not been configured.
 - The bootstrap identity has federated subjects for
   `repo:<owner>/<repo>:pull_request` and
   `repo:<owner>/<repo>:ref:refs/heads/main`. Both workflows declare a GitHub
-  environment, which normally changes the OIDC `sub` to
-  `repo:<owner>/<repo>:environment:<environment>`. Those existing subjects
-  therefore do not match the workflow jobs. Enabling the switches alone is
-  insufficient.
+  environment. The observed default GitHub claim also appends immutable
+  numeric IDs to the owner and repository names. Azure must match the exact
+  environment-scoped subject, including those IDs; do not commit them.
 
 ## Proposed configuration, in review order
 
@@ -37,7 +36,7 @@ GitHub CI validates and builds but does not currently deploy.
 
    | Environment | Secret names |
    | --- | --- |
-   | `terraform-plan` | `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`, `AZURE_GITHUB_PRINCIPAL_ID`, `TFSTATE_RESOURCE_GROUP`, `TFSTATE_STORAGE_ACCOUNT`, `NOTIFICATION_EMAIL` |
+   | `terraform-plan` | `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`, `AZURE_GITHUB_PRINCIPAL_ID`, `AZURE_OWNER_OBJECT_ID`, `TFSTATE_RESOURCE_GROUP`, `TFSTATE_STORAGE_ACCOUNT`, `NOTIFICATION_EMAIL`, `FAILURE_ALERT_GMAIL`, `BUDGET_START_DATE` |
    | `production` | `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`, `AZURE_RESOURCE_GROUP`, `AZURE_FUNCTION_APP_NAME`, `AZURE_STORAGE_ACCOUNT`, `LINZ_LDS_TILES_API_KEY` |
 
 4. Only after identity claims, reviewers, branch restrictions and secrets are
@@ -56,6 +55,18 @@ that rule. The LINZ LDS tile key is deliberately browser-readable and therefore
 not a server secret; it is separate from ArcGIS, OpenAI and approval keys.
 Third-party server keys remain in Key Vault or protected runtime settings.
 
-No GitHub setting, identity trust, Azure role, resource or workflow was changed
-by this proposal. If the project manager decides not to enable OIDC, retain
-the present local MFA deployment statement in the README and ADR.
+The production plan workflow must also set
+`TF_VAR_arcgis_publisher_enabled=true` to match the live single-publisher
+handover. Its private owner ID, second alert address and budget start date
+come from the current deployment; omitting them prevents a plan or creates
+misleading drift. The bootstrap's GitHub owner and repository IDs are read
+from the GitHub API as sensitive Terraform inputs.
+
+The first approved read-only workflow reached `azure/login` but failed because
+the federated subjects lacked those immutable IDs. A saved bootstrap plan
+changed only the two subjects, with no role or resource-scope change; owner
+MFA apply and a zero-change follow-up plan completed. The second approved
+workflow passed OIDC login and state initialization but exposed two missing
+Terraform inputs (`owner_object_id` and `budget_start_date`). The environment
+now holds the needed values without publishing them. Production deployment
+remains disabled until the read-only plan and a reviewed release both pass.

@@ -30,8 +30,27 @@ This record separates configuration from a successful GitHub-hosted release.
 ## Workflow verification
 
 - `AZURE_OIDC_ENABLED=true` was set after the branch and reviewer gates were
-  checked. The [read-only plan run](https://github.com/liyang6620/nz-hazard-exposure-monitor/actions/runs/42479175837)
-  is waiting for the owner's `terraform-plan` environment approval. It has not
-  yet demonstrated state access.
+  checked. The first attempt of the [read-only plan run](https://github.com/liyang6620/nz-hazard-exposure-monitor/actions/runs/42479175837)
+  passed the owner's environment gate but failed at `azure/login` with
+  `AADSTS700213`. GitHub's actual default subject included immutable numeric
+  IDs after the owner and repository names; the Azure federated subjects used
+  names alone. No Terraform state access or apply occurred in that attempt.
+- On 10 Nov NZDT, the observed claim was compared with the IDs returned by the
+  GitHub repository API. The strings matched exactly. A new saved bootstrap
+  plan contained only the same two federated credential `subject` updates,
+  adding those IDs while retaining each environment, identity, audience,
+  issuer and role scope. The owner MFA token was rechecked before apply; a
+  post-apply bootstrap plan reported zero changes. The numeric IDs and plan
+  files remain out of the repository and evidence.
+- The owner approved attempt two. `azure/login` and remote production-state
+  initialization both passed, proving the corrected OIDC trust can reach the
+  private backend. The plan step then failed because the workflow omitted the
+  required `owner_object_id` and `budget_start_date` variables; no apply ran.
+- The workflow now supplies those variables from encrypted environment
+  secrets, along with the existing second alert receiver. It sets the Azure
+  ArcGIS publisher input to its already deployed `true` state. The budget
+  date was normalized to UTC RFC3339 before storing it. A local read-only
+  production plan with the same inputs reported **zero changes**. A complete
+  GitHub-hosted plan remains pending the updated workflow run.
 - `AZURE_DEPLOYMENT_ENABLED` remains unset. A production deployment and its
   next-hour heartbeat are not yet verified.

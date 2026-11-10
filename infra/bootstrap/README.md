@@ -31,6 +31,10 @@ No command in this directory may be applied until its saved plan is approved.
 Both GitHub environments require the repository owner's review; `production`
 allows only `main`, and the workflows enforce matching branch and repository
 conditions before requesting OIDC tokens.
+GitHub's default OIDC `sub` includes immutable numeric IDs after the owner and
+repository names. Before planning, read those IDs from the GitHub repository
+API and pass them as sensitive `TF_VAR_github_owner_id` and
+`TF_VAR_github_repository_id` inputs. Do not commit either value or a plan file.
 `Microsoft.Storage` and `Microsoft.ManagedIdentity` must already have been
 approved and registered through `infra/providers`.
 

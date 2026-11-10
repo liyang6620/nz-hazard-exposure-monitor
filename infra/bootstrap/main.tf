@@ -1,6 +1,14 @@
 locals {
   suffix = substr(sha256(var.subscription_id), 0, 8)
 
+  github_subject_repository = format(
+    "%s@%s/%s@%s",
+    split("/", var.github_repository)[0],
+    var.github_owner_id,
+    split("/", var.github_repository)[1],
+    var.github_repository_id,
+  )
+
   delegated_role_names = toset([
     "Cognitive Services OpenAI User",
     "Key Vault Secrets User",
@@ -128,7 +136,7 @@ resource "azurerm_federated_identity_credential" "github_pull_request" {
   user_assigned_identity_id = azurerm_user_assigned_identity.github.id
   audience                  = ["api://AzureADTokenExchange"]
   issuer                    = "https://token.actions.githubusercontent.com"
-  subject                   = "repo:${var.github_repository}:environment:terraform-plan"
+  subject                   = "repo:${local.github_subject_repository}:environment:terraform-plan"
 }
 
 resource "azurerm_federated_identity_credential" "github_main" {
@@ -136,7 +144,7 @@ resource "azurerm_federated_identity_credential" "github_main" {
   user_assigned_identity_id = azurerm_user_assigned_identity.github.id
   audience                  = ["api://AzureADTokenExchange"]
   issuer                    = "https://token.actions.githubusercontent.com"
-  subject                   = "repo:${var.github_repository}:environment:production"
+  subject                   = "repo:${local.github_subject_repository}:environment:production"
 }
 
 resource "azurerm_role_assignment" "github_state" {

@@ -11,18 +11,21 @@ def test_github_oidc_uses_scoped_user_assigned_identity() -> None:
     )
 
     assert 'resource "azurerm_user_assigned_identity" "github"' in bootstrap
-    assert (
-        'subject                   = "repo:${var.github_repository}:environment:terraform-plan"'
-        in bootstrap
-    )
-    assert (
-        'subject                   = "repo:${var.github_repository}:environment:production"'
-        in bootstrap
-    )
+    assert 'repo:${local.github_subject_repository}:environment:terraform-plan"' in bootstrap
+    assert 'repo:${local.github_subject_repository}:environment:production"' in bootstrap
+    assert "var.github_owner_id" in bootstrap
+    assert "var.github_repository_id" in bootstrap
     assert "github.event.pull_request.head.repo.full_name == github.repository" in plan_workflow
     assert "github.event.pull_request.base.ref == 'main'" in plan_workflow
     assert "github.ref == 'refs/heads/main'" in plan_workflow
     assert "github.ref == 'refs/heads/main'" in deploy_workflow
+    for required_input in (
+        "TF_VAR_owner_object_id",
+        "TF_VAR_budget_start_date",
+        "TF_VAR_failure_alert_gmail",
+        "TF_VAR_arcgis_publisher_enabled",
+    ):
+        assert required_input in plan_workflow
     assert 'role_definition_name = "Contributor"' in bootstrap
     assert 'role_definition_name = "Role Based Access Control Administrator"' in bootstrap
     assert 'condition_version    = "2.0"' in bootstrap
