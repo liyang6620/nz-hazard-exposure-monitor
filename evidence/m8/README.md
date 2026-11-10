@@ -31,10 +31,16 @@ in those days and incomplete 8 Nov billing prevent a stable-rate conclusion.
 The [M7 comparison](../../docs/platform-comparison.md) passed strict parity;
 per-run metered credits await Snowflake Account Usage.
 
-Open operating checks remain explicit: real Action Group email receipt,
-the natural budget-alert-to-stop path, GitHub OIDC deployment, and a complete
-quiet-period billing average. The NZD 1 temporary drill budget was removed
-on 6 Nov at the owner's request, so it is not waiting to trigger.
+The known acceptance gaps remain explicit: real Action Group email receipt
+and the natural budget-alert-to-stop path were not verified, while GitHub
+OIDC deployment was intentionally disabled. The NZD 1 temporary drill budget
+was removed on 6 Nov at the owner's request, so it is not waiting to trigger.
+The owner will request a later quiet-period cost check separately.
 The [section 16 acceptance ledger](../../docs/acceptance-checklist.md)
 records these as unverified rather than passed, alongside the accepted
 school-account exception and cancelled video deliverables.
+
+The [10 Nov OIDC closeout](github-oidc-closeout-2026-11-10.md) records the
+owner's decision to keep GitHub-hosted planning and deployment disabled after
+the subscription-budget read failed. GitHub Actions still runs CI; Azure
+releases use the owner's local MFA session.

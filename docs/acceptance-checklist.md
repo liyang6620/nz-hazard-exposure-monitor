@@ -6,6 +6,8 @@ mid-project decisions. **Completed** means the cited scope was observed;
 **Cancelled** means the owner approved removal or an explicit exception;
 **Unverified** means evidence is insufficient. A working component does not
 turn a wider unverified requirement into a pass.
+**Not enabled (decided)** means the owner explicitly declined activation;
+it is not a completed acceptance check.
 
 ## Owner-supplied acceptance basis
 
@@ -67,8 +69,10 @@ alert to Action Group to stop chain did not; the owner removed the NZD 1 drill
 budget and the student tier does not support the D19 anomaly alert. C4 has
 accepted exceptions for the ACS connection string and some Function settings,
 the public browser LINZ tile key and a server-side ArcGIS owner-scope key;
-GitHub OIDC deployment remains inactive pending repository configuration and
-deployments use a local MFA session. The web map uses token-free option B.
+GitHub OIDC deployment remains disabled by owner decision after a read-only
+plan hit subscription-budget HTTP 401; the owner declined the additional
+budget-read role. Deployments use a local MFA session. The web map uses
+token-free option B.
 The web frontend, Analyst Workbench, Desktop RLS, realtime processing repair
 and outage record were added and accepted after the original checklist.
 Stable-period actual daily cost and Snowflake per-run metered credits remain
@@ -82,7 +86,7 @@ unverified.
 | 2 | C1-C10 and a bill proving no more than US$3/month; Esri pay-as-you-go always off | **Unverified** | [Actual cost](cost.md) covers only an early, deployment-heavy part of November; no complete stable month or account-level Esri billing attestation. C4 and C9 have approved exceptions or pending work below. |
 | 3 | ArcGIS automatic hosted layer, web map, File Geodatabase, cross-validation, technical explanation and no long-lived Esri browser/repository key | **Completed** | [Azure incremental handover](../evidence/m1-a/owner-assisted-acceptance-2026-11-04.md), [MG geodatabase/cross-validation](../evidence/mg/README.md), [map/credential contract](arcgis-operations.md) and [public map check](../evidence/m1-a/azure-acceptance-2026-11-02.md). The ArcGIS owner-scope key is server-side in Key Vault. |
 | 4 | Production runtime must not depend on GitHub; inspect runtime destinations | **Completed** | [Source/configuration endpoint inventory](runtime-network-inventory.md) lists each application destination class and finds no GitHub processing call. GitHub links are optional user navigation. A packet-level egress capture was not performed. |
-| 5 | No keys in repository/CI; managed identity and OIDC correct | **Unverified** | [CI identifier and frontend-key gates](../.github/workflows/ci.yml) and [managed-identity host check](../evidence/m1-a/analyst-workbench-azure-2026-11-08.md) pass, but [OIDC workflow enablement and matching trust subjects](github-oidc-completion.md) are pending project-manager review. Accepted runtime-setting and browser tile-key compromises are recorded in [ADR 0001](adr/0001-m1-security-and-cost-boundaries.md). |
+| 5 | No keys in repository/CI; managed identity and OIDC correct | **未启用（已决定） / Not enabled (decided)** | [CI identifier and frontend-key gates](../.github/workflows/ci.yml) and [managed-identity host check](../evidence/m1-a/analyst-workbench-azure-2026-11-08.md) pass. [OIDC login and private state initialization](../evidence/m8/github-oidc-closeout-2026-11-10.md) passed, but the full plan received 401 reading a subscription budget. The owner declined a new budget-read role; releases use local MFA. Accepted runtime-setting and browser tile-key compromises are in [ADR 0001](adr/0001-m1-security-and-cost-boundaries.md). |
 | 6 | Protected fixed budgets, D19 anomaly alert, budget stop and automatic stop drill | **Unverified**; D19 alert **Cancelled** | [Guardrails Terraform](../infra/guardrails/main.tf) has `prevent_destroy`; [direct stop/recovery](../evidence/m1-a/azure-acceptance-2026-11-02.md) passed. D19 anomaly alert is unsupported on the student tier. The natural budget alert -> Action Group -> stop path was not tested; the [NZD 1 drill budget was removed](../evidence/m1-a/budget-drill-removal-2026-11-06.md). |
 | 7 | New event reaches gold within one poll period; five-minute configuration test | **Completed** | [Genuine GeoNet event](../evidence/m1-a/azure-acceptance-2026-11-02.md) reached the public site in 32 minutes 9 seconds; the five-minute timer was exercised then restored to hourly. |
 | 8 | Idempotence, fault injection and weekly full-rebuild evidence | **Unverified** | [Azure acceptance](../evidence/m1-a/azure-acceptance-2026-11-02.md) records duplicate-free catch-up and one 37-file exact-hash rebuild rehearsal; [poison exercise](../evidence/m1-a/owner-assisted-acceptance-2026-11-04.md) left gold hashes unchanged. A continuing weekly rebuild has not been observed. |
@@ -103,7 +107,7 @@ unverified.
 | C1 | All cloud cost <= US$3/month | **Unverified** | [Cost Management daily rows](../evidence/m8/cost-2026-11-09.md) are actual NZD charges but not a complete steady month. The 5-7 Nov observed average includes deployments. No US$ monthly pass is inferred. |
 | C2 | GitHub only for code/CI/CD, never a production runtime service | **Completed** | [Runtime endpoint inventory](runtime-network-inventory.md); user-clickable repository links and a GeoNet User-Agent URL do not make processing depend on GitHub. |
 | C3 | Azure Terraform and local Compose share the core and produce consistent results | **Completed** | [Azure/local 56-file parity](../evidence/m1-a/azure-acceptance-2026-11-02.md), [local CI host](../.github/workflows/ci.yml), and [two-host architecture](../README.md#architecture). The separate clean physical-computer installation in item 1 remains unverified. |
-| C4 | No long-lived keys in code/config/CI; OIDC for CI; managed identity; third-party keys only in Key Vault | **Unverified** | Repository/CI key gates and runtime managed identity are in place, but GitHub OIDC deploy is inactive. [ADR 0001](adr/0001-m1-security-and-cost-boundaries.md) records the approved ACS/Function-setting sensitive values, public browser LINZ key and server-side ArcGIS Key Vault key. The original absolute wording has these accepted compromises. |
+| C4 | No long-lived keys in code/config/CI; OIDC for CI; managed identity; third-party keys only in Key Vault | **未启用（已决定） / Not enabled (decided)** | Repository/CI key gates and runtime managed identity are in place. The [owner declined](../evidence/m8/github-oidc-closeout-2026-11-10.md) subscription-level budget-read permission, so OIDC plan/deploy remain off and Azure releases use local MFA. [ADR 0001](adr/0001-m1-security-and-cost-boundaries.md) records the accepted ACS/Function-setting sensitive values, public browser LINZ key and server-side ArcGIS Key Vault key. The original absolute wording is not fully met. |
 | C5 | Source licences and README attribution; no raw data committed | **Completed** | [Source/licence assessment](data-sources.md), [README attribution](../README.md#data-attribution) and ignored raw-source workflow in [ADR 0010](adr/0010-linz-full-export-instead-of-wfs.md). |
 | C6 | No runtime code/extension download | **Completed** | [M0 local extension verification](phase0-findings.md) and [Function package build](../scripts/build_function_package.sh) embed tested DuckDB extensions; the Azure setting points at packaged files. Package construction downloads dependencies before deployment. |
 | C7 | Estimates labelled, figures reproducible, uncertainty marked unverified | **Completed** | [Method](methodology.md), [M7 comparison](platform-comparison.md), [cost record](cost.md) and this ledger distinguish estimates, actuals and gaps. |

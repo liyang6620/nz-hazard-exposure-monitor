@@ -23,6 +23,20 @@ variable "github_repository" {
   default     = "liyang6620/nz-hazard-exposure-monitor"
 }
 
+variable "github_owner_id" {
+  description = "GitHub owner numeric ID in the default OIDC subject; read from the GitHub API."
+  type        = string
+  nullable    = false
+  sensitive   = true
+}
+
+variable "github_repository_id" {
+  description = "GitHub repository numeric ID in the default OIDC subject; read from the GitHub API."
+  type        = string
+  nullable    = false
+  sensitive   = true
+}
+
 variable "owner_object_id" {
   description = "Entra object ID of the owner who operates remote state."
   type        = string

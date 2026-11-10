@@ -253,11 +253,13 @@ the build SHA, six triggers, managed-identity host storage and next scheduled
 housekeeping heartbeat verified after deployment. The manifest advances only
 when public data changes.
 
-GitHub OIDC plan and deploy workflows exist, but their repository enablement
-variables and required Azure identifiers are not configured. Azure releases
-have therefore used an owner-authorised local MFA session. The
-[OIDC completion proposal](docs/github-oidc-completion.md) is awaiting project
-manager review; CI does not currently deploy to Azure.
+GitHub Actions automatically runs tests, checks and builds. Azure releases
+use an owner-authorised local MFA session; CI does not deploy to Azure. The
+GitHub OIDC identity and environment-scoped federation are retained, but
+both plan and deployment switches are disabled by owner decision. A full
+GitHub-hosted Terraform plan would require new subscription-level budget-read
+permission, which the owner chose not to grant. See the
+[OIDC decision](docs/github-oidc-completion.md).
 
 Runtime secrets come from local environment variables, Azure Key Vault, or
 Terraform-generated values held in protected remote state and Function app
