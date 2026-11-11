@@ -35,7 +35,7 @@ jobs:
       TF_VAR_github_principal_id: ${{ secrets.AZURE_GITHUB_PRINCIPAL_ID }}
     steps:
       - uses: actions/checkout@v4
-      - uses: azure/login@v2
+      - uses: azure/login@v3
         if: env.ARM_CLIENT_ID != ''
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
